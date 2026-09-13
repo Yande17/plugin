@@ -1,0 +1,929 @@
+# ============================================================================
+#  W2NSMP - config.yml
+#  Paper 26.2 (Minecraft 26.2)
+#
+#  Semua kode warna memakai '&' (mis. &a hijau, &c merah, &l bold).
+#  Setelah mengubah file ini jalankan:  /w2nsmp reload
+#
+#  Catatan: file ini sudah memuat pengaturan SEMUA fitur yang direncanakan.
+#  Bagian yang ditandai PHASE tertentu baru dipakai server setelah phase tersebut
+#  selesai diimplementasikan (perubahan nilai tidak akan error sebelum itu).
+# ============================================================================
+
+plugin:
+  # Prefix pesan chat. Bisa juga diubah di messages.yml (nilai di sana yang dipakai).
+  prefix: "&8[&bW2NSMP&8] &r"
+  # true = tampilkan log detail (transaksi, dll) ke console.
+  debug: false
+
+# ---------------------------------------------------------------------------
+# Command (PHASE 2)
+# Bila label sudah dipakai plugin lain (mis. EssentialsX menyediakan /balance
+# dan /pay), W2NSMP tetap bisa dipanggil dengan bentuk namespaced:
+#     /w2nsmp:balance   dan   /w2nsmp:pay
+# Set enabled: false bila ingin mematikan command W2NSMP tersebut.
+# ---------------------------------------------------------------------------
+commands:
+  # Bagaimana W2NSMP memperlakukan LABEL POLOS (/sell, /home, /sethome, /delhome,
+  # /rtp, /ah, /top) yang sudah dipakai plugin lain seperti EssentialsX:
+  #
+  #   prefer     -> W2NSMP mengklaim label polos (default sejak PHASE 11).
+  #                 Pemain memakai /sell, /home, /rtp, ... langsung.
+  #                 Command plugin lain TIDAK rusak: EssentialsX tetap bisa dipakai
+  #                 lewat bentuk namespaced /essentials:sell dan seterusnya.
+  #                 Saat startup W2NSMP mencetak daftar label yang diambil alih
+  #                 beserta daftar command yang sebaiknya dimatikan di EssentialsX.
+  #   auto       -> label polos hanya diambil bila masih bebas (perilaku PHASE 1-10).
+  #   namespaced -> W2NSMP hanya memakai /w2nsmp:<nama> + alias khasnya sendiri.
+  #
+  # Catatan: mencabut permission (mis. lewat LuckPerms) TIDAK membebaskan label —
+  # plugin pemilik label tetap menangani commandnya lalu menjawab "no permission".
+  # Untuk benar-benar membebaskan label, matikan command tersebut di plugin aslinya
+  # (EssentialsX: tambahkan ke "disabled-commands" di plugins/Essentials/config.yml).
+  # Laporan siap-tempel bisa dilihat dengan /w2nsmp commands.
+  plain-labels: prefer
+  # Label yang TIDAK pernah diklaim, apa pun mode di atas. /balance dan /pay milik
+  # EssentialsX sengaja dibiarkan (W2NSMP menyediakan /saldo dan /bayar).
+  never-claim:
+    - balance
+    - pay
+  # Dipertahankan untuk kompatibilitas instalasi lama (setara plain-labels: auto).
+  # Bila plain-labels diisi, nilai ini diabaikan.
+  skip-if-conflict: true
+  balance:
+    enabled: true
+  pay:
+    enabled: true
+  # /home /sethome /delhome. Bila EssentialsX sudah memakai label polosnya,
+  # W2NSMP memakai bentuk namespaced /w2nsmp:home dan /w2nsmp:sethome.
+  home:
+    enabled: true
+  # Teleport antar-pemain (PHASE 11 batch 3). Label polos /tpa, /tpahere, /tpaccept,
+  # /tpdeny, /tpacancel juga dimiliki EssentialsX; versi W2NSMP dipakai lewat label polos
+  # (mode plain-labels: prefer) atau /w2nsmp:tpa dan seterusnya.
+  tpa:
+    enabled: true
+  tpahere:
+    enabled: true
+  tpaccept:
+    enabled: true
+  tpdeny:
+    enabled: true
+  tpacancel:
+    enabled: true
+  # Bounty (PHASE 11 batch 3).
+  bounty:
+    enabled: true
+  sethome:
+    enabled: true
+  delhome:
+    enabled: true
+  # /rtp (random teleport). Alias khas W2NSMP: /wild
+  rtp:
+    enabled: true
+  # /top (daftar peringkat, PHASE 9). Alias khas W2NSMP: /peringkat
+  top:
+    enabled: true
+  # /sb (sidebar statistik pribadi, PHASE 9). Alias khas: /scoreboard, /sidebar
+  sb:
+    enabled: true
+  # /skill (level & buff skill, v1.2.0). Alias khas W2NSMP: /skills, /keahlian
+  skill:
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# Economy (PHASE 2)
+# W2NSMP TIDAK membuat ekonomi sendiri. Saldo diambil & diubah lewat Vault,
+# dengan provider ekonomi dari plugin lain (mis. EssentialsX Economy).
+# Bila Vault / provider tidak ada, fitur ekonomi otomatis nonaktif dengan aman.
+# ---------------------------------------------------------------------------
+economy:
+  enabled: true
+  currency-symbol: "$"
+  # Format tampilan uang (PHASE 12):
+  #   short = bentuk singkat -> 1k, 1.5k, 10k, 1M, 1.5M, 1B   (bawaan)
+  #   full  = angka penuh    -> 1,000 / 1,500 / 1,500,000
+  # Bentuk singkat dipakai di scoreboard, nametag, GUI, pesan, dan placeholder uang.
+  # Bentuk penuh tetap tersedia lewat /w2nsmp economy (laporan admin).
+  # PENTING: ini hanya format TAMPILAN - nilai saldo asli (Vault) tidak pernah diubah.
+  money-format: short
+  # Jumlah angka di belakang koma maksimum pada bentuk singkat (0-2).
+  # Nol di belakang koma selalu dibuang: 1250 -> 1.25k, 1500 -> 1.5k, 2000 -> 2k.
+  short-decimals: 2
+  # Jumlah angka di belakang koma pada tampilan angka penuh (0-4). Saldo asli tetap presisi.
+  display-decimals: 0
+  # Pemisah ribuan pada angka penuh: 12500 -> 12,500
+  group-thousands: true
+  balance:
+    # Izinkan /balance <pemain> (tetap butuh izin w2nsmp.balance.others).
+    allow-others: true
+  pay:
+    enabled: true
+    # Jumlah minimum sekali transfer.
+    minimum: 1
+    # Jeda minimum antar /pay dari satu pemain (milidetik) untuk mencegah spam.
+    cooldown-millis: 750
+    # false = penerima harus online (lebih aman dari salah kirim).
+    allow-offline-target: false
+
+# ---------------------------------------------------------------------------
+# SELL GUI (PHASE 3) - daftar harga ada di prices.yml
+# ---------------------------------------------------------------------------
+sell:
+  enabled: true
+  # Batas total nilai satu kali jual? (0 = tanpa batas)
+  max-total-per-transaction: 0
+  # Tampilkan notifikasi hasil penjualan di atas hotbar (action bar)?
+  action-bar: true
+
+# ---------------------------------------------------------------------------
+# HOME (PHASE 4)
+# ---------------------------------------------------------------------------
+home:
+  # Slot gratis untuk setiap pemain (tanpa perlu beli).
+  free-slots: 3
+  # Slot ke-4 dan seterusnya harus dibeli; harga di bawah ini (naik per slot).
+  # Harga ini cocok untuk SMP baru; admin bebas mengubahnya, lalu /w2nsmp reload.
+  prices:
+    4: 5000
+    5: 10000
+    6: 25000
+    7: 50000
+    8: 100000
+  # Slot maksimum yang bisa dimiliki (harus >= slot terbesar pada daftar harga).
+  max-slots: 8
+  # Hitung mundur sebelum teleport (detik). 0 = instan.
+  teleport-delay: 3
+  # Tampilkan hitung mundur teleport di atas hotbar (action bar) selain di chat.
+  teleport-action-bar: true
+  # Minta konfirmasi sebelum menarik uang (beli slot) / menghapus home.
+  confirm-purchase: true
+  confirm-delete: true
+  # Teleport dibatalkan bila pemain bergerak / menerima damage / mati / sedang combat.
+  cancel-on-move: true
+  cancel-on-damage: true
+  cancel-on-death: true
+  cancel-on-combat: true
+
+# ---------------------------------------------------------------------------
+# RTP - random teleport (PHASE 5)
+# ---------------------------------------------------------------------------
+rtp:
+  enabled: true
+  # Dunia tujuan. Titik acak dihitung dari spawn dunia ini.
+  world: world
+  # Jarak minimum & maksimum dari spawn dunia (blok).
+  min-radius: 500
+  max-radius: 10000
+  # Cooldown per pemain (detik), dikunci ke UUID. 0 = tanpa cooldown.
+  cooldown: 60
+  # Hitung mundur sebelum teleport (detik). 0 = instan.
+  teleport-delay: 5
+  # Tampilkan hitung mundur di atas hotbar (action bar) selain di chat.
+  action-bar: true
+  # Teleport dibatalkan bila pemain bergerak / menerima damage / mati.
+  cancel-on-move: true
+  cancel-on-damage: true
+  cancel-on-death: true
+  # Berapa banyak percobaan mencari lokasi aman sebelum menyerah.
+  # Lokasi hanya dipakai bila blok pijakan solid & tidak berbahaya (bukan lava,
+  # air, kaktus, api, magma, snow tipis, bedrock) dan 2 blok di atasnya kosong.
+  max-attempts: 40
+
+# ---------------------------------------------------------------------------
+# COMBAT TAG (PHASE 6)
+# ---------------------------------------------------------------------------
+combat:
+  enabled: true
+  # Lama combat tag (detik), dihitung dari serangan TERAKHIR (serangan berikutnya memperpanjang).
+  duration: 15
+  # Tandai juga penyerang, bukan hanya korban. false = hanya korban yang tidak bisa kabur.
+  tag-on-attack: true
+  # Serangan mob (non-pemain) juga memasang tag. Berguna di server survival;
+  # false = pemain tetap bisa /home saat dikejar zombie.
+  tag-mobs: false
+  # Selama combat: teleport W2NSMP (/home, /rtp) ditolak.
+  block-teleport: true
+  # Teleport yang sedang menghitung mundur dibatalkan begitu tag terpasang.
+  cancel-teleport-on-tag: true
+  # Command yang ditolak selama combat (label tanpa garis miring).
+  # Bentuk namespaced ikut terblokir: /w2nsmp:home terdeteksi sebagai "home".
+  # Nama plugin lain (spawn, warp, tpa, ...) aman dimasukkan walau plugin-nya tidak terpasang.
+  block-commands:
+    - home
+    - sethome
+    - delhome
+    - rtp
+    - wild
+    - spawn
+    - back
+    - tpa
+    - tpahere
+    - tpaccept
+    - warp
+    - ah
+  # Tampilkan sisa waktu combat di atas hotbar (action bar).
+  actionbar: true
+  # Perlakuan saat pemain keluar server dalam keadaan combat (combat log).
+  penalty:
+    enabled: true
+    # KILL  = pemain dianggap mati (hukuman standar server PvP)
+    # NONE  = tidak ada hukuman, hanya dicatat di console
+    mode: KILL
+    # true  = item pemain jatuh seperti mati biasa
+    # false = item pemain dihapus (tidak ada item yang jatuh ke dunia)
+    drop-inventory: true
+    # Umumkan ke seluruh server saat hukuman dijalankan.
+    broadcast: true
+
+# ---------------------------------------------------------------------------
+# AUCTION HOUSE (PHASE 7)
+# ---------------------------------------------------------------------------
+auction:
+  enabled: true
+  # Pajak penjualan dalam persen (dipotong dari hasil penjual, 0-100).
+  tax: 5
+  # Biaya pemasangan listing (0 = gratis). Biaya kembali bila listing gagal disimpan.
+  listing-fee: 0
+  # Listing kedaluwarsa setelah sekian jam; item otomatis masuk kotak penjual (/ah collect).
+  expiration-hours: 48
+  # Jarak pemeriksaan listing kedaluwarsa (detik).
+  expiry-check-seconds: 60
+  # Jumlah listing aktif maksimum per pemain.
+  max-listings: 10
+  # Harga jual minimum & maksimum (maksimum 0 = tanpa batas).
+  min-price: 10
+  max-price: 1000000
+  # true = pemain boleh membeli listing miliknya sendiri (untuk menguji/menarik listing).
+  allow-self-purchase: false
+  # Item yang tidak boleh dijual di auction house.
+  blacklist:
+    - BEDROCK
+    - BARRIER
+    - COMMAND_BLOCK
+    - CHAIN_COMMAND_BLOCK
+    - REPEATING_COMMAND_BLOCK
+    - STRUCTURE_BLOCK
+    - STRUCTURE_VOID
+    - JIGSAW
+    - LIGHT
+    - DEBUG_STICK
+    - BUNDLE
+  # Baris GUI (3-6). Baris terakhir dipakai tombol navigasi.
+  rows: 6
+  # Jumlah listing per halaman (0 = otomatis mengikuti jumlah baris).
+  page-size: 0
+  # Batas jumlah tumpukan item di kotak (mailbox) satu pemain.
+  mailbox-limit: 100
+
+# ---------------------------------------------------------------------------
+# WORTH / HARGA ITEM (PHASE 8)
+# ---------------------------------------------------------------------------
+# Menempelkan lore harga jual (dari prices.yml) pada item supaya pemain tahu
+# nilainya sebelum membuka /sell. Lore yang dipasang plugin SELALU ditandai di
+# NBT item, jadi bisa dilepas kembali tanpa menyentuh lore custom pemain.
+worth:
+  enabled: true
+  # Lore harga pada item di inventory pemain (item asli). BAWAAN: menyala, supaya
+  # pemain langsung tahu nilai jual item tanpa membuka /sell. Ubah ke false bila
+  # server memakai plugin lore lain yang bisa bentrok, atau bila lore hanya ingin
+  # tampil di dalam GUI /sell (sell-gui) saja.
+  inventory-lore: true
+  # Lore tambahan pada item di GUI /sell (item salinan di dalam menu).
+  sell-gui: true
+  # Tampilkan keterangan "tidak bisa dijual" pada item yang tidak ada di prices.yml.
+  show-unsellable: true
+  # Jeda pemeriksaan inventory pemain (detik, minimal 1; 0 = hanya saat login/ambil item/tutup GUI).
+  refresh-seconds: 3
+  # Izinkan pemain mematikan lore untuk dirinya sendiri lewat /harga off (disimpan di worth.yml).
+  personal-toggle: true
+  # true = jangan sentuh item yang sudah punya lore sendiri (mis. item custom/admin).
+  skip-items-with-custom-lore: false
+  # Posisi lore harga: TOP (paling atas) atau BOTTOM (paling bawah, disarankan).
+  lore-position: BOTTOM
+  # Gabungkan kembali tumpukan yang berbeda hanya karena lore harga (PHASE 13).
+  # Lore harga membuat item punya metadata tambahan, jadi item yang baru diambil/dipindahkan tidak
+  # otomatis menyatu dengan tumpukan yang sudah berlore harga. Dengan opsi ini, keduanya disatukan
+  # pada pemeriksaan berikutnya (dalam ~1 tick), tanpa pernah menyatukan tumpukan yang memang
+  # sengaja dipecah pemain (32 + 32) atau item yang benar-benar berbeda.
+  merge-stacks: true
+  # Pengaturan BARIS LORE harga pada item (PHASE 12).
+  lore:
+    # true  = baris "Total <n>x: $..." ikut ditulis ke item.
+    # false = (BAWAAN) item hanya menampilkan HARGA SATUAN.
+    #
+    # Kenapa bawaan false: teks total berubah mengikuti jumlah tumpukan, sehingga
+    # dua tumpukan item yang sama (mis. 64 diamond dan 1 diamond) punya metadata
+    # berbeda dan Minecraft menolak menggabungkannya. Dengan hanya harga satuan,
+    # metadata kedua tumpukan identik dan item tetap bisa stack normal.
+    #
+    # Perhitungan total TIDAK dihilangkan: total dihitung saat transaksi
+    # (jumlah x harga saat itu) dan ditampilkan di GUI /sell dan /harga.
+    show-total: false
+  # Material yang tidak boleh diberi lore harga.
+  blacklist:
+    - BUNDLE
+
+# ---------------------------------------------------------------------------
+# STATISTIK & LEADERBOARD (PHASE 9)
+# ---------------------------------------------------------------------------
+statistics:
+  enabled: true
+  # YAML = statistics.yml, SQLITE = w2nsmp.db (disarankan bila pemain banyak).
+  # Bila driver SQLite tidak tersedia, plugin otomatis memakai YAML + memberi peringatan.
+  storage: YAML
+  # Simpan otomatis setiap X menit (0 = hanya saat shutdown).
+  autosave-minutes: 5
+  # Catat blok yang ditambang & dipasang (per pemain, per UUID).
+  track-blocks: true
+  # Catat waktu bermain (dihitung dari sesi login sampai logout/shutdown).
+  track-playtime: true
+  # Simpan playtime sesi berjalan setiap X detik (0 = hanya saat pemain keluar/shutdown).
+  # Penting agar playtime tidak hilang saat server mati paksa, dan agar angka yang tampil di
+  # sidebar/profil/peringkat selalu mengikuti sesi yang sedang berjalan.
+  playtime-flush-seconds: 60
+  # Saldo tertinggi yang pernah dimiliki tiap pemain (dipakai /profile & kategori /top
+  # "highest money"). Dicatat setiap kali uang berpindah lewat W2NSMP; nilai di bawah ini
+  # menjaring perubahan dari luar (mis. command ekonomi plugin lain).
+  # 0 = hanya mencatat saat transaksi W2NSMP (paling hemat).
+  highest-money-seconds: 60
+
+leaderboard:
+  # Jumlah baris per halaman GUI.
+  entries-per-page: 28
+  # Kategori yang dibuka saat /top dipakai tanpa argumen: money, items-sold, dst.
+  default-category: money
+  # Jumlah baris saat peringkat ditampilkan di chat (dipakai konsol dan /top chat).
+  # /top chat sekarang berhalaman:  /top <kategori> chat <halaman>
+  chat-lines: 10
+  # Umur cache papan peringkat dalam detik. Menghitung peringkat berarti memindai data semua
+  # pemain (dan membaca saldo untuk kategori money), jadi hasilnya dipakai ulang selama umur
+  # ini. Naikkan bila server ramai (mis. 30-60); turunkan ke 5 bila ingin peringkat lebih
+  # segar. Perubahan data lewat /w2nsmp statsreset langsung menyegarkan cache.
+  cache-seconds: 15
+  # Jumlah maksimum pemain yang disimpan per kategori peringkat. Pemain di luar batas ini
+  # dianggap "belum peringkat" (%rank-*% memakai unranked-text di bawah). Batas ini menjaga
+  # biaya penghitungan tetap wajar pada server dengan sangat banyak data pemain.
+  max-entries: 1000
+  # Teks untuk pemain yang belum masuk peringkat (dipakai placeholder %rank-<kategori>%).
+  unranked-text: "-"
+  # Saldo pemain OFFLINE dibaca lewat Vault/Essentials (bisa menyentuh disk) lalu di-cache;
+  # cache disegarkan saat pemain masuk/keluar. Setel ke false bila ekonomi dikelola plugin
+  # lain yang bisa mengubah saldo pemain offline dan Anda ingin peringkat selalu membaca ulang.
+  cache-offline-balance: true
+
+# ---------------------------------------------------------------------------
+# SCOREBOARD (PHASE 9)
+# ---------------------------------------------------------------------------
+scoreboard:
+  enabled: true
+  title: "&b&lSERVER NGAWI"
+  # Interval update (tick). 20 tick = 1 detik.
+  update-ticks: 20
+  # Pemain bisa mematikan sidebar untuk dirinya sendiri lewat /sb (disimpan di scoreboard.yml).
+  personal-toggle: true
+  # -------------------------------------------------------------------------------------------
+  # BENTUK BARIS (PHASE 11) - setiap baris punya nama, jadi pemain bisa mengatur sendiri
+  # lewat /setting (lihat "player-toggle").
+  #
+  #   money:                 # nama baris (dipakai /setting; bebas, tapi sebaiknya dari daftar
+  #     enabled: true        #   nama yang dikenali: money, kills, deaths, playtime, online,
+  #     player-toggle: true  #   bounty, ping, mobs, items-sold, money-earned, homes, combat, ...)
+  #     text:                # teks baris; satu teks = satu baris, daftar = beberapa baris
+  #       - "&fMoney: &a%money%"   # bawaan PHASE 13: label & nilai dalam SATU baris
+  #       # Ingin label di atas dan nilai di baris bawah? tulis daftar dua entri:
+  #       #   - "&fMoney"
+  #       #   - "&a%money%"
+  #
+  #   enabled: false       -> admin menyembunyikan baris ini untuk semua pemain
+  #   player-toggle: false -> pemain TIDAK boleh menyembunyikan baris ini lewat /setting
+  #   text: (tidak diisi)  -> dipakai teks bawaan dari messages.yml (scoreboard.lines.<nama>)
+  #
+  # Bentuk lama juga masih didukung (daftar teks biasa). Nama barisnya ditebak otomatis dari
+  # placeholder pertama, jadi instalasi lama tetap bisa memakai /setting:
+  #   lines:
+  #     - "&fMoney: &a%money%"
+  #
+  # Placeholder: %player% %world% %online% %combat% %money% %kills% %deaths% %mobs% %ping%
+  #   %bounty% %blocks-broken% %blocks-placed% %items-sold% %money-earned% %homes%
+  #   %home-teleports% %rtp% %auction-sold% %auction-bought% %playtime%
+  #   %rank-<kategori>% (mis. %rank-money%, %rank-kills%)
+  #
+  # Catatan teknis: identitas tiap baris di dalam scoreboard memakai kode warna tanpa teks
+  # (§a§r, §b§r, ...), jadi pemain TIDAK pernah melihat penanda internal seperti "w2n1".
+  # -------------------------------------------------------------------------------------------
+  lines:
+    separator-top:
+      enabled: true
+      player-toggle: false
+      text: "&7&m                        "
+    money:
+      enabled: true
+      player-toggle: true
+      text:
+        - "&fMoney: &a%money%"
+    kills:
+      enabled: true
+      player-toggle: true
+      text:
+        - "&fKills: &c%kills%"
+    deaths:
+      enabled: true
+      player-toggle: true
+      text:
+        - "&fDeaths: &c%deaths%"
+    playtime:
+      enabled: true
+      player-toggle: true
+      text:
+        - "&fPlaytime: &b%playtime%"
+    online:
+      enabled: true
+      player-toggle: true
+      text:
+        - "&fOnline: &a%online%"
+    bounty:
+      enabled: true
+      player-toggle: true
+      text:
+        - "&fBounty: &6%bounty%"
+    separator-bottom:
+      enabled: true
+      player-toggle: false
+      text: "&7&m                        "
+
+# ---------------------------------------------------------------------------------------------
+# Kompatibilitas Java & Bedrock (PHASE 10)
+# ---------------------------------------------------------------------------------------------
+compatibility:
+  # Tulis status Geyser/Floodgate + ringkasan desain GUI ke log saat startup.
+  report-on-startup: true
+  # /w2nsmp compat membuka & memeriksa setiap GUI (chest + holder custom) untuk pemain yang memakainya.
+  live-audit: true
+
+# ---------------------------------------------------------------------------------------------
+# Tampilan GUI (PHASE 11)
+# ---------------------------------------------------------------------------
+# Bounty /bounty (PHASE 11 batch 3)
+# Uang bounty dipegang plugin (bukan pemain): pemasang membayar lewat Vault, dan jumlahnya
+# dibayarkan ke pemain yang berhasil membunuh target. Semua kunci data UUID.
+# ---------------------------------------------------------------------------
+bounty:
+  enabled: true
+  # Batas jumlah per pemasangan.
+  minimum: 1000
+  maximum: 10000000
+  # Batas total bounty yang boleh menempel pada satu pemain.
+  max-total: 10000000
+  # Pajak server saat bounty dibayarkan (persen). 0 = tanpa pajak.
+  tax-percent: 0
+  # true = pemain tidak bisa memasang bounty untuk dirinya sendiri.
+  prevent-self: true
+  # Anti-farm: pembunuh yang sama tidak bisa mengambil bounty dari korban yang sama
+  # dalam jangka waktu berikut (detik).
+  prevent-repeated-kills: true
+  repeat-kill-cooldown-seconds: 600
+  # Waktu bermain minimum korban (menit) sebelum bounty-nya bisa diambil. 0 = bebas.
+  # Berguna untuk mencegah akun baru dipakai "mencuci" bounty.
+  min-victim-playtime-minutes: 0
+  # true = pemain dengan alamat IP yang sama tidak bisa saling mengambil bounty (anti alt-account).
+  block-same-ip: true
+  # Bounty dengan jumlah >= nilai ini dipublikasikan ke seluruh server.
+  announce-minimum: 5000
+  # Jumlah entri per halaman di GUI /bounty.
+  page-size: 28
+  # Jumlah cepat yang bisa dipilih di GUI /bounty (klik saja, tanpa mengetik).
+  presets:
+    - 1000
+    - 5000
+    - 10000
+    - 25000
+    - 50000
+    - 100000
+
+# ---------------------------------------------------------------------------
+# Ekonomi dinamis /sell (PHASE 11 batch 3)
+# Harga dasar di prices.yml TIDAK pernah diubah plugin. Yang bergerak hanya pengali harga
+# (multiplier) per material: turun saat item banyak dijual, naik lagi menuju 1.0 seiring waktu.
+# Pengali disimpan di plugins/W2NSMP/dynamic.yml, jadi harga tetap sama setelah restart.
+# ---------------------------------------------------------------------------
+dynamic-economy:
+  enabled: true
+  # Batas pengali harga (0.50 = harga bisa turun sampai separuh, 2.00 = bisa naik sampai dua kali).
+  min-multiplier: 0.50
+  max-multiplier: 2.00
+  # Setiap berapa detik pemulihan harga dijalankan (bukan per tick, bukan per transaksi).
+  update-interval: 60
+  sell-impact:
+    # Penurunan pengali untuk SETIAP unit yang terjual (0.01 = 1% per unit).
+    strength: 0.01
+  # Bagian dari selisih menuju 1.0 yang dipulihkan setiap siklus (0.05 = 5% per siklus).
+  recovery-rate: 0.05
+
+# ---------------------------------------------------------------------------
+# Teleport antar-pemain /tpa (PHASE 11 batch 3)
+# /tpa, /tpahere, /tpaccept, /tpdeny, /tpacancel, dan GUI /tpa.
+# Teleport memakai pending yang sama dengan /home dan /rtp: jeda, batal saat bergerak /
+# menerima damage / mati / terkena combat tag, dan tidak bisa dijalankan dua kali.
+# ---------------------------------------------------------------------------
+tpa:
+  enabled: true
+  # Jeda sebelum teleport benar-benar terjadi (detik). 0 = langsung.
+  teleport-delay: 3
+  # Permintaan yang tidak dijawab akan kedaluwarsa setelah sekian detik.
+  request-timeout-seconds: 30
+  # Jeda minimal antar permintaan dari satu pemain (detik). 0 = tanpa jeda.
+  cooldown-seconds: 5
+  # Anti-spam: jumlah permintaan yang boleh menunggu (per penerima / per pengirim).
+  max-incoming: 5
+  max-outgoing: 5
+  # Pembatalan teleport — sama seperti home & rtp.
+  cancel-on-move: true
+  cancel-on-damage: true
+  cancel-on-death: true
+  # true = pemain yang sedang combat tag tidak boleh memakai /tpa.
+  block-in-combat: true
+  # true = hitung mundur juga tampil di action bar (bisa dimatikan pemain lewat /setting).
+  action-bar: true
+
+# ---------------------------------------------------------------------------------------------
+# Semua tampilan (judul, ukuran, slot, material, filler, bunyi) diatur di plugins/W2NSMP/gui/*.yml:
+#   sell.yml  home.yml  auction.yml  top.yml  confirm.yml  profile.yml  settings.yml
+# Teks (nama & lore tombol) tetap diambil dari messages.yml supaya terjemahan tidak terpecah.
+gui:
+  # false = abaikan seluruh berkas di gui/ dan pakai nilai bawaan kode (berguna saat debugging).
+  enabled: true
+
+# ---------------------------------------------------------------------------------------------
+# Bunyi GUI (PHASE 11)
+# ---------------------------------------------------------------------------------------------
+# Nama bunyi ditulis di gui/*.yml (kunci modern "minecraft:ui.button.click", atau nama lama
+# "UI_BUTTON_CLICK"; "none" = tanpa bunyi).
+sounds:
+  # false = seluruh bunyi GUI dimatikan untuk semua pemain (pemain tetap bisa mematikannya sendiri).
+  enabled: true
+  # Pilihan bawaan untuk pemain yang belum pernah mengubahnya di /setting.
+  default: true
+
+# ---------------------------------------------------------------------------------------------
+# Notifikasi pribadi (PHASE 11)
+# ---------------------------------------------------------------------------------------------
+# Semua nilai di bawah ini adalah pilihan BAWAAN. Pemain dapat mengubahnya sendiri lewat /setting
+# (tersimpan per UUID di plugins/W2NSMP/settings.yml).
+notifications:
+  default: true
+  bounty-default: true
+  auction-default: true
+  tpa-default: true
+
+# ---------------------------------------------------------------------------------------------
+# Teleport (PHASE 11)
+# ---------------------------------------------------------------------------------------------
+teleport:
+  # Bawaan pilihan "hitung mundur teleport" pada /setting.
+  # false = pemain baru tidak melihat hitung mundur (teleport tetap berjeda seperti biasa, hanya
+  # tanpa deretan pesan/action bar).
+  countdown-default: true
+
+# ---------------------------------------------------------------------------------------------
+# Profil & pengaturan pemain (PHASE 11)
+# ---------------------------------------------------------------------------------------------
+profile:
+  # false = /profile menolak dengan pesan jelas (tidak menghapus data apa pun).
+  enabled: true
+setting:
+  enabled: true
+
+# ---------------------------------------------------------------------------------------------
+# Nametag - baris uang di bawah/ samping nama pemain (PHASE 11)
+# ---------------------------------------------------------------------------------------------
+# Dibuat TANPA NMS: memakai satu tim scoreboard milik plugin (w2nmoney) yang dipasang ke pemain.
+# Cara ini bekerja di klien Java maupun Bedrock (Geyser meneruskan prefix/suffix tim) dan tidak
+# menyentuh paket jaringan secara langsung.
+nametag:
+  money:
+    enabled: true
+    # Pilihan bawaan untuk pemain (bisa dimatikan sendiri lewat /setting).
+    default-on: true
+    # Format teks. Placeholder: %balance% (mis. "$1,250"), %player%.
+    format: " &7| &a%balance%"
+    # true = tulis di baris baru di bawah nama (nametag jadi dua baris).
+    new-line: false
+    # true = bila pemain sudah berada di tim lain (mis. prefix rank plugin lain), nametag-nya
+    # tidak disentuh W2NSMP - lebih aman untuk server yang sudah punya plugin nametag/rank.
+    respect-existing-teams: true
+    # Pembaruan berkala (detik). Saldo yang berubah lewat W2NSMP selalu diperbarui seketika;
+    # nilai ini menjaring perubahan dari luar. 0 = hanya saat saldo berubah.
+    update-seconds: 30
+
+# ---------------------------------------------------------------------------
+# SKILL (/skill) - 11 skill dengan level & buff masing-masing (v1.2.0)
+#
+# Data pemain disimpan TERPISAH di plugins/W2NSMP/skills.yml, jadi fitur ini
+# tidak mengubah statistics.yml, w2nsmp.db, atau data fitur lain. Menghapus
+# skills.yml hanya mereset skill ke level 1.
+#
+# Level tidak disimpan, melainkan dihitung dari XP total:
+#     XP untuk naik dari level L ke L+1 = base-xp * L ^ exponent
+# Karena itu mengubah kurva di bawah langsung mengubah level semua pemain
+# (tanpa migrasi data), dan data tidak pernah bisa tidak sinkron dengan config.
+#
+# Buff diterapkan hanya lewat: perhitungan damage pada event, peluang drop
+# tambahan, kecepatan jalan, efek Haste, dan pemulihan darah berkala. Tidak ada
+# fitur lama yang diubah. Bila sebuah API tidak tersedia di versi server, buff
+# itu dimatikan sendiri dan dilaporkan di log (lihat "Skill:" saat startup).
+# ---------------------------------------------------------------------------
+skills:
+  enabled: true
+  # Level tertinggi (bawaan 50; boleh dinaikkan kapan saja tanpa migrasi).
+  max-level: 50
+  # Simpan skills.yml tiap X detik (0 = hanya saat pemain keluar & server stop).
+  save-interval-seconds: 300
+  # Umumkan kenaikan level di chat.
+  notify-level-up: true
+  # Bunyi saat naik level ("none" untuk mematikan).
+  level-up-sound: "minecraft:entity.player.levelup"
+  # Tulis XP yang baru didapat ke action bar (bawaan mati karena bisa berisik).
+  xp-gain-actionbar: false
+  # Kirim pesan saat buff drop/hasil ganda berhasil (bawaan mati).
+  notify-extra-drop: false
+  # Lebar bar kemajuan (jumlah karakter) di chat & GUI.
+  progress-bar-width: 10
+  curve:
+    # Bawaan: level 1->2 butuh 25 XP, level 49->50 butuh ~3.240 XP, total ~72.200 XP untuk
+    # mencapai level 50 pada satu skill. Perkiraan kasar dengan nilai XP bawaan di bawah:
+    #   mining  ~24.000 blok      fighting ~3.400 kill mob      farming ~14.400 panen
+    #   agility ~206.000 blok     endurance ~60 jam online      fishing ~4.000 tangkapan
+    # Naikkan base-xp/exponent untuk grind lebih panjang, atau pakai global-multiplier
+    # (mis. 2.0 saat event server) tanpa mengubah bentuk kurva.
+    base-xp: 25.0
+    exponent: 1.25
+    # Pengali XP global: 2.0 = semua XP dua kali lipat (berguna saat event server).
+    global-multiplier: 1.0
+  buffs:
+    # Matikan semua buff tanpa mematikan level/XP (mis. untuk turnamen PvP adil).
+    enabled: true
+    # Efek Haste dipasang ulang tiap X detik (durasi efek = X + 5 detik).
+    potion-refresh-seconds: 10
+    # Pemulihan darah buff (vitality) & penguatan regen (recovery) diperiksa tiap X detik.
+    heal-interval-seconds: 5
+    # Darah maksimum yang boleh dipulihkan buff (20.0 = 10 heart). Pemain yang max
+    # health-nya lebih tinggi tidak pernah dikurangi: pemulihan berhenti di darah sekarang.
+    heal-cap: 20.0
+  # Kosong = semua world. Isi nama world untuk membatasi XP/buff hanya di world itu.
+  worlds: []
+  # World yang selalu diabaikan (menang atas "worlds"), mis. world event/creative.
+  blacklisted-worlds: []
+  # Game mode yang tidak mendapat XP/buff (dibandingkan dengan nama GameMode server).
+  skip-gamemodes:
+    - CREATIVE
+    - SPECTATOR
+  list:
+    # ------------------------- FIGHTING: damage jarak dekat -------------------------
+    fighting:
+      enabled: true
+      icon: DIAMOND_SWORD
+      slot: 10
+      xp:
+        multiplier: 1.0
+        damage-dealt: 1.0        # XP per 1 poin damage jarak dekat
+        pvp-multiplier: 1.5      # pengali bila korbannya pemain
+        kill-mob: 15.0           # bonus XP tiap mengalahkan mob (pukulan terakhir bukan proyektil)
+        kill-player: 40.0        # bonus XP tiap mengalahkan pemain
+      buff:
+        unlock-level: 1
+        per-level: 0.5           # +0.5% damage per level
+        max: 25.0                # batas +25% pada level tinggi
+    # ------------------------- DEFENSE: tahan damage ---------------------------------
+    defense:
+      enabled: true
+      icon: SHIELD
+      slot: 11
+      xp:
+        multiplier: 1.0
+        damage-taken: 0.8        # XP per 1 poin damage yang diterima
+      buff:
+        unlock-level: 1
+        per-level: 0.4           # -0.4% damage diterima per level
+        max: 20.0                # batas -20%
+    # ------------------------- ARCHERY: proyektil (panah) ----------------------------
+    archery:
+      enabled: true
+      icon: BOW
+      slot: 12
+      xp:
+        multiplier: 1.0
+        damage-dealt: 1.2
+        pvp-multiplier: 1.5
+        kill-mob: 10.0           # hanya bila pukulan terakhir berasal dari proyektil
+        kill-player: 30.0
+      buff:
+        unlock-level: 1
+        per-level: 0.6           # +0.6% damage proyektil per level
+        max: 30.0
+    # ------------------------- AGILITY: kecepatan jalan ------------------------------
+    agility:
+      enabled: true
+      icon: LEATHER_BOOTS
+      slot: 13
+      xp:
+        multiplier: 1.0
+        per-block-travelled: 0.35  # XP per blok yang ditempuh dengan berjalan/berlari
+        min-distance: 0.5          # jarak terkumpul sebelum XP benar-benar dicatat
+      buff:
+        unlock-level: 1
+        per-level: 0.4             # +0.4% kecepatan jalan per level
+        max: 20.0                  # batas +20%
+      # Catatan: kecepatan jalan asli pemain disimpan dan dikembalikan saat skill
+      # dimatikan, pemain keluar, atau plugin dinonaktifkan. Bila plugin lain sudah
+      # mengubah kecepatan itu, W2NSMP tidak menimpanya.
+    # ------------------------- MINING: batu & ore (Haste) ----------------------------
+    mining:
+      enabled: true
+      icon: GOLDEN_PICKAXE
+      slot: 14
+      xp:
+        multiplier: 1.0
+        per-block: 3.0           # XP per blok yang dihancurkan
+      buff:
+        unlock-level: 5          # Haste baru aktif di level 5
+        haste-every-levels: 10   # tiap 10 level di atas unlock -> Haste naik 1 tingkat
+        haste-max-amplifier: 4   # tingkat Haste tertinggi (tampilan: Haste I..IV)
+      blocks:
+        - STONE
+        - COBBLESTONE
+        - DEEPSLATE
+        - COBBLED_DEEPSLATE
+        - GRANITE
+        - DIORITE
+        - ANDESITE
+        - TUFF
+        - CALCITE
+        - DRIPSTONE_BLOCK
+        - TERRACOTTA
+        - NETHERRACK
+        - BLACKSTONE
+        - BASALT
+        - SMOOTH_BASALT
+        - END_STONE
+        - OBSIDIAN
+        - CRYING_OBSIDIAN
+        - ANCIENT_DEBRIS
+        - AMETHYST_BLOCK
+        - BUDDING_AMETHYST
+        - COAL_ORE
+        - DEEPSLATE_COAL_ORE
+        - IRON_ORE
+        - DEEPSLATE_IRON_ORE
+        - COPPER_ORE
+        - DEEPSLATE_COPPER_ORE
+        - GOLD_ORE
+        - DEEPSLATE_GOLD_ORE
+        - REDSTONE_ORE
+        - DEEPSLATE_REDSTONE_ORE
+        - LAPIS_ORE
+        - DEEPSLATE_LAPIS_ORE
+        - EMERALD_ORE
+        - DEEPSLATE_EMERALD_ORE
+        - DIAMOND_ORE
+        - DEEPSLATE_DIAMOND_ORE
+        - NETHER_GOLD_ORE
+        - NETHER_QUARTZ_ORE
+    # ------------------------- WOODCUTTING: kayu (+drop) -----------------------------
+    woodcutting:
+      enabled: true
+      icon: GOLDEN_AXE
+      slot: 15
+      xp:
+        multiplier: 1.0
+        per-block: 4.0
+      buff:
+        unlock-level: 1
+        per-level: 0.4           # +0.4% peluang satu hasil tambahan per level
+        max: 20.0                # batas 20% peluang
+      blocks:
+        - OAK_LOG
+        - SPRUCE_LOG
+        - BIRCH_LOG
+        - JUNGLE_LOG
+        - ACACIA_LOG
+        - DARK_OAK_LOG
+        - MANGROVE_LOG
+        - CHERRY_LOG
+        - PALE_OAK_LOG
+        - CRIMSON_STEM
+        - WARPED_STEM
+        - OAK_WOOD
+        - SPRUCE_WOOD
+        - BIRCH_WOOD
+        - JUNGLE_WOOD
+        - ACACIA_WOOD
+        - DARK_OAK_WOOD
+        - MANGROVE_WOOD
+        - CHERRY_WOOD
+        - PALE_OAK_WOOD
+        - CRIMSON_HYPHAE
+        - WARPED_HYPHAE
+        - BAMBOO_BLOCK
+    # ------------------------- FARMING: panen (+drop) --------------------------------
+    farming:
+      enabled: true
+      icon: WHEAT
+      slot: 16
+      xp:
+        multiplier: 1.0
+        per-block: 5.0
+      buff:
+        unlock-level: 1
+        per-level: 0.5           # +0.5% peluang hasil panen tambahan per level
+        max: 25.0
+      blocks:
+        - WHEAT
+        - CARROTS
+        - POTATOES
+        - BEETROOTS
+        - NETHER_WART
+        - MELON
+        - PUMPKIN
+        - SUGAR_CANE
+        - BAMBOO
+        - COCOA
+        - SWEET_BERRY_BUSH
+        - CACTUS
+        - KELP
+        - KELP_PLANT
+        - SEA_PICKLE
+        - CHORUS_FLOWER
+        - CAVE_VINES
+        - CAVE_VINES_PLANT
+        - TORCHFLOWER_CROP
+        - PITCHER_CROP
+    # ------------------------- FISHING: memancing (+hasil ganda) ---------------------
+    fishing:
+      enabled: true
+      icon: FISHING_ROD
+      slot: 20
+      xp:
+        multiplier: 1.0
+        per-catch: 18.0          # XP tiap tarikan yang menghasilkan ikan/harta
+      buff:
+        unlock-level: 3
+        per-level: 0.5           # +0.5% peluang hasil ganda per level
+        max: 25.0
+      # Skill ini butuh event memancing server. Bila event itu tidak ada di versi
+      # server, hanya fishing yang nonaktif (dilaporkan di log saat startup).
+    # ------------------------- ENDURANCE: daya tahan ---------------------------------
+    endurance:
+      enabled: true
+      icon: COOKED_BEEF
+      slot: 21
+      xp:
+        multiplier: 1.0
+        per-minute-online: 20.0  # XP tiap menit bermain
+      buff:
+        unlock-level: 1
+        per-level: 0.6           # -0.6% damage lingkungan per level
+        max: 30.0
+        # Nama penyebab damage (DamageCause) yang dikurangi buff ini. Ditulis sebagai
+        # teks, jadi nama yang tidak ada di versi server hanya diabaikan.
+        causes:
+          - FALL
+          - FIRE
+          - FIRE_TICK
+          - LAVA
+          - HOT_FLOOR
+          - DROWNING
+          - SUFFOCATION
+          - STARVATION
+          - FREEZE
+          - FLY_INTO_WALL
+          - CRAMMING
+          - DRYOUT
+          - MELTING
+    # ------------------------- VITALITY: pemulihan pasif -----------------------------
+    vitality:
+      enabled: true
+      icon: GOLDEN_APPLE
+      slot: 22
+      xp:
+        multiplier: 1.0
+        damage-survived: 1.0        # XP per poin damage saat bertahan di darah rendah
+        low-health-threshold: 6.0   # "darah rendah" = di bawah 3 heart sesudah damage
+        low-health-multiplier: 2.0  # pengali XP dalam keadaan itu
+      buff:
+        unlock-level: 3
+        heal-per-level: 0.04        # heart dipulihkan tiap interval, per level di atas unlock
+        heal-max: 2.0               # batas 1 heart per pemulihan
+        heal-delay-seconds: 10      # hanya bila X detik terakhir tidak kena damage/combat
+    # ------------------------- RECOVERY: regen diperkuat -----------------------------
+    recovery:
+      enabled: true
+      icon: GLISTERING_MELON_SLICE
+      slot: 23
+      xp:
+        multiplier: 1.0
+        per-heart-regen: 8.0     # XP per heart yang pulih secara alami
+      buff:
+        unlock-level: 3
+        per-level: 0.6           # regen alami diperkuat +0.6% per level
+        max: 30.0

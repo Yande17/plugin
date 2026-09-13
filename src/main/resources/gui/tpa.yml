@@ -1,0 +1,46 @@
+# =============================================================================================
+# Tampilan GUI permintaan teleport antar-pemain /tpa (PHASE 11 batch 3)
+# =============================================================================================
+# Yang diatur di sini hanya TAMPILAN (judul, ukuran, slot, material, pengisi, bunyi).
+# Teksnya tetap diambil dari messages.yml bagian "tpa:" supaya terjemahan tidak terpecah.
+# Menghapus berkas ini = kembali ke nilai bawaan (tata letak di bawah).
+# Setelah mengubah berkas ini jalankan:  /w2nsmp reload
+enabled: true
+title: ""      # kosong = messages.yml (tpa.gui-title); %incoming% %outgoing%
+size: 27       # 3 baris: satu baris permintaan masuk, satu baris permintaan keluar, satu baris tombol
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# Daftar permintaan: satu baris = 9 slot. Baris 1 (slot 0-8) permintaan MASUK,
+# baris 2 (slot 9-17) permintaan KELUAR. Klik entri masuk = terima, klik entri keluar = batalkan.
+incoming-start: 0
+outgoing-start: 9
+
+buttons:
+  accept:
+    slot: 18      # terima permintaan terbaru (satu tombol pasti untuk pemain Bedrock)
+    # material: LIME_DYE
+  deny:
+    slot: 20
+    # material: RED_DYE
+  cancel:
+    slot: 22      # batalkan seluruh permintaan keluar
+    # material: BARRIER
+  refresh:
+    slot: 24
+    # material: COMPASS
+  close:
+    slot: 26
+    # material: BARRIER
+
+sounds:
+  open: "minecraft:ui.button.click"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  notify: "minecraft:block.note_block.pling"   # bunyi saat permintaan teleport diterima
+  volume: 1.0
+  pitch: 1.0

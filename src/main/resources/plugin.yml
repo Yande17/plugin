@@ -1,0 +1,189 @@
+# ============================================================================
+# W2NSMP - plugin.yml (PHASE 1)
+# api-version '26.2' = Paper/Minecraft 26.2 (versi valid: 1.13 - 26.2)
+# Server yang lebih lama dari api-version akan menolak memuat plugin ini.
+# ============================================================================
+name: W2NSMP
+version: '1.2.0'
+main: me.w2n.w2nsmp.W2NSMP
+description: W2NSMP - plugin SMP survival (sell, home, rtp, combat, auction, statistik, skill) untuk Paper 26.2
+authors: [W2N]
+api-version: '26.2'
+load: POSTWORLD
+
+# Dependency WAJIB (server tidak akan start bila hilang): tidak ada.
+# Vault/Geyser/Floodgate/LuckPerms/EssentialsX bersifat OPSIONAL -> softdepend.
+# softdepend hanya mengatur urutan load (plugin mereka di-load lebih dulu bila ada),
+# dan tidak pernah membuat W2NSMP gagal start saat plugin tersebut tidak terpasang.
+softdepend:
+  - Vault
+  - Essentials
+  - LuckPerms
+  - Geyser-Spigot
+  - floodgate
+
+commands:
+  w2nsmp:
+    description: Perintah utama W2NSMP (info, help, version, debug, reload)
+    usage: /<command> [help|version|debug|reload]
+    aliases: [w2n]
+    permission: w2nsmp.use
+    permission-message: '&cAnda tidak memiliki izin untuk perintah ini.'
+  # CATATAN PENTING (anti-timpa command):
+  # Command fitur (balance, pay, sell, home, rtp, ah, harga, top, sb, profile, setting) SENGAJA
+  # tidak dideklarasikan di
+  # sini. Command yang ditulis di plugin.yml membuat Paper mendaftarkan label polosnya, sehingga
+  # W2NSMP bisa menimpa command plugin lain (mis. /balance milik EssentialsX).
+  # Command tersebut didaftarkan saat runtime oleh CommandManager lewat CommandMap dengan prefix
+  # "w2nsmp", sehingga selalu tersedia sebagai /w2nsmp:balance, /w2nsmp:sell, dst. plus alias khas
+  # (/saldo, /bayar, /jual). Label polos (/balance, /pay, /sell) hanya diambil bila memang bebas.
+
+permissions:
+  w2nsmp.use:
+    description: Mengakses informasi dasar plugin (/w2nsmp, /w2nsmp help)
+    default: true
+  w2nsmp.admin:
+    description: Mengakses seluruh fitur admin W2NSMP
+    default: op
+    children:
+      w2nsmp.use: true
+      w2nsmp.reload: true
+      w2nsmp.version: true
+      w2nsmp.debug: true
+      w2nsmp.givehome: true
+      w2nsmp.removehome: true
+      w2nsmp.setprice: true
+      w2nsmp.getprice: true
+      w2nsmp.balance: true
+      w2nsmp.balance.others: true
+      w2nsmp.pay: true
+      w2nsmp.combat.admin: true
+      w2nsmp.auction.admin: true
+      w2nsmp.profile: true
+      w2nsmp.profile.others: true
+      w2nsmp.bounty: true
+      w2nsmp.bounty.admin: true
+      w2nsmp.tpa: true
+      w2nsmp.tpahere: true
+      w2nsmp.tpaccept: true
+      w2nsmp.tpdeny: true
+      w2nsmp.setting: true
+      w2nsmp.settings.admin: true
+      w2nsmp.skill: true
+      w2nsmp.skill.admin: true
+      w2nsmp.economy.admin: true
+  w2nsmp.economy.admin:
+    description: Melihat status ekonomi dinamis (/w2nsmp economy)
+    default: op
+  w2nsmp.balance:
+    description: Melihat saldo sendiri (/balance)
+    default: true
+  w2nsmp.balance.others:
+    description: Melihat saldo pemain lain (/balance <pemain>)
+    default: op
+  w2nsmp.pay:
+    description: Mengirim uang ke pemain lain (/pay)
+    default: true
+  # Permission di bawah ini dipakai mulai PHASE berikutnya dan sudah didaftarkan
+  # sekarang supaya admin LuckPerms bisa menyiapkannya lebih awal.
+  w2nsmp.reload:
+    description: Reload config.yml, messages.yml, prices.yml
+    default: op
+  w2nsmp.version:
+    description: Melihat versi plugin dan lingkungan server
+    default: op
+  w2nsmp.debug:
+    description: Diagnostik plugin (hook, performa, data)
+    default: op
+  w2nsmp.givehome:
+    description: Menambah slot home pemain
+    default: op
+  w2nsmp.removehome:
+    description: Mengurangi slot home pemain
+    default: op
+  w2nsmp.setprice:
+    description: Mengubah harga jual item
+    default: op
+  w2nsmp.getprice:
+    description: Melihat harga jual item
+    default: op
+  w2nsmp.sell:
+    description: Menggunakan /sell
+    default: true
+  w2nsmp.home:
+    description: Menggunakan sistem home (/home, /sethome, /delhome)
+    default: true
+  w2nsmp.rtp:
+    description: Menggunakan /rtp
+    default: true
+  w2nsmp.auction:
+    description: Menggunakan /ah
+    default: true
+  w2nsmp.auction.unlimited:
+    description: Tanpa batas jumlah listing di auction house (hati-hati, untuk admin)
+    default: false
+  w2nsmp.auction.admin:
+    description: Diagnostik & pembersihan auction house (/w2nsmp auctioninfo|auctonexpire)
+    default: op
+  w2nsmp.worth:
+    description: Menggunakan /harga (lihat harga jual item)
+    default: true
+  w2nsmp.worth.admin:
+    description: Admin worth (/w2nsmp worthinfo, /w2nsmp worthclear)
+    default: op
+  w2nsmp.top:
+    description: Melihat peringkat pemain (/top, /top <kategori>)
+    default: true
+  w2nsmp.scoreboard:
+    description: Menyalakan/mematikan sidebar statistik untuk dirinya sendiri (/sb)
+    default: true
+  w2nsmp.stats.admin:
+    description: Admin statistik (/w2nsmp statsinfo, /w2nsmp statsreset)
+    default: op
+  # PHASE 11: profil pemain & pengaturan pribadi.
+  w2nsmp.profile:
+    description: Melihat profil sendiri (/profile)
+    default: true
+  w2nsmp.profile.others:
+    description: Melihat profil pemain lain (/profile <pemain>)
+    default: true
+  w2nsmp.bounty:
+    description: Melihat daftar bounty dan memasang bounty (/bounty)
+    default: true
+  w2nsmp.bounty.admin:
+    description: Admin bounty (melihat & menghapus bounty pemain lewat /w2nsmp bounty)
+    default: op
+  w2nsmp.tpa:
+    description: Memakai /tpa dan /tpacancel (GUI permintaan teleport)
+    default: true
+  w2nsmp.tpahere:
+    description: Meminta pemain lain teleport ke lokasi sendiri (/tpahere)
+    default: true
+  w2nsmp.tpaccept:
+    description: Menerima permintaan teleport (/tpaccept)
+    default: true
+  w2nsmp.tpdeny:
+    description: Menolak permintaan teleport (/tpdeny)
+    default: true
+  w2nsmp.setting:
+    description: Mengubah pengaturan pribadi (/setting - sidebar, nametag uang, bunyi, notifikasi)
+    default: true
+  w2nsmp.settings.admin:
+    description: Admin preferensi pemain (/w2nsmp settinginfo)
+    default: op
+  # SKILL (v1.2.0): 11 skill dengan level & buff (/skill).
+  w2nsmp.skill:
+    description: Melihat skill sendiri dan memakai /skill
+    default: true
+  w2nsmp.skill.admin:
+    description: Melihat & mengubah skill pemain lain (/skill info|set|add|reset)
+    default: op
+  w2nsmp.compat:
+    description: Laporan kompatibilitas Java/Bedrock + audit GUI (/w2nsmp compat)
+    default: op
+  w2nsmp.combat.bypass:
+    description: Bypass combat tag (tidak dianjurkan untuk pemain)
+    default: false
+  w2nsmp.combat.admin:
+    description: Melihat & menghapus combat tag pemain (/w2nsmp combatinfo|untag)
+    default: op

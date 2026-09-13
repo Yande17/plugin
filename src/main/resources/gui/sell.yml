@@ -1,0 +1,60 @@
+# =============================================================================================
+# Tampilan GUI /sell (PHASE 11)
+# =============================================================================================
+# Semua nilai di bawah ini OPSIONAL. Bila sebuah kunci tidak ada (atau berkasnya dihapus),
+# plugin memakai nilai bawaannya - jadi menghapus komentar di sini berarti "ikuti pengaturan
+# bawaan", bukan "matikan fitur".
+#
+# Teks (nama & lore tombol) tetap diambil dari messages.yml kecuali Anda menulisnya di sini.
+# Reload tanpa restart: /w2nsmp reload
+# =============================================================================================
+
+# false = GUI ini dimatikan (perintahnya tetap ada, hanya menolak dengan pesan jelas).
+enabled: true
+
+# Judul inventory. Kosong = pakai messages.yml (sell.gui-title).
+# Placeholder yang tersedia: %total% %count%
+title: ""
+
+# Ukuran GUI: kelipatan 9 antara 9-54. 54 = 6 baris (bawaan).
+size: 54
+
+# Baris dekorasi (filler) untuk slot yang tidak dipakai. Nonaktifkan bila ingin slot kosong.
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# ---------------------------------------------------------------------------------------------
+# Tombol. Slot boleh digeser; bila sebuah slot tidak muat dengan "size" di atas, plugin memakai
+# posisi bawaan (baris paling bawah) supaya tombol tidak pernah hilang atau saling menimpa.
+# material: kosong = pakai messages.yml (sell.sell-button-material, dst.)
+# ---------------------------------------------------------------------------------------------
+buttons:
+  total:
+    slot: 48          # bawaan: size - 6
+    # material: PAPER
+    # name: ""
+  sell:
+    slot: 49          # bawaan: size - 5
+    # material: LIME_CONCRETE
+    # name: ""
+    # lore:
+    #   - "&7Klik untuk menjual item yang ada di GUI ini."
+  cancel:
+    slot: 51          # bawaan: size - 3
+    # material: RED_CONCRETE
+    # name: ""
+    # lore:
+    #   - "&7Klik untuk membatalkan dan mengambil item kembali."
+
+# Bunyi. Kunci modern (minecraft:...) atau nama lama (UI_BUTTON_CLICK). "none" = tanpa bunyi.
+# Pemain bisa mematikan bunyinya sendiri lewat /setting; admin bisa mematikannya di config.yml
+# (sounds.enabled).
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

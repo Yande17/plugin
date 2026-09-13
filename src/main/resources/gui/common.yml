@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------------------
+# W2NSMP - GAYA BERSAMA SELURUH GUI  (gui/common.yml)
+# ---------------------------------------------------------------------------
+# Berkas ini adalah "tema" W2NSMP. Semua GUI (sell, home, auction, top, profile,
+# settings, tpa, bounty, confirm) memakai nilai di sini sebagai cadangan, jadi
+# seluruh tampilan tetap seragam walau admin hanya mengubah satu tempat.
+#
+# Aturan pembacaan:
+#   1. nilai di gui/<menu>.yml   (paling spesifik, selalu menang bila diisi)
+#   2. nilai di gui/common.yml   (berkas ini)
+#   3. nilai bawaan plugin       (konstanta di kode / messages.yml)
+#
+# Yang diatur di sini: border, pengisi, label + ikon tombol navigasi, dan bunyi.
+# Judul, ukuran, serta isi tiap GUI tetap diatur di gui/<menu>.yml masing-masing.
+#
+# Menghapus berkas ini = kembali ke nilai bawaan plugin (berkas ditulis ulang
+# otomatis saat startup / /w2nsmp reload).
+# ---------------------------------------------------------------------------
+
+# Border (bingkai luar GUI) - dipakai GUI yang punya ruang kosong di pinggir.
+border:
+  material: BLACK_STAINED_GLASS_PANE
+  name: " "
+
+# Pengisi ruang kosong di dalam GUI.
+filler:
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# Label tombol navigasi. Gaya penulisan dipakai seragam di semua GUI:
+#   back     -> "← Back"
+#   close    -> "✕ Close"
+#   prev     -> "← Previous"
+#   next     -> "Next →"
+#   confirm  -> "✔ Confirm"
+#   cancel   -> "✕ Cancel"
+# Slot TIDAK diatur di sini: setiap GUI punya tata letak sendiri (dan tetap bisa
+# diubah lewat buttons.<nama>.slot di gui/<menu>.yml).
+navigation:
+  back:
+    material: ARROW
+    name: "&f← Back"
+  close:
+    material: BARRIER
+    name: "&f✕ Close"
+  prev:
+    material: SPECTRAL_ARROW
+    name: "&f← Previous"
+  next:
+    material: SPECTRAL_ARROW
+    name: "&fNext →"
+  confirm:
+    material: LIME_CONCRETE
+    name: "&a✔ Confirm"
+  cancel:
+    material: RED_CONCRETE
+    name: "&c✕ Cancel"
+  info:
+    material: BOOK
+    name: "&bInfo"
+
+# Bunyi GUI (nama bunyi Paper/Bukkit, mis. minecraft:ui.button.click).
+sounds:
+  click: minecraft:ui.button.click
+  success: minecraft:entity.experience_orb.pickup
+  error: minecraft:entity.villager.no
+  open: minecraft:block.chest.open
+  close: minecraft:block.chest.close
+  page: minecraft:item.book.page_turn
+  volume: 1.0
+  pitch: 1.0

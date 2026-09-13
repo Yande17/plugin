@@ -1,0 +1,43 @@
+# =============================================================================================
+# Tampilan GUI /setting (PHASE 11)
+# =============================================================================================
+# Semua pilihan pemain diatur dari satu GUI ini: sidebar, baris sidebar, nametag uang, bunyi,
+# notifikasi, dan hitung mundur teleport.
+enabled: true
+title: ""            # kosong = messages.yml (setting.gui-title); %player%
+size: 54
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# Slot tiap pilihan (boleh digeser).
+slots:
+  scoreboard: 10      # sidebar on/off
+  nametag-money: 11   # uang di nametag
+  sounds: 12          # bunyi GUI/aksi
+  notifications: 13   # notifikasi umum
+  teleport-countdown: 14
+  notify-bounty: 15
+  notify-auction: 16
+  notify-tpa: 17
+  line-start: 20      # baris sidebar pertama (money, kills, deaths, ... berurutan)
+  info: 49
+  close: 53
+
+# Material untuk keadaan menyala/mati/dikunci. Kosong = pakai bawaan kelas GUI.
+# Catatan: jangan memakai nama kunci "on"/"off"/"yes"/"no" - YAML membacanya sebagai boolean.
+materials:
+  active: LIME_DYE     # pilihan menyala
+  inactive: GRAY_DYE   # pilihan mati
+  locked: BARRIER      # pilihan yang dikunci admin (player-toggle: false)
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  toggle: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

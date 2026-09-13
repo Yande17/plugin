@@ -1,0 +1,47 @@
+# =============================================================================================
+# Tampilan GUI papan peringkat /top (PHASE 11)
+# =============================================================================================
+# Jumlah baris per halaman tetap diatur di config.yml (leaderboard.entries-per-page), karena
+# nilai itu dipakai juga oleh /top chat.
+enabled: true
+title: ""            # kosong = messages.yml (top.gui-title); %category% %page% %pages%
+categories-title: "" # kosong = messages.yml (top.categories-title)
+# Ukuran daftar peringkat TIDAK diatur di sini: barisnya mengikuti
+# leaderboard.entries-per-page di config.yml (satu baris tambahan dipakai untuk tombol),
+# sehingga jumlah entri per halaman dan tinggi GUI selalu konsisten.
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+buttons:
+  prev:
+    slot: 45         # bawaan: size - 9
+    # material: ARROW
+  back:
+    slot: 47         # bawaan: size - 7 (pemilih kategori)
+    # material: NETHER_STAR
+  info:
+    slot: 49         # bawaan: size - 5 (posisi pemain di peringkat)
+    # material: PLAYER_HEAD
+  close:
+    slot: 51         # bawaan: size - 3
+    # material: BARRIER
+  next:
+    slot: 53         # bawaan: size - 1
+    # material: ARROW
+
+# GUI pemilih kategori (ukuran 27 = 3 baris).
+categories:
+  size: 27
+  back-slot: 18
+  close-slot: 26
+
+sounds:
+  open: "minecraft:ui.button.click"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0
