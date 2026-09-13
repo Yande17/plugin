@@ -208,7 +208,28 @@ server Anda.
 
 ---
 
-## 9. Tanya-jawab singkat
+## 9. Naik versi dari 1.0.0 / 1.1.0
+
+Config server Anda **tidak ditimpa**. Yang terjadi saat upgrade:
+
+- `config.yml` lama (belum punya seksi `skills:`) tetap dipakai; setiap nilai skill diambil
+  dari bawaan di kode (`SkillSettings.applyDefaults`), termasuk daftar blok
+  mining/woodcutting/farming dan daftar `DamageCause` endurance. Pembacaan daftar dijaga
+  `config.isList()`, jadi config lama tidak pernah membuat skill "mati diam-diam".
+  `tools/verify_feature.py` memastikan bawaan di kode identik dengan `config.yml` bawaan.
+- `messages.yml` lama tetap dipakai; kunci `skill.*` yang belum ada di berkas Anda jatuh ke
+  `messages.yml` di dalam JAR (mekanisme `Messages.value()` yang sudah ada sejak 1.0.0),
+  jadi pemain tidak pernah melihat kunci mentah.
+- `gui/skill.yml` belum ada di server Anda → dibuat otomatis dari JAR saat pertama dipakai.
+- `statistics.yml`/`w2nsmp.db`/data lain tidak disentuh; `skills.yml` baru dibuat saat ada
+  XP pertama.
+
+Bila ingin melihat/menyetel semua opsi skill, salin seksi `skills:` dari `config.yml` bawaan
+(ada di dalam JAR) ke config server Anda, lalu `/w2nsmp reload`.
+
+---
+
+## 10. Tanya-jawab singkat
 
 **Apakah statistik/ekonomi/scoreboard berubah?** Tidak. Tidak ada class fitur lain yang
 disunting logikanya, dan `skills.yml` terpisah dari berkas data yang sudah ada.

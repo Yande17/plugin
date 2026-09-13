@@ -1,6 +1,7 @@
 package me.w2n.w2nsmp.skill;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -54,6 +55,8 @@ public final class SkillSettings {
    private int healDelaySeconds = 10;
    private Set<String> causes = Set.of();
    private Set<Material> blocks = EnumSet.noneOf(Material.class);
+   /** Nama material bawaan (dipakai bila config server lama belum memuat skills.list.<key>.blocks). */
+   private Set<String> defaultBlocks = Set.of();
    private final List<String> unknownMaterials = new ArrayList<>();
    private final List<String> unknownCauses = new ArrayList<>();
 
@@ -102,8 +105,17 @@ public final class SkillSettings {
       settings.healPerLevel = Math.max(0.0D, config.getDouble(path + ".buff.heal-per-level", settings.healPerLevel));
       settings.healMax = Math.max(0.0D, config.getDouble(path + ".buff.heal-max", settings.healMax));
       settings.healDelaySeconds = Math.max(0, config.getInt(path + ".buff.heal-delay-seconds", settings.healDelaySeconds));
-      settings.causes = readStrings(config, path + ".buff.causes");
-      settings.blocks = readMaterials(plugin, config, path + ".blocks", settings.unknownMaterials);
+      // Daftar (list) hanya diambil dari config bila kuncinya memang ada. Pada server yang
+      // naik versi dari config.yml lama (belum punya seksi skills:), kunci ini tidak ada, jadi
+      // nilai bawaan di kode yang dipakai - bukan daftar kosong yang justru mematikan skill.
+      if (config.isList(path + ".buff.causes")) {
+         settings.causes = readStrings(config, path + ".buff.causes");
+      }
+
+      String blocksPath = path + ".blocks";
+      settings.blocks = config.isList(blocksPath)
+         ? resolveMaterials(plugin, config.getStringList(blocksPath), blocksPath, settings.unknownMaterials)
+         : resolveMaterials(plugin, settings.defaultBlocks, blocksPath, settings.unknownMaterials);
       return settings;
    }
 
@@ -142,16 +154,33 @@ public final class SkillSettings {
             this.buffUnlockLevel = 5;
             this.hasteEveryLevels = 10;
             this.hasteMaxAmplifier = 4;
+            this.defaultBlocks = Set.of(
+               "STONE", "COBBLESTONE", "DEEPSLATE", "COBBLED_DEEPSLATE", "GRANITE", "DIORITE", "ANDESITE", "TUFF", "CALCITE", "DRIPSTONE_BLOCK",
+               "TERRACOTTA", "NETHERRACK", "BLACKSTONE", "BASALT", "SMOOTH_BASALT", "END_STONE", "OBSIDIAN", "CRYING_OBSIDIAN", "ANCIENT_DEBRIS",
+               "AMETHYST_BLOCK", "BUDDING_AMETHYST", "COAL_ORE", "DEEPSLATE_COAL_ORE", "IRON_ORE", "DEEPSLATE_IRON_ORE", "COPPER_ORE",
+               "DEEPSLATE_COPPER_ORE", "GOLD_ORE", "DEEPSLATE_GOLD_ORE", "REDSTONE_ORE", "DEEPSLATE_REDSTONE_ORE", "LAPIS_ORE",
+               "DEEPSLATE_LAPIS_ORE", "EMERALD_ORE", "DEEPSLATE_EMERALD_ORE", "DIAMOND_ORE", "DEEPSLATE_DIAMOND_ORE", "NETHER_GOLD_ORE",
+               "NETHER_QUARTZ_ORE"
+            );
          }
          case WOODCUTTING -> {
             this.xpPerBlock = 4.0D;
             this.buffPerLevel = 0.4D;
             this.buffMax = 20.0D;
+            this.defaultBlocks = Set.of(
+               "OAK_LOG", "SPRUCE_LOG", "BIRCH_LOG", "JUNGLE_LOG", "ACACIA_LOG", "DARK_OAK_LOG", "MANGROVE_LOG", "CHERRY_LOG", "PALE_OAK_LOG",
+               "CRIMSON_STEM", "WARPED_STEM", "OAK_WOOD", "SPRUCE_WOOD", "BIRCH_WOOD", "JUNGLE_WOOD", "ACACIA_WOOD", "DARK_OAK_WOOD",
+               "MANGROVE_WOOD", "CHERRY_WOOD", "PALE_OAK_WOOD", "CRIMSON_HYPHAE", "WARPED_HYPHAE", "BAMBOO_BLOCK"
+            );
          }
          case FARMING -> {
             this.xpPerBlock = 5.0D;
             this.buffPerLevel = 0.5D;
             this.buffMax = 25.0D;
+            this.defaultBlocks = Set.of(
+               "WHEAT", "CARROTS", "POTATOES", "BEETROOTS", "NETHER_WART", "MELON", "PUMPKIN", "SUGAR_CANE", "BAMBOO", "COCOA", "SWEET_BERRY_BUSH",
+               "CACTUS", "KELP", "KELP_PLANT", "SEA_PICKLE", "CHORUS_FLOWER", "CAVE_VINES", "CAVE_VINES_PLANT", "TORCHFLOWER_CROP", "PITCHER_CROP"
+            );
          }
          case FISHING -> {
             this.xpPerCatch = 18.0D;
@@ -204,9 +233,8 @@ public final class SkillSettings {
     * Daftar nama material dari config menjadi {@link EnumSet}. Nama yang tidak dikenal versi
     * server ini dicatat lalu dilewati - bukan membuat plugin gagal dimuat.
     */
-   private static Set<Material> readMaterials(W2NSMP plugin, FileConfiguration config, String path, List<String> unknown) {
-      List<String> names = config.getStringList(path);
-      if (names.isEmpty()) {
+   private static Set<Material> resolveMaterials(W2NSMP plugin, Collection<String> names, String path, List<String> unknown) {
+      if (names == null || names.isEmpty()) {
          return EnumSet.noneOf(Material.class);
       }
 

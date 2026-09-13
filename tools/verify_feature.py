@@ -223,6 +223,40 @@ def main():
         fail(f'placeholder %{token}% dipakai di messages.yml (skill.*) tapi tidak disuplai kode')
     ok(f'{len(tokens) - len(unknown)}/{len(tokens)} placeholder pesan skill disuplai kode')
 
+    # ---- 5d. nilai bawaan di kode harus sama dengan config.yml (jalur upgrade server lama)
+    # Server yang naik versi dengan config.yml lama tidak punya seksi skills:, jadi nilai
+    # bawaan di SkillSettings yang berlaku. Bila keduanya berbeda, admin akan melihat perilaku
+    # yang tidak sama dengan yang tertulis di config.yml bawaan.
+    settings_src = (SRC / 'skill/SkillSettings.java').read_text(encoding='utf-8')
+
+    def java_case_block(case_name):
+        start = settings_src.index(f'case {case_name} -> {{')
+        end = settings_src.index('\n         }', start)
+        return settings_src[start:end]
+
+    for skill in ('mining', 'woodcutting', 'farming'):
+        java_blocks = set(re.findall(r'"([A-Z_]+)"', java_case_block(skill.upper())))
+        yaml_blocks = set(config.get(f'skills.list.{skill}.blocks') or [])
+        if java_blocks != yaml_blocks:
+            fail(f'daftar blok {skill} berbeda: hanya di kode {sorted(java_blocks - yaml_blocks)}, '
+                 f'hanya di config.yml {sorted(yaml_blocks - java_blocks)}')
+    ok('daftar blok bawaan mining/woodcutting/farming identik dengan config.yml')
+
+    java_causes = set(re.findall(r'"([A-Z_]+)"', java_case_block('ENDURANCE')))
+    yaml_causes = set(config.get('skills.list.endurance.buff.causes') or [])
+    if java_causes != yaml_causes:
+        fail(f'DamageCause endurance berbeda: hanya di kode {sorted(java_causes - yaml_causes)}, '
+             f'hanya di config.yml {sorted(yaml_causes - java_causes)}')
+    else:
+        ok(f'DamageCause endurance identik dengan config.yml ({len(yaml_causes)} penyebab)')
+
+    guarded = settings_src.count('config.isList(')
+    if guarded < 2:
+        fail(f'pembacaan list di SkillSettings tidak dijaga config.isList (ditemukan {guarded}) - '
+             'server dengan config lama akan kehilangan daftar blok/penyebab')
+    else:
+        ok(f'{guarded} pembacaan list dijaga config.isList() (aman untuk config.yml lama)')
+
     # ---- 6. permission
     for perm in ('w2nsmp.skill', 'w2nsmp.skill.admin'):
         if 'permissions.' + perm not in plugin_yml:
