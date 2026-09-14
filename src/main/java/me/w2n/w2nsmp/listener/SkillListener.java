@@ -2,7 +2,9 @@ package me.w2n.w2nsmp.listener;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import me.w2n.w2nsmp.W2NSMP;
+import me.w2n.w2nsmp.skill.BuffKind;
 import me.w2n.w2nsmp.skill.SkillService;
 import me.w2n.w2nsmp.skill.SkillSettings;
 import me.w2n.w2nsmp.skill.SkillType;
@@ -162,6 +164,8 @@ public final class SkillListener implements Listener {
          return;
       }
 
+      double vanillaXpBoost = 0.0D;
+
       for (SkillType type : BLOCK_SKILLS) {
          SkillSettings settings = service.settings(type);
          if (!settings.enabled() || !settings.hasBlocks() || !settings.blocks().contains(material)) {
@@ -175,6 +179,35 @@ public final class SkillListener implements Listener {
          if (service.rollChance(player, type)) {
             this.extraBlockDrop(player, block, type, service);
          }
+
+         // Satu blok bisa cocok dengan beberapa skill; buff XP vanilla diambil yang terbesar saja
+         // supaya XP ore tidak pernah digandakan dua kali dalam satu pukulan.
+         vanillaXpBoost = Math.max(vanillaXpBoost, service.buffValue(player, type, BuffKind.VANILLA_XP));
+      }
+
+      if (vanillaXpBoost > 0.0D) {
+         this.boostBlockExp(event, vanillaXpBoost, service);
+      }
+   }
+
+   /** XP vanilla blok (ore) ditambah sekian persen - buff VANILLA_XP milik mining. */
+   private void boostBlockExp(BlockBreakEvent event, double percent, SkillService service) {
+      if (!service.probe().blockExpApi() || !(percent > 0.0D)) {
+         return;
+      }
+
+      try {
+         int base = event.getExpToDrop();
+         if (base <= 0) {
+            return;
+         }
+
+         int extra = (int) Math.round((double) base * percent / 100.0D);
+         if (extra > 0) {
+            event.setExpToDrop(base + extra);
+         }
+      } catch (Throwable throwable) {
+         this.plugin.debug("Skill: gagal menambah XP vanilla blok (" + throwable + ").");
       }
    }
 
@@ -320,11 +353,27 @@ public final class SkillListener implements Listener {
       }
 
       double multiplier = service.damageMultiplier(attacker, type);
+      boolean critical = service.rollCrit(attacker, type);
+      if (critical) {
+         multiplier *= service.critMultiplier(attacker, type);
+      }
+
       if (multiplier != 1.0D) {
          try {
             event.setDamage(damage * multiplier);
          } catch (Throwable throwable) {
             this.plugin.debug("Skill: setDamage ditolak server (" + throwable + ").");
+         }
+      }
+
+      if (critical && service.notifyCrit() && this.plugin.messages().has("skill.crit")) {
+         try {
+            attacker.sendActionBar(this.plugin.messages().component("skill.crit",
+               "skill", service.label(type),
+               "damage", SkillService.format(damage * multiplier),
+               "power", SkillService.format((multiplier - 1.0D) * 100.0D)));
+         } catch (Throwable throwable) {
+            this.plugin.debug("Skill: gagal mengirim actionbar critical (" + throwable + ").");
          }
       }
 
@@ -464,6 +513,50 @@ public final class SkillListener implements Listener {
       double amount = entity instanceof Player ? settings.xpKillPlayer() : settings.xpKillMob();
       if (amount > 0.0D) {
          service.addXp(killer, type, amount);
+      }
+
+      if (!(entity instanceof Player)) {
+         this.extraMobLoot(event, killer, type, service);
+      }
+   }
+
+   /**
+    * Buff MOB_LOOT: satu drop mob diduplikasi bila peluang terpenuhi. Drop diambil dari daftar drop
+    * event (bukan dihitung sendiri), jadi plugin lain yang mengubah loot tetap dihormati - kita
+    * hanya menambah satu salinan.
+    */
+   private void extraMobLoot(EntityDeathEvent event, Player killer, SkillType type, SkillService service) {
+      if (!service.probe().mobLootApi() || !service.rollChance(killer, type, BuffKind.MOB_LOOT)) {
+         return;
+      }
+
+      try {
+         List<ItemStack> drops = event.getDrops();
+         if (drops == null || drops.isEmpty()) {
+            return;
+         }
+
+         int index = service.randomIndex(drops.size());
+         if (index < 0) {
+            return;
+         }
+
+         ItemStack source = drops.get(index);
+         if (source == null || source.getType() == null || source.getType().isAir()) {
+            return;
+         }
+
+         ItemStack copy = source.clone();
+         if (copy == null) {
+            return;
+         }
+
+         drops.add(copy);
+         if (service.notifyExtraDrop()) {
+            this.plugin.messages().send(killer, "skill.mob-loot", "skill", service.label(type));
+         }
+      } catch (Throwable throwable) {
+         this.plugin.debug("Skill: gagal menggandakan drop mob " + type.key() + " untuk " + killer.getName() + " (" + throwable + ").");
       }
    }
 }

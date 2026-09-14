@@ -10,11 +10,12 @@ package me.w2n.w2nsmp.skill;
  * <pre>
  *   baris 2 : 10 11 12 13 14 15 16   (fighting .. farming)
  *   baris 3 : 20 21 22 23            (fishing .. recovery)
- *   baris 6 : 49 info | 53 close
+ *   baris 6 : 48 top | 49 info | 53 close
  * </pre>
  */
 public final class SkillMenuSlots {
    public static final int SIZE = 54;
+   public static final int TOP = 48;
    public static final int INFO = 49;
    public static final int CLOSE = 53;
 

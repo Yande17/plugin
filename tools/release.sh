@@ -3,7 +3,8 @@
 #
 # Urutan (gagal di langkah mana pun = rilis dibatalkan):
 #   1. bangkitkan stub API + kompilasi SELURUH proyek dengan ECJ
-#   2. uji logika murni Java (kurva level, profil XP, kunci skill)
+#   2. uji logika Java: kurva level/profil XP, anotasi listener, buff bawaan terkompilasi,
+#      peringkat (/skill top) & kunci slot menu progres
 #   3. verifikasi linkage bytecode (kelas tersentuh <-> kelas asli)
 #   4. verifikasi konsistensi config/messages/plugin.yml/gui dengan kode
 #   5. kemas JAR (class asli dipertahankan, hanya keluarga tersentuh yang diganti)
@@ -14,7 +15,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-VERSION="${1:-1.2.1}"
+VERSION="${1:-1.3.0}"
 JAVA_HOME="${JAVA_HOME:-/home/user/.cache/w2ntools/venv/lib/python3.11/site-packages/jdk4py/java-runtime}"
 ECJ_JAR="${ECJ_JAR:-/home/user/.cache/w2ntools/ecj.jar}"
 VENV_PY="${VENV_PY:-/home/user/.cache/w2ntools/venv/bin/python}"
@@ -37,11 +38,15 @@ TOUCHED=(
   me/w2n/w2nsmp/manager/ListenerManager
   me/w2n/w2nsmp/gui/SkillMenu
   me/w2n/w2nsmp/gui/SkillMenuHolder
+  me/w2n/w2nsmp/gui/SkillProgressMenu
+  me/w2n/w2nsmp/gui/SkillProgressMenuHolder
   me/w2n/w2nsmp/listener/SkillListener
   me/w2n/w2nsmp/listener/SkillFishingListener
   me/w2n/w2nsmp/listener/SkillGuiListener
   me/w2n/w2nsmp/skill/SkillType
   me/w2n/w2nsmp/skill/BuffKind
+  me/w2n/w2nsmp/skill/SkillBuff
+  me/w2n/w2nsmp/skill/SkillTop
   me/w2n/w2nsmp/skill/SkillCurve
   me/w2n/w2nsmp/skill/SkillProfile
   me/w2n/w2nsmp/skill/SkillSettings
@@ -66,6 +71,7 @@ if [ -f tools/selftest/SkillSelfTest.java ]; then
     src/main/java/me/w2n/w2nsmp/skill/SkillProfile.java \
     src/main/java/me/w2n/w2nsmp/skill/SkillType.java \
     src/main/java/me/w2n/w2nsmp/skill/BuffKind.java \
+    src/main/java/me/w2n/w2nsmp/skill/SkillBuff.java \
     tools/selftest/SkillSelfTest.java
   "$JAVA" -cp tools/work/selftest-classes SkillSelfTest | tail -3
 else
@@ -82,6 +88,30 @@ if [ -f tools/selftest/ListenerAnnotationTest.java ]; then
     ListenerAnnotationTest | grep -E "handler [0-9]+:|HASIL|GAGAL" | tail -16
 else
   echo "  (tools/selftest/ListenerAnnotationTest.java tidak ada - dilewati)"
+fi
+
+# 2c. buff bawaan yang TERKOMPILASI harus waras: beberapa buff per skill, milestone bertahap,
+# angka tetap "awal game" di level 50, dan tidak ada pemain kebal karena penumpukan reduksi.
+if [ -f tools/selftest/BuffDefaultsTest.java ]; then
+  "$JAVA" -jar "$ECJ_JAR" -25 -nowarn -encoding UTF-8 -proc:none \
+    -cp tools/work/stubs-classes:tools/work/classes -d tools/work/selftest-classes \
+    tools/selftest/BuffDefaultsTest.java
+  "$JAVA" -cp tools/work/stubs-classes:tools/work/classes:tools/work/selftest-classes \
+    BuffDefaultsTest | grep -E "GAGAL|HASIL|total pengurangan|setiap skill" | tail -12
+else
+  echo "  (tools/selftest/BuffDefaultsTest.java tidak ada - dilewati)"
+fi
+
+# 2d. peringkat (/skill top) & kunci slot menu progres: urutan, pemecah seri, paging, penguraian kunci.
+# Dipakai class hasil kompilasi (sama dengan yang dikemas), stub Bukkit hanya agar kelas termuat.
+if [ -f tools/selftest/SkillTopTest.java ]; then
+  "$JAVA" -jar "$ECJ_JAR" -25 -nowarn -encoding UTF-8 -proc:none \
+    -cp tools/work/stubs-classes:tools/work/classes -d tools/work/selftest-classes \
+    tools/selftest/SkillTopTest.java
+  "$JAVA" -cp tools/work/stubs-classes:tools/work/classes:tools/work/selftest-classes \
+    SkillTopTest | grep -E "GAGAL|HASIL|MAX_LIMIT|seri level|offset" | tail -12
+else
+  echo "  (tools/selftest/SkillTopTest.java tidak ada - dilewati)"
 fi
 
 echo "== [3/6] verifikasi linkage =="

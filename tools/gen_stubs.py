@@ -507,6 +507,14 @@ FORCED_MEMBERS = {
     ],
     'org/bukkit/event/block/BlockBreakEvent': [
         ('getBlock', '()Lorg/bukkit/block/Block;', False),
+        # buff VANILLA_XP (mining): XP vanilla dari ore dibaca lalu dikalikan
+        ('getExpToDrop', '()I', False),
+        ('setExpToDrop', '(I)V', False),
+    ],
+    'org/bukkit/event/entity/EntityDeathEvent': [
+        ('getEntity', '()Lorg/bukkit/entity/LivingEntity;', False),
+        # buff MOB_LOOT (fighting/archery): satu drop mob diduplikasi bila peluang terpenuhi
+        ('getDrops', '()Ljava/util/List;', False),
     ],
     'org/bukkit/entity/Item': [
         ('getItemStack', '()Lorg/bukkit/inventory/ItemStack;', False),

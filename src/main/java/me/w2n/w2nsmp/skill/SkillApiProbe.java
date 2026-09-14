@@ -4,14 +4,20 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import me.w2n.w2nsmp.W2NSMP;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 
 /**
  * Pemeriksa ketersediaan API + jembatan refleksi untuk buff yang bergantung pada API
@@ -40,7 +46,14 @@ public final class SkillApiProbe {
    private boolean blockApi;
    private boolean blockDropsApi;
    private boolean fishingEventApi;
+   private boolean mobLootApi;
+   private boolean blockExpApi;
    private Object hasteType;
+   private Class<?> potionTypeClass;
+   /** Cache kunci efek ("haste", "absorption", ...) -> PotionEffectType (null = tidak ada di server ini). */
+   private final Map<String, Object> potionTypes = new HashMap<>();
+   /** Kunci efek yang diminta config tetapi tidak ada di server ini (untuk /skill check). */
+   private final Set<String> missingPotions = new LinkedHashSet<>();
    private Class<?> potionEffectClass;
    private Constructor<?> potionEffectConstructor;
    private Method addPotionEffect;
@@ -68,6 +81,10 @@ public final class SkillApiProbe {
       this.blockApi = hasMethod(BlockBreakEvent.class, "getBlock");
       this.blockDropsApi = this.blockApi && hasMethod(Block.class, "getDrops");
       this.fishingEventApi = hasClass("org.bukkit.event.player.PlayerFishEvent");
+      this.mobLootApi = hasClass("org.bukkit.event.entity.EntityDeathEvent")
+         && hasMethod(EntityDeathEvent.class, "getDrops");
+      this.blockExpApi = this.blockApi && hasMethod(BlockBreakEvent.class, "getExpToDrop")
+         && hasMethod(BlockBreakEvent.class, "setExpToDrop", int.class);
       if (this.walkSpeedApi) {
          this.setWalkSpeed = method(Player.class, "setWalkSpeed", float.class);
          this.getWalkSpeed = method(Player.class, "getWalkSpeed");
@@ -106,6 +123,14 @@ public final class SkillApiProbe {
          this.notes.add("buff haste (mining) mati: PotionEffectType 'haste' tidak bisa ditemukan di server ini");
       }
 
+      if (!this.mobLootApi) {
+         this.notes.add("buff loot mob (fighting/archery) mati: EntityDeathEvent.getDrops tidak ada");
+      }
+
+      if (!this.blockExpApi) {
+         this.notes.add("buff XP vanilla (mining) mati: BlockBreakEvent.getExpToDrop/setExpToDrop tidak ada");
+      }
+
       if (!this.notes.isEmpty()) {
          this.plugin.getLogger().warning("Skill: beberapa buff/XP dinonaktifkan otomatis karena API server tidak tersedia:");
 
@@ -121,23 +146,57 @@ public final class SkillApiProbe {
    private void probePotion() {
       try {
          Class<?> typeClass = Class.forName("org.bukkit.potion.PotionEffectType");
-         this.hasteType = findPotionType(typeClass, "haste", "HASTE");
-         if (this.hasteType == null) {
-            return;
-         }
-
+         this.potionTypeClass = typeClass;
          this.potionEffectClass = Class.forName("org.bukkit.potion.PotionEffect");
          this.potionEffectConstructor = this.potionEffectClass.getConstructor(typeClass, int.class, int.class, boolean.class, boolean.class);
          this.addPotionEffect = LivingEntity.class.getMethod("addPotionEffect", this.potionEffectClass);
          this.removePotionEffect = LivingEntity.class.getMethod("removePotionEffect", typeClass);
+         this.hasteType = findPotionType(typeClass, "haste", "HASTE");
+         this.potionTypes.put("haste", this.hasteType);
       } catch (Throwable throwable) {
          this.hasteType = null;
+         this.potionTypeClass = null;
          this.potionEffectClass = null;
          this.potionEffectConstructor = null;
          this.addPotionEffect = null;
          this.removePotionEffect = null;
+         this.potionTypes.clear();
          this.plugin.debug("Skill: API potion tidak tersedia (" + throwable + ").");
       }
+   }
+
+   /**
+    * Cari {@code PotionEffectType} untuk kunci efek apa pun ("haste", "regeneration", "absorption",
+    * "slow_falling", ...) memakai cascade yang sama dengan Haste, lalu simpan hasilnya. Mengembalikan
+    * {@code null} bila server versi ini tidak punya efek tersebut - pemanggil cukup melewatinya.
+    */
+   public synchronized Object potionType(String rawKey) {
+      if (rawKey == null || this.potionTypeClass == null) {
+         return null;
+      }
+
+      String key = rawKey.trim().toLowerCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
+      if (key.isEmpty()) {
+         return null;
+      }
+
+      if (this.potionTypes.containsKey(key)) {
+         return this.potionTypes.get(key);
+      }
+
+      Object type = findPotionType(this.potionTypeClass, key, key.toUpperCase(Locale.ROOT));
+      this.potionTypes.put(key, type);
+      if (type == null) {
+         this.missingPotions.add(key);
+         this.plugin.debug("Skill: efek potion '" + key + "' tidak ada di server ini - buff dilewati.");
+      }
+
+      return type;
+   }
+
+   /** Kunci efek yang diminta config tetapi tidak dikenal server ini (kosong bila semuanya ada). */
+   public Set<String> missingPotions() {
+      return Collections.unmodifiableSet(this.missingPotions);
    }
 
    private Object findPotionType(Class<?> typeClass, String key, String constantName) {
@@ -195,36 +254,52 @@ public final class SkillApiProbe {
       }
    }
 
-   /** Pasang Haste. Mengembalikan false bila API potion tidak tersedia (buff dilewati diam-diam). */
-   public boolean applyHaste(Player player, int amplifier, int seconds) {
-      if (player == null || this.hasteType == null || this.potionEffectConstructor == null || this.addPotionEffect == null || amplifier < 0) {
+   /**
+    * Pasang efek potion apa pun (Haste, Regeneration, Absorption, ...) selama {@code seconds}.
+    * Mengembalikan false bila API potion tidak tersedia atau efek itu tidak ada di server ini -
+    * buff dilewati diam-diam, tidak pernah melempar exception ke server.
+    */
+   public boolean applyPotion(Player player, String key, int amplifier, int seconds) {
+      Object type = this.potionType(key);
+      if (player == null || type == null || this.potionEffectConstructor == null || this.addPotionEffect == null || amplifier < 0) {
          return false;
       }
 
       try {
-         Object effect = this.potionEffectConstructor.newInstance(this.hasteType, Math.max(20, seconds * 20), amplifier, Boolean.TRUE, Boolean.FALSE);
+         Object effect = this.potionEffectConstructor.newInstance(type, Math.max(20, seconds * 20), amplifier, Boolean.TRUE, Boolean.FALSE);
          this.addPotionEffect.invoke(player, effect);
          return true;
       } catch (Throwable throwable) {
-         this.plugin.debug("Skill: gagal memasang haste untuk " + player.getName() + " (" + throwable + ").");
-         this.hasteType = null;
+         this.plugin.debug("Skill: gagal memasang efek '" + key + "' untuk " + player.getName() + " (" + throwable + ").");
+         this.potionTypes.put(key.trim().toLowerCase(Locale.ROOT), null);
          return false;
       }
    }
 
-   /** Hapus Haste (dipakai saat skill dimatikan, reload, atau plugin disable). */
-   public boolean removeHaste(Player player) {
-      if (player == null || this.hasteType == null || this.removePotionEffect == null) {
+   /** Hapus efek potion (dipakai saat skill dimatikan, buff turun tingkat, reload, atau disable). */
+   public boolean removePotion(Player player, String key) {
+      Object type = this.potionType(key);
+      if (player == null || type == null || this.removePotionEffect == null) {
          return false;
       }
 
       try {
-         this.removePotionEffect.invoke(player, this.hasteType);
+         this.removePotionEffect.invoke(player, type);
          return true;
       } catch (Throwable throwable) {
-         this.plugin.debug("Skill: gagal menghapus haste " + player.getName() + " (" + throwable + ").");
+         this.plugin.debug("Skill: gagal menghapus efek '" + key + "' " + player.getName() + " (" + throwable + ").");
          return false;
       }
+   }
+
+   /** Pasang Haste. Mengembalikan false bila API potion tidak tersedia (buff dilewati diam-diam). */
+   public boolean applyHaste(Player player, int amplifier, int seconds) {
+      return this.applyPotion(player, "haste", amplifier, seconds);
+   }
+
+   /** Hapus Haste (dipakai saat skill dimatikan, reload, atau plugin disable). */
+   public boolean removeHaste(Player player) {
+      return this.removePotion(player, "haste");
    }
 
    public float walkSpeed(Player player) {
@@ -282,7 +357,23 @@ public final class SkillApiProbe {
       return this.fishingEventApi;
    }
 
+   /** Apakah mesin efek potion (constructor + add/remove) tersedia di server ini. */
+   /** Apakah daftar drop kematian mob bisa dibaca/diubah (buff MOB_LOOT). */
+   public boolean mobLootApi() {
+      return this.mobLootApi;
+   }
+
+   /** Apakah XP vanilla dari block bisa diubah (buff VANILLA_XP mining). */
+   public boolean blockExpApi() {
+      return this.blockExpApi;
+   }
+
    public boolean potionApi() {
+      return this.potionEffectConstructor != null && this.addPotionEffect != null;
+   }
+
+   /** Apakah efek Haste khusus bisa dipakai (buff mining). */
+   public boolean hasteApi() {
       return this.hasteType != null;
    }
 
@@ -307,7 +398,11 @@ public final class SkillApiProbe {
          + " fishing="
          + yesNo(this.fishingEventApi)
          + " potion="
-         + yesNo(this.potionApi());
+         + yesNo(this.potionApi())
+         + " mobloot="
+         + yesNo(this.mobLootApi)
+         + " blockexp="
+         + yesNo(this.blockExpApi);
    }
 
    private static String yesNo(boolean value) {

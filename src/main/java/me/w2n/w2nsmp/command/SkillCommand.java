@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
  * /skill                              GUI skill (pemain) / bantuan (konsol)
  * /skill &lt;nama-skill&gt;                 detail satu skill milik sendiri
  * /skill list                         ringkasan semua skill milik sendiri
+ * /skill top [skill]                  peringkat total skill / satu skill
  * /skill help                         bantuan
  * /skill check                        diagnostik fitur (listener, buff, uji XP)
  * /skill info &lt;pemain&gt; [skill]        lihat skill pemain lain        (w2nsmp.skill.admin)
@@ -93,6 +94,11 @@ public final class SkillCommand implements TabExecutor {
          case "daftar":
             this.sendOwnSummary(sender);
             break;
+         case "top":
+         case "peringkat":
+         case "ranking":
+            this.sendTop(sender, args);
+            break;
          case "info":
          case "lihat":
             this.sendOther(sender, args);
@@ -123,6 +129,26 @@ public final class SkillCommand implements TabExecutor {
       }
 
       SkillInfo.sendSummary(this.plugin, sender, player);
+   }
+
+   /** Peringkat skill: {@code /skill top} (total semua skill) atau {@code /skill top <skill>}. */
+   private void sendTop(CommandSender sender, String[] args) {
+      SkillType type = null;
+      if (args.length > 1) {
+         type = SkillType.fromKey(args[1]);
+         if (type == null) {
+            this.plugin.messages().send(sender, "skill.unknown-skill", "input", args[1], "list", String.join(", ", SkillType.keys()));
+            return;
+         }
+
+         SkillService service = this.plugin.skills();
+         if (service != null && !service.settings(type).enabled()) {
+            this.plugin.messages().send(sender, "skill.skill-disabled", "skill", service.label(type));
+            return;
+         }
+      }
+
+      SkillInfo.sendTop(this.plugin, sender, type);
    }
 
    private void sendOwnDetail(CommandSender sender, String rawSkill) {
@@ -370,6 +396,7 @@ public final class SkillCommand implements TabExecutor {
       if (args.length <= 1) {
          List<String> options = new ArrayList<>(SkillType.keys());
          options.add("list");
+         options.add("top");
          options.add("help");
          options.add("check");
          options.add("cek");
@@ -387,6 +414,10 @@ public final class SkillCommand implements TabExecutor {
       if (args.length == 2) {
          if (this.isTargetWord(sub)) {
             return admin ? this.playerNames(typed) : List.of();
+         }
+
+         if (this.isTopWord(sub)) {
+            return SkillType.keys().stream().filter(key -> key.startsWith(typed)).toList();
          }
 
          return List.of();
@@ -442,6 +473,13 @@ public final class SkillCommand implements TabExecutor {
       }
 
       return names;
+   }
+
+   private boolean isTopWord(String sub) {
+      return switch (sub) {
+         case "top", "peringkat", "ranking" -> true;
+         default -> false;
+      };
    }
 
    private boolean isCheckWord(String word) {
@@ -533,6 +571,10 @@ public final class SkillCommand implements TabExecutor {
       }
 
       this.plugin.messages().send(sender, "skill.check-api", "api", service.probe().summary());
+      if (!service.probe().missingPotions().isEmpty() && this.plugin.messages().has("skill.check-potions")) {
+         this.plugin.messages().send(sender, "skill.check-potions",
+            "list", String.join(", ", service.probe().missingPotions()));
+      }
       service.diagnostics().inspect();
       this.plugin
          .messages()
@@ -578,6 +620,7 @@ public final class SkillCommand implements TabExecutor {
       this.plugin.messages().send(sender, "skill.help-open", "label", label);
       this.plugin.messages().send(sender, "skill.help-detail", "label", label);
       this.plugin.messages().send(sender, "skill.help-list", "label", label);
+      this.plugin.messages().send(sender, "skill.help-top", "label", label);
       this.plugin.messages().send(sender, "skill.help-check", "label", label);
       if (sender.hasPermission(ADMIN_PERMISSION)) {
          this.plugin.messages().send(sender, "skill.help-info", "label", label);

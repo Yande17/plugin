@@ -617,7 +617,7 @@ nametag:
     update-seconds: 30
 
 # ---------------------------------------------------------------------------
-# SKILL (/skill) - 11 skill dengan level & buff masing-masing (v1.2.0)
+# SKILL (/skill) - 11 skill, tiap skill punya beberapa buff bertahap (v1.3.0)
 #
 # Data pemain disimpan TERPISAH di plugins/W2NSMP/skills.yml, jadi fitur ini
 # tidak mengubah statistics.yml, w2nsmp.db, atau data fitur lain. Menghapus
@@ -628,10 +628,11 @@ nametag:
 # Karena itu mengubah kurva di bawah langsung mengubah level semua pemain
 # (tanpa migrasi data), dan data tidak pernah bisa tidak sinkron dengan config.
 #
-# Buff diterapkan hanya lewat: perhitungan damage pada event, peluang drop
-# tambahan, kecepatan jalan, efek Haste, dan pemulihan darah berkala. Tidak ada
-# fitur lama yang diubah. Bila sebuah API tidak tersedia di versi server, buff
-# itu dimatikan sendiri dan dilaporkan di log (lihat "Skill:" saat startup).
+# Buff diterapkan hanya lewat: perhitungan damage pada event, peluang drop/loot
+# tambahan, peluang XP ganda, XP vanilla ore, kecepatan jalan, efek potion, dan
+# pemulihan darah berkala. Tidak ada fitur lama yang diubah. Bila sebuah API tidak
+# tersedia di versi server, buff itu dimatikan sendiri dan dilaporkan di log
+# (lihat baris "Skill:" saat startup) - plugin tidak pernah gagal dimuat.
 # ---------------------------------------------------------------------------
 skills:
   enabled: true
@@ -647,6 +648,10 @@ skills:
   xp-gain-actionbar: false
   # Kirim pesan saat buff drop/hasil ganda berhasil (bawaan mati).
   notify-extra-drop: false
+  # Tulis serangan critical ke action bar penyerang (bawaan aktif).
+  notify-crit: true
+  # Jumlah baris peringkat yang ditampilkan /skill top (1..50).
+  top-limit: 10
   # Lebar bar kemajuan (jumlah karakter) di chat & GUI.
   progress-bar-width: 10
   curve:
@@ -690,10 +695,46 @@ skills:
         pvp-multiplier: 1.5      # pengali bila korbannya pemain
         kill-mob: 15.0           # bonus XP tiap mengalahkan mob (pukulan terakhir bukan proyektil)
         kill-player: 40.0        # bonus XP tiap mengalahkan pemain
-      buff:
-        unlock-level: 1
-        per-level: 0.5           # +0.5% damage per level
-        max: 25.0                # batas +25% pada level tinggi
+      # ---- Buff skill ini (v1.3.0: SATU SKILL BOLEH PUNYA BEBERAPA BUFF) ----
+      # Setiap buff punya level pembukaannya sendiri (unlock-level), jadi pemain selalu
+      # punya sesuatu untuk dikejar. Skema kunci:
+      #   kind           jenis buff. Pilihan: damage-melee, damage-projectile, crit-chance,
+      #                  damage-reduction, block-chance, environment-reduction, walk-speed,
+      #                  haste, potion, extra-drop, extra-catch, mob-loot, vanilla-xp,
+      #                  double-xp, passive-heal, regen-boost
+      #   unlock-level   level saat buff mulai aktif (di bawah itu nilainya 0)
+      #   per-level      pertambahan nilai tiap level di atas unlock-level
+      #   max            plafon nilai (0 = tanpa plafon)
+      #   power          kekuatan khusus: crit-chance = %damage tambahan saat critical,
+      #                  block-chance = %damage yang ditahan saat block berhasil
+      #   potion         nama efek potion (kind haste/potion), mis. "absorption"
+      #   amplifier-every-levels / amplifier-max
+      #                  tingkat efek naik tiap X level; amplifier-max adalah tingkat
+      #                  tertinggi (0 = tingkat I, 1 = maksimal tingkat II, dst.)
+      #   delay-seconds  jeda setelah terkena damage sebelum heal pasif boleh jalan
+      #   causes         penyebab damage (DamageCause) yang dikurangi buff lingkungan
+      # Nilai buff sengaja kecil: level 50 diniatkan sebagai progresi AWAL game.
+      # Config lama dengan satu bagian "buff:" tetap dibaca (dipakai untuk buff nomor 1).
+      buffs:
+        1:
+          kind: damage-melee
+          unlock-level: 1
+          per-level: 0.3
+          max: 15.0
+          # +0,3% damage melee per level; maksimal +15% di Lv. 50
+        2:
+          kind: crit-chance
+          unlock-level: 10
+          per-level: 0.25
+          max: 12.5
+          power: 50.0
+          # peluang serangan critical; critical = damage +50% (power)
+        3:
+          kind: mob-loot
+          unlock-level: 25
+          per-level: 0.3
+          max: 9.0
+          # peluang satu drop mob digandakan
     # ------------------------- DEFENSE: tahan damage ---------------------------------
     defense:
       enabled: true
@@ -702,10 +743,27 @@ skills:
       xp:
         multiplier: 1.0
         damage-taken: 0.8        # XP per 1 poin damage yang diterima
-      buff:
-        unlock-level: 1
-        per-level: 0.4           # -0.4% damage diterima per level
-        max: 20.0                # batas -20%
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: damage-reduction
+          unlock-level: 1
+          per-level: 0.28
+          max: 14.0
+          # -0,28% damage diterima per level; maksimal -14%
+        2:
+          kind: block-chance
+          unlock-level: 15
+          per-level: 0.2
+          max: 10.0
+          power: 50.0
+          # peluang menahan 50% damage satu pukulan (power)
+        3:
+          kind: damage-reduction
+          unlock-level: 30
+          per-level: 0.15
+          max: 6.0
+          # tingkat kedua: tambahan -0,15%/level, maksimal -6%
     # ------------------------- ARCHERY: proyektil (panah) ----------------------------
     archery:
       enabled: true
@@ -717,10 +775,27 @@ skills:
         pvp-multiplier: 1.5
         kill-mob: 10.0           # hanya bila pukulan terakhir berasal dari proyektil
         kill-player: 30.0
-      buff:
-        unlock-level: 1
-        per-level: 0.6           # +0.6% damage proyektil per level
-        max: 30.0
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: damage-projectile
+          unlock-level: 1
+          per-level: 0.35
+          max: 18.0
+          # +0,35% damage panah/proyektil per level; maksimal +18%
+        2:
+          kind: crit-chance
+          unlock-level: 12
+          per-level: 0.3
+          max: 15.0
+          power: 50.0
+          # peluang tembakan critical; critical = damage +50%
+        3:
+          kind: mob-loot
+          unlock-level: 28
+          per-level: 0.25
+          max: 8.0
+          # peluang satu drop mob digandakan (kill dengan panah)
     # ------------------------- AGILITY: kecepatan jalan ------------------------------
     agility:
       enabled: true
@@ -730,10 +805,30 @@ skills:
         multiplier: 1.0
         per-block-travelled: 0.35  # XP per blok yang ditempuh dengan berjalan/berlari
         min-distance: 0.5          # jarak terkumpul sebelum XP benar-benar dicatat
-      buff:
-        unlock-level: 1
-        per-level: 0.4             # +0.4% kecepatan jalan per level
-        max: 20.0                  # batas +20%
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: walk-speed
+          unlock-level: 1
+          per-level: 0.25
+          max: 12.5
+          # +0,25% kecepatan jalan per level; maksimal +12,5%
+        2:
+          kind: environment-reduction
+          unlock-level: 10
+          per-level: 0.5
+          max: 20.0
+          causes:
+            - FALL
+            - FLY_INTO_WALL
+          # damage jatuh/menabrak dinding berkurang; maksimal -20%
+        3:
+          kind: potion
+          unlock-level: 25
+          potion: slow_falling
+          amplifier-every-levels: 25
+          amplifier-max: 0
+          # efek Slow Falling (jatuh perlahan) mulai Lv. 25
       # Catatan: kecepatan jalan asli pemain disimpan dan dikembalikan saat skill
       # dimatikan, pemain keluar, atau plugin dinonaktifkan. Bila plugin lain sudah
       # mengubah kecepatan itu, W2NSMP tidak menimpanya.
@@ -745,10 +840,27 @@ skills:
       xp:
         multiplier: 1.0
         per-block: 3.0           # XP per blok yang dihancurkan
-      buff:
-        unlock-level: 5          # Haste baru aktif di level 5
-        haste-every-levels: 10   # tiap 10 level di atas unlock -> Haste naik 1 tingkat
-        haste-max-amplifier: 4   # tingkat Haste tertinggi (tampilan: Haste I..IV)
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: haste
+          unlock-level: 5
+          potion: haste
+          amplifier-every-levels: 12
+          amplifier-max: 2
+          # Haste I di Lv. 5, Haste II di Lv. 17, Haste III di Lv. 29
+        2:
+          kind: vanilla-xp
+          unlock-level: 15
+          per-level: 0.4
+          max: 20.0
+          # XP vanilla dari ore bertambah; maksimal +20%
+        3:
+          kind: double-xp
+          unlock-level: 30
+          per-level: 0.25
+          max: 8.0
+          # peluang XP skill tambang menjadi dua kali lipat
       blocks:
         - STONE
         - COBBLESTONE
@@ -797,10 +909,26 @@ skills:
       xp:
         multiplier: 1.0
         per-block: 4.0
-      buff:
-        unlock-level: 1
-        per-level: 0.4           # +0.4% peluang satu hasil tambahan per level
-        max: 20.0                # batas 20% peluang
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: extra-drop
+          unlock-level: 1
+          per-level: 0.3
+          max: 15.0
+          # peluang satu hasil tebangan tambahan; maksimal 15%
+        2:
+          kind: extra-drop
+          unlock-level: 22
+          per-level: 0.2
+          max: 8.0
+          # tingkat kedua: tambahan peluang 0,2%/level, maksimal 8%
+        3:
+          kind: double-xp
+          unlock-level: 32
+          per-level: 0.3
+          max: 7.0
+          # peluang XP skill tebang menjadi dua kali lipat
       blocks:
         - OAK_LOG
         - SPRUCE_LOG
@@ -833,10 +961,26 @@ skills:
       xp:
         multiplier: 1.0
         per-block: 5.0
-      buff:
-        unlock-level: 1
-        per-level: 0.5           # +0.5% peluang hasil panen tambahan per level
-        max: 25.0
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: extra-drop
+          unlock-level: 1
+          per-level: 0.3
+          max: 15.0
+          # peluang satu hasil panen tambahan; maksimal 15%
+        2:
+          kind: extra-drop
+          unlock-level: 20
+          per-level: 0.2
+          max: 10.0
+          # tingkat kedua: tambahan peluang 0,2%/level, maksimal 10%
+        3:
+          kind: double-xp
+          unlock-level: 35
+          per-level: 0.3
+          max: 6.0
+          # peluang XP skill tani menjadi dua kali lipat
       blocks:
         - WHEAT
         - CARROTS
@@ -866,10 +1010,26 @@ skills:
       xp:
         multiplier: 1.0
         per-catch: 18.0          # XP tiap tarikan yang menghasilkan ikan/harta
-      buff:
-        unlock-level: 3
-        per-level: 0.5           # +0.5% peluang hasil ganda per level
-        max: 25.0
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: extra-catch
+          unlock-level: 1
+          per-level: 0.35
+          max: 18.0
+          # peluang hasil pancingan ganda; maksimal 18%
+        2:
+          kind: extra-catch
+          unlock-level: 25
+          per-level: 0.2
+          max: 10.0
+          # tingkat kedua: tambahan peluang 0,2%/level, maksimal 10%
+        3:
+          kind: double-xp
+          unlock-level: 30
+          per-level: 0.3
+          max: 8.0
+          # peluang XP skill pancing menjadi dua kali lipat
       # Skill ini butuh event memancing server. Bila event itu tidak ada di versi
       # server, hanya fishing yang nonaktif (dilaporkan di log saat startup).
     # ------------------------- ENDURANCE: daya tahan ---------------------------------
@@ -880,26 +1040,42 @@ skills:
       xp:
         multiplier: 1.0
         per-minute-online: 20.0  # XP tiap menit bermain
-      buff:
-        unlock-level: 1
-        per-level: 0.6           # -0.6% damage lingkungan per level
-        max: 30.0
-        # Nama penyebab damage (DamageCause) yang dikurangi buff ini. Ditulis sebagai
-        # teks, jadi nama yang tidak ada di versi server hanya diabaikan.
-        causes:
-          - FALL
-          - FIRE
-          - FIRE_TICK
-          - LAVA
-          - HOT_FLOOR
-          - DROWNING
-          - SUFFOCATION
-          - STARVATION
-          - FREEZE
-          - FLY_INTO_WALL
-          - CRAMMING
-          - DRYOUT
-          - MELTING
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: environment-reduction
+          unlock-level: 1
+          per-level: 0.4
+          max: 20.0
+          causes:
+            - FALL
+            - FIRE
+            - FIRE_TICK
+            - LAVA
+            - HOT_FLOOR
+            - DROWNING
+            - SUFFOCATION
+            - STARVATION
+            - FREEZE
+            - FLY_INTO_WALL
+            - CRAMMING
+            - DRYOUT
+            - MELTING
+          # damage lingkungan berkurang 0,4%/level; maksimal -20%
+        2:
+          kind: block-chance
+          unlock-level: 12
+          per-level: 0.15
+          max: 7.5
+          power: 40.0
+          # peluang menahan 40% damage satu pukulan
+        3:
+          kind: potion
+          unlock-level: 40
+          potion: fire_resistance
+          amplifier-every-levels: 25
+          amplifier-max: 0
+          # efek Fire Resistance mulai Lv. 40
     # ------------------------- VITALITY: pemulihan pasif -----------------------------
     vitality:
       enabled: true
@@ -910,11 +1086,28 @@ skills:
         damage-survived: 1.0        # XP per poin damage saat bertahan di darah rendah
         low-health-threshold: 6.0   # "darah rendah" = di bawah 3 heart sesudah damage
         low-health-multiplier: 2.0  # pengali XP dalam keadaan itu
-      buff:
-        unlock-level: 3
-        heal-per-level: 0.04        # heart dipulihkan tiap interval, per level di atas unlock
-        heal-max: 2.0               # batas 1 heart per pemulihan
-        heal-delay-seconds: 10      # hanya bila X detik terakhir tidak kena damage/combat
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: passive-heal
+          unlock-level: 3
+          per-level: 0.03
+          max: 1.5
+          delay-seconds: 10
+          # pulih 0,03 heart/level tiap 5 detik (maks 1,5 heart) saat tidak bertarung
+        2:
+          kind: potion
+          unlock-level: 15
+          potion: absorption
+          amplifier-every-levels: 20
+          amplifier-max: 1
+          # Absorption I di Lv. 15, Absorption II di Lv. 35
+        3:
+          kind: regen-boost
+          unlock-level: 28
+          per-level: 0.25
+          max: 10.0
+          # regenerasi alami diperkuat; maksimal +10%
     # ------------------------- RECOVERY: regen diperkuat -----------------------------
     recovery:
       enabled: true
@@ -923,7 +1116,25 @@ skills:
       xp:
         multiplier: 1.0
         per-heart-regen: 8.0     # XP per heart yang pulih secara alami
-      buff:
-        unlock-level: 3
-        per-level: 0.6           # regen alami diperkuat +0.6% per level
-        max: 30.0
+      # Buff skill ini: tiga buff dengan level pembukaan bertahap (lihat fighting untuk skema).
+      buffs:
+        1:
+          kind: regen-boost
+          unlock-level: 3
+          per-level: 0.4
+          max: 20.0
+          # regenerasi alami diperkuat 0,4%/level; maksimal +20%
+        2:
+          kind: passive-heal
+          unlock-level: 20
+          per-level: 0.02
+          max: 1.0
+          delay-seconds: 12
+          # heal pasif kecil (maks 1 heart), jeda 12 detik setelah kena damage
+        3:
+          kind: potion
+          unlock-level: 40
+          potion: health_boost
+          amplifier-every-levels: 12
+          amplifier-max: 0
+          # Health Boost (darah maksimum +2 heart) mulai Lv. 40

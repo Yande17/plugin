@@ -92,6 +92,11 @@ public final class SkillMenu {
       return slot(plugin, "info", SkillMenuSlots.INFO);
    }
 
+   /** Tombol peringkat (top) skill: mencetak papan peringkat total ke chat. */
+   public static int topSlot(W2NSMP plugin) {
+      return slot(plugin, "top", SkillMenuSlots.TOP);
+   }
+
    public static int closeSlot(W2NSMP plugin) {
       return slot(plugin, "close", SkillMenuSlots.CLOSE);
    }
@@ -148,6 +153,11 @@ public final class SkillMenu {
          }
       }
 
+      int top = topSlot(plugin);
+      if (top >= 0 && top < size) {
+         inventory.setItem(top, topItem(plugin, player));
+      }
+
       int info = infoSlot(plugin);
       if (info >= 0 && info < size) {
          inventory.setItem(info, infoItem(plugin, player));
@@ -173,6 +183,11 @@ public final class SkillMenu {
                }
             }
          }
+      }
+
+      int top = topSlot(plugin);
+      if (top >= 0 && top < size) {
+         slots.add(Integer.valueOf(top));
       }
 
       int info = infoSlot(plugin);
@@ -207,6 +222,36 @@ public final class SkillMenu {
       }
 
       return Items.create(material == null ? Material.BEDROCK : material, name, lore);
+   }
+
+   /** Tombol top: menampilkan peringkat total pemain & posisi pemain ini. */
+   private static ItemStack topItem(W2NSMP plugin, Player player) {
+      SkillService service = plugin.skills();
+      int rank = service == null ? 0 : service.top().rankOfTotal(player.getUniqueId());
+      String[] placeholders = new String[]{
+         "player", player.getName(),
+         "rank", rank <= 0 ? "-" : Integer.toString(rank),
+         "total-level", Integer.toString(service == null ? 0 : service.totalLevel(player)),
+         "total-xp", SkillService.format(service == null ? 0.0D : service.totalXp(player)),
+         "limit", Integer.toString(service == null ? 10 : service.topLimit()),
+         "max", Integer.toString(service == null ? 0 : service.maxLevel())
+      };
+      Material material = gui(plugin).material("navigation.top.material", Material.GOLD_INGOT);
+      String name = gui(plugin).name("top.name");
+      List<String> lore = gui(plugin).lore("top.lore");
+      if (name == null) {
+         name = plugin.messages().raw("skill.top-name", placeholders);
+      } else {
+         name = plugin.messages().apply(name, placeholders);
+      }
+
+      if (lore.isEmpty()) {
+         lore = plugin.messages().rawList("skill.top-lore", placeholders);
+      } else {
+         lore = plugin.messages().applyList(lore, placeholders);
+      }
+
+      return Items.create(material == null ? Material.GOLD_INGOT : material, name, lore);
    }
 
    private static ItemStack infoItem(W2NSMP plugin, Player player) {
@@ -248,8 +293,15 @@ public final class SkillMenu {
       return Items.create(material == null ? Material.BOOK : material, name, lore);
    }
 
-   /** Isi slot: {@code skill:<key>}, {@code info}, {@code close}, atau null bila bukan bagian menu. */
+   /**
+    * Isi slot: {@code skill:<key>}, {@code top}, {@code info}, {@code close}, atau null bila bukan
+    * bagian menu.
+    */
    public static String keyAt(W2NSMP plugin, int rawSlot) {
+      if (rawSlot == topSlot(plugin)) {
+         return "top";
+      }
+
       if (rawSlot == infoSlot(plugin)) {
          return "info";
       }
@@ -298,7 +350,10 @@ public final class SkillMenu {
       for (Player player : Bukkit.getOnlinePlayers()) {
          try {
             InventoryView view = player.getOpenInventory();
-            if (view != null && (view.getTopInventory().getHolder() instanceof SkillMenuHolder || isMenu(view.getTopInventory()))) {
+            Object holder = view == null ? null : view.getTopInventory().getHolder();
+            if (view != null
+               && (holder instanceof SkillMenuHolder || holder instanceof SkillProgressMenuHolder
+                  || isMenu(view.getTopInventory()) || SkillProgressMenu.isMenu(view.getTopInventory()))) {
                player.closeInventory();
             }
          } catch (Throwable throwable) {
@@ -307,5 +362,6 @@ public final class SkillMenu {
       }
 
       OPEN.clear();
+      SkillProgressMenu.closeAll(plugin);
    }
 }

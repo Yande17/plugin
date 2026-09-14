@@ -994,11 +994,15 @@ gui:
     page: "&7Halaman &f%page%&7/&f%pages%"
 
 # =============================================================================================
-# SKILL (/skill) - 11 skill dengan level & buff masing-masing (v1.2.0)
+# SKILL (/skill) - 11 skill, tiap skill punya beberapa buff bertahap (v1.3.0)
 # =============================================================================================
 # Placeholder yang tersedia (tergantung pesan):
 #   %player% %skill% %key% %level% %max% %next-level% %xp% %xp-into% %xp-needed%
 #   %xp-to-next% %percent% %bar% %buff% %buff-desc% %source% %unlock% %total-xp% %total-level%
+#   %buffs% %buff-count% %buffs-unlocked% %next-buff% %next-buff-level%
+# Khusus kartu buff & menu progres:
+#   %buff% (nama buff) %buff-value% %buff-kind% %per% %max% %power% %value% %cap-level% %amp-next%
+# Khusus peringkat (top): %rank% %rank-total% %scope% %count% %limit% %player%
 skill:
   disabled: "%prefix%&cFitur skill sedang dinonaktifkan admin."
   no-skills: "%prefix%&7Tidak ada skill yang aktif di server ini."
@@ -1014,7 +1018,15 @@ skill:
   usage-add: "%prefix%&cPenggunaan: &f/skill add <pemain> <skill> <xp>"
   usage-reset: "%prefix%&cPenggunaan: &f/skill reset <pemain> [skill]"
   actionbar: "&7%skill% &8+&a%xp% XP &8(&7Lv. &f%level%&8)"
+  # Dipakai bila buff double-xp sedang beruntung (XP yang masuk dua kali lipat).
+  actionbar-double: "&7%skill% &8+&a%xp% XP &6x2 &8(&7Lv. &f%level%&8)"
+  # Serangan critical (buff crit-chance fighting/archery) - hanya di action bar.
+  crit: "&6» CRITICAL &8| &7%skill% &f%damage% damage &8(&6+%power%%&8)"
+  # Loot mob ganda (buff mob-loot). Dipakai bila skills.notify-extra-drop: true.
+  mob-loot: "%prefix%&aBuff &f%skill% &amenggandakan satu drop mob!"
   level-up: "%prefix%&a%skill% &7naik ke level &f%level%&7/&f%max% &8| &7buff: %buff%"
+  # Dikirim terpisah bila pada level itu ada buff baru yang terbuka (hapus kunci ini untuk mematikan).
+  level-up-buff: "%prefix%&6Buff baru terbuka &8| &f%buff% &8(&7%desc%&8) &7nilai: %buff-value%"
   # Karakter bar kemajuan (%bar%).
   bar-filled: "&a|"
   bar-empty: "&8|"
@@ -1024,8 +1036,14 @@ skill:
     none: "&8-"
     locked: "&8(buka di Lv. &f%level%&8)"
     disabled: "&8(dimatikan admin)"
+    # Ditampilkan bila API server tidak mendukung buff itu (lihat log "Skill:" saat startup).
+    unavailable: "&8(tidak didukung server ini)"
     haste: "&bHaste %level%"
+    # Buff potion generik (absorption, fire resistance, ...): %name% %level% (angka Romawi).
+    potion: "&b%name% %level%"
     heal: "&c+%amount% heart / %seconds% dtk"
+    # Buff peluang yang punya kekuatan tambahan (critical/block): %value% + %power%.
+    power: "&a%value% &8(&7+%power%&8)"
   # Nama skill (dipakai di GUI, chat, dan pesan level-up).
   name:
     fighting: "Pertarungan"
@@ -1043,14 +1061,57 @@ skill:
   buff:
     damage-melee: "Damage serangan jarak dekat bertambah."
     damage-projectile: "Damage panah/proyektil bertambah."
+    crit-chance: "Peluang serangan menjadi critical (damage lebih besar)."
     damage-reduction: "Damage yang diterima berkurang."
+    block-chance: "Peluang menahan sebagian damage satu pukulan."
     environment-reduction: "Damage lingkungan (jatuh, api, tenggelam, lapar, ...) berkurang."
     walk-speed: "Kecepatan jalan bertambah."
     haste: "Menambang lebih cepat (efek Haste)."
+    potion: "Efek potion tambahan yang selalu aktif selama buff terbuka."
     extra-drop: "Peluang mendapat satu hasil tambahan saat menebang/memanen."
     extra-catch: "Peluang hasil pancingan ganda."
+    mob-loot: "Peluang satu drop mob digandakan saat kamu mengalahkannya."
+    vanilla-xp: "XP vanilla dari ore yang ditambang bertambah."
+    double-xp: "Peluang XP skill yang masuk menjadi dua kali lipat."
     passive-heal: "Darah pulih perlahan saat tidak sedang bertarung."
     regen-boost: "Regenerasi alami diperkuat."
+  # Nama pendek buff untuk lore GUI & daftar buff (skill.buff-short.<jenis-buff>).
+  buff-short:
+    damage-melee: "Damage melee"
+    damage-projectile: "Damage proyektil"
+    crit-chance: "Peluang critical"
+    damage-reduction: "Pengurangan damage"
+    block-chance: "Peluang block"
+    environment-reduction: "Pengurangan damage lingkungan"
+    walk-speed: "Kecepatan jalan"
+    haste: "Haste"
+    potion: "Efek potion"
+    extra-drop: "Peluang drop tambahan"
+    extra-catch: "Peluang tangkapan ganda"
+    mob-loot: "Peluang loot mob ganda"
+    vanilla-xp: "Bonus XP vanilla"
+    double-xp: "Peluang XP ganda"
+    passive-heal: "Heal pasif"
+    regen-boost: "Penguatan regen"
+  # Nama efek potion yang dipakai buff (skill.potion-name.<kunci-efek>). Tambahkan sendiri
+  # bila kamu memasang buff potion dengan efek lain di config.yml.
+  potion-name:
+    haste: "Haste"
+    slow_falling: "Slow Falling"
+    fire_resistance: "Fire Resistance"
+    absorption: "Absorption"
+    health_boost: "Health Boost"
+    regeneration: "Regeneration"
+    resistance: "Resistance"
+    strength: "Strength"
+    speed: "Speed"
+    night_vision: "Night Vision"
+  # Baris daftar buff (dipakai /skill list, detail chat, dan lore GUI).
+  buff-line:
+    active: "&8• &f%name%&8: %value%"
+    locked: "&8• &7%name% &8- &7terbuka di Lv. &f%level%"
+  # Pemisah antar buff bila beberapa buff diringkas dalam satu baris (%buffs%).
+  buff-separator: "&8 | &7"
   # Cara menaikkan tiap skill (tampil di detail skill).
   source:
     fighting: "serang dan kalahkan makhluk dengan serangan jarak dekat"
@@ -1076,7 +1137,15 @@ skill:
     - "&7Buff: %buff%"
     - "&8%buff-desc%"
     - "&8&m                      "
-    - "&eKlik untuk detail skill ini."
+    - "&eKlik untuk melihat progres & buff skill ini."
+  # Tombol peringkat di GUI /skill (mencetak top total skill ke chat).
+  top-name: "&e&lTop Skill"
+  top-lore:
+    - "&7Peringkat total level semua pemain."
+    - "&7Posisi Anda: &f#%rank%"
+    - "&7Total level Anda: &f%total-level% &8(&f%total-xp% XP&8)"
+    - "&8&m                      "
+    - "&eKlik untuk melihat %limit% besar peringkat."
   info-material: BOOK
   info-name: "&bRingkasan skill &f%player%"
   info-lore:
@@ -1087,6 +1156,66 @@ skill:
     - "&7Berkas data: &f%file%"
   close-name: "&f&l✕ CLOSE"
   close-lore: "&7Keluar dari menu skill."
+  # --------------------- GUI progres skill (klik ikon skill) ---------------------
+  progress-title: "&8Kemajuan &f%skill%"
+  progress-pane-name: " "
+  progress-item-name: "&f%skill% &7Lv. &e%level%&7/&f%max%"
+  progress-item-lore:
+    - "&8&m                      "
+    - "&7Level: &f%level%&7/&f%max%"
+    - "&7Kemajuan: %bar% &f%percent%%"
+    - "&7XP: &f%xp-into%&7/&f%xp-needed% &8(total &f%xp%&8)"
+    - "&7Menuju Lv. &f%next-level%&7: kurang &f%xp-to-next% XP"
+    - "&7Buff terbuka: &f%buffs-unlocked%&7/&f%buff-count%"
+    - "&8&m                      "
+    - "&7Cara menaikkan: &f%source%"
+  progress-buff-active-name: "&a%buff% &8| %buff-value%"
+  progress-buff-active-lore:
+    - "&8%buff-desc%"
+    - "&7Nilai sekarang: %buff-value%"
+    - "&7Terbuka sejak: &fLv. %unlock%"
+    - "&7Pertumbuhan: &f+%per%&7/level &8(plafon &f%max%&8)"
+    - "&8&m                      "
+    - "&eKlik untuk penjelasan di chat."
+  progress-buff-locked-name: "&8%buff% &7- buka di Lv. &f%unlock%"
+  progress-buff-locked-lore:
+    - "&8%buff-desc%"
+    - "&7Belum terbuka: naik ke &fLv. %unlock%"
+    - "&7Nilai awal: &f+%per%&7/level &8(plafon &f%max%&8)"
+    - "&8&m                      "
+    - "&eKlik untuk penjelasan di chat."
+  progress-next-level-name: "&bMenuju Lv. %next-level%"
+  progress-next-level-lore:
+    - "&7Kemajuan: %bar% &f%percent%%"
+    - "&7XP: &f%xp-into%&7/&f%xp-needed%"
+    - "&7Kurang: &f%xp-to-next% XP"
+  progress-maxed-name: "&aLevel maksimum tercapai"
+  progress-maxed-lore:
+    - "&7Skill ini sudah di &fLv. %max%&7."
+    - "&7Total XP: &f%xp%"
+  progress-next-buff-name: "&6Buff berikutnya: &f%buff%"
+  progress-next-buff-lore:
+    - "&8%buff-desc%"
+    - "&7Terbuka pada level &f%unlock%"
+    - "&7Level Anda sekarang: &f%level%"
+  progress-all-buffs-name: "&aSemua buff terbuka"
+  progress-all-buffs-lore:
+    - "&7Skill ini sudah membuka &f%buff-count%&7/&f%buff-count% buff."
+  progress-max-level-name: "&dLevel maksimum: &f%max%"
+  progress-max-level-lore:
+    - "&7Butuh total &f%xp-max-level% XP &7untuk Lv. %max%."
+    - "&7Admin bisa mengubahnya di &fskills.max-level&7."
+  progress-rank-name: "&ePeringkat Anda"
+  progress-rank-lore:
+    - "&7%skill%&8: &f#%rank%"
+    - "&7Total skill&8: &f#%rank-total%"
+    - "&7Total level: &f%total-level% &8(&f%total-xp% XP&8)"
+    - "&8&m                      "
+    - "&7Peringkat lengkap: &f/skill top"
+  progress-back-name: "&fKembali ke menu skill"
+  progress-back-lore: "&7Kembali ke daftar 11 skill."
+  progress-detail-name: "&bDetail di chat"
+  progress-detail-lore: "&7Kirim rincian skill ini ke chat."
   # ----------------------------- Detail chat -----------------------------
   detail-header: "%prefix%&bSkill &f%skill% &8- &7%player%"
   detail-level: "&8• &7Level: &f%level%&7/&f%max% &8| &7XP total: &f%xp%"
@@ -1094,8 +1223,25 @@ skill:
   detail-max: "&8• &aLevel maksimal tercapai! &8(&f%xp% &7XP total&8)"
   detail-buff: "&8• &7Buff aktif: %buff%"
   detail-buff-desc: "&8• &7%buff-desc%"
+  detail-buffs-header: "&8• &7Buff skill ini: &f%unlocked%&7/&f%count% &7terbuka"
+  detail-buff-line: "&8   - &f%buff%&8: %buff-value% &8(&7%buff-desc%&8)"
   detail-source: "&8• &7Cara menaikkan: &f%source%"
-  detail-next-buff: "&8• &7Buff terbuka pada level &f%unlock%"
+  detail-next-buff: "&8• &7Buff berikutnya (&f%buff%&7) terbuka pada level &f%unlock%"
+  # Rincian satu buff (dipakai saat kartu buff di menu progres diklik).
+  buff-detail-header: "%prefix%&bBuff &f%buff% &8- &7%skill% &8(&7Lv. &f%level%&8)"
+  buff-detail-value: "&8• &7Nilai sekarang: %buff-value% &8(status: &f%status%&8)"
+  buff-detail-growth: "&8• &7Pertumbuhan: &f+%per%%&7/level dari Lv. &f%unlock% &8(plafon &f%max%%&7, tercapai di Lv. &f%cap-level%&8)"
+  buff-detail-unlock: "&8• &7Terbuka pada level &f%unlock% &8| &7jenis: &f%buff-kind%"
+  buff-detail-desc: "&8• &7%buff-desc%"
+  # ----------------------------- Peringkat (top) -----------------------------
+  # %scope% = "total skill" atau nama skill; %count% = jumlah baris yang ditampilkan.
+  top-scope-total: "total skill"
+  top-header: "%prefix%&bPeringkat &f%scope% &8- &7%count% teratas &8(level maks &f%max%&8)"
+  top-line: "&8#&f%rank% &7%player% &8- &fLv. %level% &8(&f%xp% XP&8)"
+  top-line-total: "&8#&f%rank% &7%player% &8- &fLv. %level% &8(total &f%total-xp% XP&8)"
+  top-self: "&8• &7Posisi Anda: &f#%rank% &8(&fLv. %level%&8, &f%xp% XP&8)"
+  top-empty: "&8• &7Belum ada data - mainkan dulu supaya XP skill tercatat."
+  top-footer: "&7Peringkat skill lain: &f/skill top <nama-skill>"
   # ----------------------------- Ringkasan -----------------------------
   list-header: "%prefix%&bSkill &f%player% &8- &7total level &f%total-level% &8(&f%total-xp% &7XP&8)"
   list-line: "&8• &7%skill%&8: &fLv. %level% &8| %bar% &f%percent%% &8| buff: %buff%"
@@ -1115,6 +1261,7 @@ skill:
   check-world: "&8• &7World Anda: &f%world% &8-> XP &f%effect% &8(diizinkan: &f%list%&8)"
   check-xp: "&8• &7Uji XP (+1 ke &f%skill%&7): &f%status% &8| &7XP &f%xp% &8| &7Lv. &f%level%"
   check-api: "&8• &7API server: %api%"
+  check-potions: "&8• &cEfek potion ini tidak ada di server Anda (buff-nya dilewati): &f%list%"
   check-listeners: "&8• &7Listener skill: &f%status%"
   check-listener-line: "&8   - &7%line%"
   check-errors: "&8• &7Kesalahan tercatat: &f%count%"
@@ -1127,6 +1274,7 @@ skill:
   help-open: "&f/%label% &7- membuka menu skill (GUI)"
   help-detail: "&f/%label% <skill> &7- detail satu skill"
   help-list: "&f/%label% list &7- ringkasan semua skill Anda"
+  help-top: "&f/%label% top [skill] &7- peringkat total skill atau satu skill"
   help-check: "&f/%label% check &7- diagnostik: memastikan XP, buff, dan listener benar-benar jalan"
   help-info: "&f/%label% info <pemain> [skill] &7- melihat skill pemain lain &8(admin)"
   help-set: "&f/%label% set <pemain> <skill> <level> &7- menyetel level &8(admin)"

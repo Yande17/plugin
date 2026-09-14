@@ -126,6 +126,23 @@ def main():
             fail(f'config.yml di JAR kehilangan skill: {missing_skills}')
         else:
             notes.append(f'config.yml di JAR punya 11 skill, max-level={skills.get("max-level")}')
+            # v1.3.0: tiap skill harus punya BEBERAPA buff dengan level pembukaan bertahap.
+            total_buffs = 0
+            kinds = set()
+            for skill, body in listed.items():
+                buffs = (body or {}).get('buffs') or {}
+                if len(buffs) < 2:
+                    fail(f'config.yml di JAR: skills.list.{skill} cuma punya {len(buffs)} buff (harus beberapa)')
+                for number, buff in sorted(buffs.items()):
+                    if not isinstance(buff, dict) or 'kind' not in buff or 'unlock-level' not in buff:
+                        fail(f'config.yml di JAR: skills.list.{skill}.buffs.{number} tidak punya kind/unlock-level')
+                        continue
+                    kinds.add(str(buff['kind']))
+                    if int(buff['unlock-level']) < 1:
+                        fail(f'config.yml di JAR: skills.list.{skill}.buffs.{number}.unlock-level < 1')
+                total_buffs += len(buffs)
+            notes.append(f'config.yml di JAR: {total_buffs} buff untuk {len(listed)} skill '
+                         f'({len(kinds)} jenis buff berbeda)')
     if (config_yml.get('commands') or {}).get('skill', {}).get('enabled') is not True:
         fail('config.yml di JAR: commands.skill.enabled bukan true')
 
@@ -146,10 +163,82 @@ def main():
     else:
         gui = yaml.safe_load(release['gui/skill.yml'].decode('utf-8'))
         slots = gui.get('slots') or {}
-        if len(slots) != 13:
-            fail(f'gui/skill.yml di JAR: {len(slots)} slot (harus 13 = 11 skill + info + close)')
+        if len(slots) != 14:
+            fail(f'gui/skill.yml di JAR: {len(slots)} slot (harus 14 = 11 skill + top + info + close)')
         else:
-            notes.append('gui/skill.yml di JAR: 13 slot (11 skill + info + close)')
+            notes.append('gui/skill.yml di JAR: 14 slot (11 skill + top + info + close)')
+        if len(set(slots.values())) != len(slots):
+            fail('gui/skill.yml di JAR: ada slot yang dipakai dua item')
+        progress = gui.get('progress') or {}
+        progress_slots = progress.get('slots') or {}
+        for needed in ('icon', 'buffs', 'next-level', 'next-buff', 'max-level', 'rank', 'back', 'detail', 'close'):
+            if needed not in progress_slots:
+                fail(f'gui/skill.yml di JAR: progress.slots kehilangan {needed}')
+        if len(set(progress_slots.values())) != len(progress_slots):
+            fail('gui/skill.yml di JAR: slot menu progres ada yang bentrok')
+        if not progress.get('bar-filled') or not progress.get('bar-empty'):
+            fail('gui/skill.yml di JAR: material bar kemajuan (progress.bar-filled/bar-empty) kosong')
+        if len(progress_slots) == 9:
+            notes.append('gui/skill.yml di JAR: menu progres skill lengkap (9 slot unik + bar kemajuan)')
+
+    # ---- 5a: fitur v1.3.0 harus benar-benar ada di bytecode JAR rilis
+    # (bukan cuma di source): kelas baru terkemas, dan simbol API/ metode baru terpanggil.
+    v130_classes = [
+        'me/w2n/w2nsmp/skill/SkillBuff.class',
+        'me/w2n/w2nsmp/skill/SkillTop.class',
+        'me/w2n/w2nsmp/skill/SkillTop$Entry.class',
+        'me/w2n/w2nsmp/gui/SkillProgressMenu.class',
+        'me/w2n/w2nsmp/gui/SkillProgressMenuHolder.class',
+    ]
+    for name in v130_classes:
+        if name not in release:
+            fail(f'JAR kehilangan kelas v1.3.0: {name}')
+    if all(name in release for name in v130_classes):
+        notes.append(f'JAR memuat {len(v130_classes)} kelas baru v1.3.0 (SkillBuff, SkillTop, menu progres)')
+
+    v130_symbols = {
+        'me/w2n/w2nsmp/skill/SkillSettings.class':
+            ['defaultBuffs', 'readBuffs', 'applyLegacyBuff', 'buffValue', 'nextBuff', 'environmentReduction'],
+        'me/w2n/w2nsmp/skill/SkillService.class':
+            ['buffValueAll', 'kindAvailable', 'critMultiplier', 'blockMultiplier', 'activePotions',
+             'applyPotion', 'removePotion', 'buffLines', 'buffName', 'profilesSnapshot', 'DOUBLE_XP'],
+        'me/w2n/w2nsmp/skill/SkillApiProbe.class':
+            ['potionType', 'applyPotion', 'removePotion', 'mobLootApi', 'blockExpApi', 'hasteApi', 'missingPotions'],
+        'me/w2n/w2nsmp/listener/SkillListener.class':
+            ['getDrops', 'getExpToDrop', 'setExpToDrop', 'rollCrit', 'critMultiplier', 'MOB_LOOT', 'VANILLA_XP'],
+        'me/w2n/w2nsmp/listener/SkillGuiListener.class':
+            ['SkillProgressMenu', 'SkillProgressMenuHolder', 'handleProgressClick', 'sendTop'],
+        'me/w2n/w2nsmp/gui/SkillMenu.class': ['topItem', 'topSlot', 'SkillProgressMenu'],
+        'me/w2n/w2nsmp/gui/SkillProgressMenu.class':
+            ['buffSlots', 'renderBar', 'renderMilestones', 'buffItem', 'keyAt', 'rankOfSkill', 'rankOfTotal'],
+        'me/w2n/w2nsmp/command/SkillCommand.class': ['sendTop', 'isTopWord'],
+        'me/w2n/w2nsmp/skill/SkillInfo.class': ['sendTop', 'sendBuffDetail', 'buffsCompact', 'buffLines'],
+    }
+    missing_symbols = 0
+    checked_symbols = 0
+    for name, needles in v130_symbols.items():
+        blob = release.get(name)
+        if blob is None:
+            fail(f'JAR kehilangan {name}')
+            continue
+        for needle in needles:
+            checked_symbols += 1
+            if needle.encode('utf-8') not in blob:
+                missing_symbols += 1
+                fail(f'{name} di JAR tidak memuat "{needle}" (fitur v1.3.0 tidak terkemas?)')
+    if missing_symbols == 0:
+        notes.append(f'{checked_symbols} simbol fitur v1.3.0 (multi-buff, menu progres, top) ada di bytecode JAR')
+
+    for key in ('skill.progress-title', 'skill.progress-buff-active-name', 'skill.top-header',
+                'skill.buff-short.crit-chance', 'skill.potion-name.absorption', 'skill.level-up-buff'):
+        section, _, leaf = key.partition('.')
+        node = (messages_yml.get(section) or {})
+        for part in leaf.split('.'):
+            node = (node or {}).get(part) if isinstance(node, dict) else None
+        if node is None:
+            fail(f'messages.yml di JAR kehilangan {key}')
+    if 'crit-chance' in str((messages_yml.get('skill') or {}).get('buff-short') or {}):
+        notes.append('messages.yml di JAR punya nama pendek 16 jenis buff + pesan menu progres & peringkat')
 
     # ---- 5b: anotasi @EventHandler harus RUNTIME-visible di SETIAP class listener
     # Bila tidak, Bukkit mendaftarkan listener-nya tapi tidak menemukan satu pun handler -> fitur

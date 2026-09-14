@@ -5,7 +5,8 @@
 ```
 W2NSMP-1.0.0.jar        JAR rilis asli (dipakai sebagai sumber class yang tidak diubah)
 W2NSMP-1.1.0.jar        rilis Paket A+B+C (perbaikan statistik, /top, scoreboard)
-W2NSMP-1.2.1.jar        rilis fitur /skill + perbaikan fatal listener  <-- PAKAI INI
+W2NSMP-1.2.1.jar        rilis fitur /skill + perbaikan fatal listener
+W2NSMP-1.3.0.jar        multi-buff, menu progres skill, keseimbangan ulang, top skill  <-- PAKAI INI
 # (W2NSMP-1.2.0.jar ditarik/dihapus: listener skill tuli - lihat "Jebakan stub: @Retention anotasi")
 src/main/java/          source Java (dipulihkan dari JAR via Vineflower 1.12) + kode baru
 src/main/resources/     plugin.yml, config.yml, messages.yml, prices.yml, gui/*.yml
@@ -26,6 +27,7 @@ pom.xml                 build Maven (untuk komputer lokal / CI)
 | `1.1.0` | Paket A+B+C: `docs/AUDIT-statistik-scoreboard.md` — perbaikan nametag×sidebar, migrasi format statistik, `/top` & `/sb` |
 | `1.2.0` | Fitur `/skill`: 11 skill, kurva level (maks 50), buff per skill, GUI, admin — `docs/FITUR-skill.md`. **Ditarik:** listener tuli (lihat jebakan di bawah) |
 | `1.2.1` | Perbaikan fatal v1.2.0 (`@Retention(RUNTIME)`), watchdog pendaftaran listener, `/skill check`, kegagalan tidak lagi diam-diam |
+| `1.3.0` | Skill: **beberapa buff per skill** (3 buff × 11 skill, terbuka bertahap), **menu progres skill** di GUI (klik ikon skill), **keseimbangan buff ulang** (level 50 = progresi awal game), **`/skill top`** (total & per skill), 6 jenis buff baru (critical, block, loot mob, XP vanilla, XP ganda, potion apa pun) |
 
 Aturan main yang dipegang untuk setiap rilis: **fitur lama tidak diubah perilakunya**. Data
 fitur baru disimpan di berkas terpisah (`skills.yml`), dan class yang tidak disunting tetap
@@ -70,17 +72,19 @@ Build sandbox memakai:
 Satu perintah untuk merilis (semua gerbang harus lulus, kalau tidak JAR dihapus):
 
 ```bash
-bash tools/release.sh 1.2.0
+bash tools/release.sh 1.3.0
 ```
 
 Langkahnya:
 
 | # | Langkah | Alat |
 |---|---------|------|
-| 1 | bangkitkan stub + kompilasi 135 sumber (→ 163 class, 0 error) | `tools/build.sh`, `tools/gen_stubs.py` |
-| 2a | uji logika murni Java (kurva level, profil XP, `fromKey`) | `tools/selftest/SkillSelfTest.java` |
+| 1 | bangkitkan stub + kompilasi 140 sumber (→ 169 class, 0 error) | `tools/build.sh`, `tools/gen_stubs.py` |
+| 2a | uji logika murni Java (kurva level, profil XP, `fromKey`, rumus buff) | `tools/selftest/SkillSelfTest.java` |
 | 2b | uji refleksi ala Bukkit: setiap `@EventHandler` harus terlihat saat runtime | `tools/selftest/ListenerAnnotationTest.java` |
-| 3 | verifikasi linkage bytecode (311 + 447 referensi internal) | `tools/verify_linkage.py` |
+| 2c | uji buff bawaan **hasil kompilasi** (refleksi ke `SkillSettings.defaultBuffs`): 3 buff/skill, milestone bertahap, nilai monoton, tidak ada buff > 20% di Lv. 50, total reduksi tidak membuat kebal | `tools/selftest/BuffDefaultsTest.java` |
+| 2d | uji peringkat (`/skill top`): urutan level/XP, pemecah seri, batas `limit`/`offset`, dan penguraian kunci slot menu progres | `tools/selftest/SkillTopTest.java` |
+| 3 | verifikasi linkage bytecode (330 + 447 referensi internal) | `tools/verify_linkage.py` |
 | 4 | verifikasi config/messages/plugin.yml/gui terhadap kode | `tools/verify_feature.py` (butuh `pyyaml`) |
 | 5 | kemas JAR hibrida | `tools/package_jar.py` |
 | 6 | verifikasi **isi** JAR byte-per-byte | `tools/verify_jar.py` |
@@ -129,7 +133,7 @@ anotasi, dan tiga gerbang menjaganya: `ListenerAnnotationTest` (refleksi ala Buk
 bash tools/build.sh                                       # kompilasi saja
 python3 tools/verify_linkage.py W2NSMP-1.0.0.jar tools/work/classes <kelas...>
 python3 tools/verify_feature.py                           # butuh: pip install pyyaml
-python3 tools/verify_jar.py W2NSMP-1.2.0.jar W2NSMP-1.0.0.jar tools/work/classes <kelas...>
+python3 tools/verify_jar.py W2NSMP-1.3.0.jar W2NSMP-1.0.0.jar tools/work/classes <kelas...>
 ```
 
 ### Menambah/mengubah fitur
@@ -145,10 +149,14 @@ python3 tools/verify_jar.py W2NSMP-1.2.0.jar W2NSMP-1.0.0.jar tools/work/classes
 
 ## Pemasangan di server
 
-1. Hentikan server, ganti `plugins/W2NSMP-*.jar` dengan `W2NSMP-1.2.0.jar`.
+1. Hentikan server, ganti `plugins/W2NSMP-*.jar` dengan `W2NSMP-1.3.0.jar`.
 2. Jalankan server. Berkas config yang belum ada akan dibuat otomatis; config lama tidak
    ditimpa (kunci baru memakai nilai bawaan bila tidak ada di berkas Anda).
 3. Statistik versi lama dimigrasi otomatis ke `statistics.yml` format baru (v1.1.0).
 4. Data skill disimpan di `plugins/W2NSMP/skills.yml` (terpisah; menghapusnya hanya mereset
    skill ke level 1).
 5. Cek baris `Skill:` di log startup untuk melihat buff/XP mana yang aktif di server Anda.
+6. Di dalam game: `/skill` → klik ikon skill untuk membuka **menu progres** (level, bar, kartu
+   tiap buff beserta level pembukaannya, milestone, peringkat), dan `/skill top [skill]` untuk
+   peringkat. `config.yml`/`messages.yml` lama disisipi kunci baru otomatis; `gui/skill.yml`
+   lama tidak ditimpa (nilai bawaan menu progres ada di kode).
