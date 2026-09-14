@@ -6,7 +6,7 @@
 
   <groupId>me.w2n</groupId>
   <artifactId>W2NSMP</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
   <packaging>jar</packaging>
   <name>W2NSMP</name>
   <description>Plugin SMP survival untuk Paper 26.2 (sell, home, rtp, combat, auction, statistik)</description>

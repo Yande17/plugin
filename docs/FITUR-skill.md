@@ -1,4 +1,4 @@
-# Fitur `/skill` — 11 skill dengan level & buff (v1.2.0)
+# Fitur `/skill` — 11 skill dengan level & buff (v1.2.0, diperbaiki di v1.2.1)
 
 Ditambahkan pada rilis `W2NSMP-1.2.0.jar`. Prinsip yang dipegang: **fitur lama tidak
 diubah perilakunya**. Skill punya berkas data sendiri, config sendiri, seksi pesan sendiri,
@@ -19,6 +19,7 @@ hanya titik pemasangan: `W2NSMP`, `CommandManager`, `ListenerManager`, `GuiConfi
 | `/skill set <pemain> <skill> <level>` | `setel` | `w2nsmp.skill.admin` | Menyetel level (XP dihitung ulang ke awal level itu) |
 | `/skill add <pemain> <skill> <xp>` | `tambah` | `w2nsmp.skill.admin` | Menambah/mengurangi XP (boleh negatif) |
 | `/skill reset <pemain> [skill]` | `hapus` | `w2nsmp.skill.admin` | Mereset satu skill atau semua skill pemain |
+| `/skill check` | `cek`, `diagnosa` | `w2nsmp.skill` (rincian penuh: `w2nsmp.skill.admin`) | Diagnostik: status fitur, mode game/world Anda, **uji XP +1**, dan (admin) laporan listener, API server, data, serta kesalahan terakhir |
 
 Tab-completion aktif untuk nama skill, nama pemain online, dan angka level/XP yang wajar.
 `w2nsmp.skill` dan `w2nsmp.skill.admin` sudah menjadi anak dari `w2nsmp.admin`.
@@ -194,7 +195,47 @@ Semua kunci di atas **benar-benar dibaca kode** (diperiksa otomatis oleh
 
 ---
 
-## 8. Memeriksa kesehatan fitur
+## 8. Memastikan fitur benar-benar hidup di server Anda
+
+Fitur ini punya tiga lapis pengaman supaya tidak pernah "hidup tapi tuli":
+
+1. **Watchdog pendaftaran listener.** Dua detik setelah plugin aktif — lalu tiap 60 detik —
+   `SkillService.ensureListeners()` memeriksa langsung ke `HandlerList` server (lewat refleksi)
+   apakah `SkillGuiListener`/`SkillListener` benar-benar terdaftar pada event yang diharapkan.
+   Bila hilang (mis. ada plugin lain yang membersihkan handler, atau reload server yang tidak
+   rapi), listener dipasang ulang otomatis dan kejadian itu ditulis sebagai `SEVERE` di log.
+   Pendaftaran dijaga agar tidak pernah dobel, jadi XP tidak bisa terhitung ganda.
+2. **Tidak ada kegagalan diam-diam.** Setiap handler membungkus isinya dengan
+   `catch (Throwable)` dan mencatatnya ke `SkillDiagnostics`; peringatan muncul **sekali** di
+   konsol (`Skill: gangguan di <lokasi> -> ...`) dan rinciannya tersimpan untuk `/skill check`.
+   Kegagalan API yang sudah dikenal tetap ditangani lewat probe (lihat bagian 6).
+3. **XP yang dilewati selalu dijelaskan.** Bila XP tidak bertambah karena mode game
+   (`skills.skip-gamemodes`) atau world (`skills.worlds`/`blacklisted-worlds`), pemain
+   mendapat pesan sekali per sesi — jadi tidak ada lagi "kok tidak naik?" tanpa keterangan.
+
+Cara tercekat memastikan semuanya jalan di server Anda:
+
+```
+/skill check
+```
+
+Contoh keluaran untuk pemain:
+
+```
+[W2NSMP] Diagnostik skill - Steve
+• Fitur: aktif | buff: aktif | skill aktif: 11 | level maks: 50
+• Mode game Anda: SURVIVAL -> XP aktif (dilewati: SPECTATOR)
+• World Anda: world -> XP aktif (diizinkan: semua world)
+• Uji XP (+1 ke Daya Tahan): OK (XP tercatat) | XP 1 | Lv. 1
+```
+
+Baris tambahan untuk admin (`w2nsmp.skill.admin`): API server (hasil probe), laporan
+pendaftaran listener per event, jumlah kesalahan terakhir, berkas data + jumlah profil, dan
+ringkasan setelan tiap skill.
+
+---
+
+## 8b. Memeriksa kesehatan fitur
 
 ```bash
 bash tools/release.sh 1.2.0          # build + 6 gerbang verifikasi
@@ -205,6 +246,36 @@ bash tools/release.sh 1.2.0          # build + 6 gerbang verifikasi
 `/w2nsmp debug` menampilkan baris `api:` (hasil probe) dan ringkasan tiap skill (level
 maks, kurva, buff aktif) — cara tercepat memastikan buff mana yang benar-benar hidup di
 server Anda.
+
+---
+
+## 8c. Masalah yang pernah terjadi dan sudah diperbaiki
+
+**v1.2.0 — listener "tuli" (fatal, sudah diperbaiki di v1.2.1).** Stub anotasi
+`org.bukkit.event.EventHandler` yang dipakai untuk kompilasi di sandbox tidak memuat
+`@Retention(RUNTIME)`. Java lalu memakai retention bawaan (`CLASS`): class tetap terkompilasi
+tanpa error, tetapi saat runtime Bukkit — yang menemukan handler lewat refleksi
+`method.isAnnotationPresent(EventHandler.class)` — melihat **nol handler**. Listener
+terdaftar, tidak ada error di log, namun: item GUI bisa diambil (klik tidak pernah dibatalkan),
+XP tidak pernah bertambah, dan buff tidak pernah dipasang. Fitur lama tidak terpengaruh karena
+class-nya tetap bytecode asli dari `W2NSMP-1.0.0.jar`.
+
+Perbaikannya berlapis: stub anotasi kini memakai `@Retention(RUNTIME)` + `@Target(METHOD)`;
+`tools/selftest/ListenerAnnotationTest.java` menjalankan refleksi ala Bukkit terhadap setiap
+listener dan gagal bila ada handler yang tidak terlihat; `tools/verify_jar.py` memeriksa
+bytecode JAR rilis (`RuntimeVisibleAnnotations` wajib ada di setiap class yang merujuk
+`@EventHandler`, dan handler untuk tiap event wajib ada); watchdog di dalam plugin memverifikasi
+pendaftaran ke `HandlerList` server saat berjalan.
+
+**v1.2.0 — inner class lama ikut terkemas (sudah diperbaiki).** Perhitungan "keluarga class"
+di `tools/package_jar.py` salah untuk inner class, sehingga `SkillService$RuntimeState` dan
+sebagainya bisa terkemas dari byte lama. Diperbaiki lewat `family_of()` + gerbang byte-per-byte
+di `tools/verify_jar.py`.
+
+**v1.2.0 — config lama mematikan skill diam-diam (sudah diperbaiki).** Daftar `blocks` dan
+`buff.causes` dibaca tanpa memeriksa apakah kuncinya ada, sehingga server yang naik versi dengan
+`config.yml` lama mendapat daftar kosong. Kini dijaga `config.isList()` dan nilai bawaannya ada
+di kode (identik dengan `config.yml`, diperiksa otomatis).
 
 ---
 

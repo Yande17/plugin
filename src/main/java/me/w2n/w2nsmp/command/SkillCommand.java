@@ -3,6 +3,7 @@ package me.w2n.w2nsmp.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import me.w2n.w2nsmp.W2NSMP;
 import me.w2n.w2nsmp.gui.SkillMenu;
@@ -23,6 +24,7 @@ import org.bukkit.entity.Player;
  * /skill &lt;nama-skill&gt;                 detail satu skill milik sendiri
  * /skill list                         ringkasan semua skill milik sendiri
  * /skill help                         bantuan
+ * /skill check                        diagnostik fitur (listener, buff, uji XP)
  * /skill info &lt;pemain&gt; [skill]        lihat skill pemain lain        (w2nsmp.skill.admin)
  * /skill set &lt;pemain&gt; &lt;skill&gt; &lt;level&gt; setel level                    (w2nsmp.skill.admin)
  * /skill add &lt;pemain&gt; &lt;skill&gt; &lt;xp&gt;    tambah/kurangi XP              (w2nsmp.skill.admin)
@@ -49,7 +51,19 @@ public final class SkillCommand implements TabExecutor {
       }
 
       SkillService service = this.plugin.skills();
-      if (service == null || !service.enabled()) {
+      if (service == null) {
+         this.plugin.messages().send(sender, "skill.disabled");
+         return true;
+      }
+
+      // Diagnostik sengaja diperiksa SEBELUM gerbang "fitur aktif": justru saat fitur mati atau
+      // bermasalah, admin harus tetap bisa menanyakan kenapa.
+      if (args.length > 0 && this.isCheckWord(args[0])) {
+         this.sendCheck(sender, service);
+         return true;
+      }
+
+      if (!service.enabled()) {
          this.plugin.messages().send(sender, "skill.disabled");
          return true;
       }
@@ -357,6 +371,8 @@ public final class SkillCommand implements TabExecutor {
          List<String> options = new ArrayList<>(SkillType.keys());
          options.add("list");
          options.add("help");
+         options.add("check");
+         options.add("cek");
          if (admin) {
             options.add("info");
             options.add("set");
@@ -428,11 +444,141 @@ public final class SkillCommand implements TabExecutor {
       return names;
    }
 
+   private boolean isCheckWord(String word) {
+      if (word == null) {
+         return false;
+      }
+
+      return switch (word.toLowerCase(Locale.ROOT)) {
+         case "check", "cek", "diagnosa", "diagnostic" -> true;
+         default -> false;
+      };
+   }
+
+   /**
+    * Diagnostik fitur di server ini: membuktikan listener terdaftar, buff hidup, dan XP benar-benar
+    * bisa masuk. Setiap pemain boleh melihat status dirinya (termasuk uji XP +1); rincian listener,
+    * API server, dan kesalahan terakhir hanya untuk admin.
+    */
+   private void sendCheck(CommandSender sender, SkillService service) {
+      boolean admin = sender.hasPermission(ADMIN_PERMISSION);
+      this.plugin.messages().send(sender, "skill.check-header", "player", sender.getName());
+      this.plugin
+         .messages()
+         .send(
+            sender,
+            "skill.check-status",
+            "status",
+            service.enabled() ? "aktif" : "MATI (skills.enabled: false)",
+            "buffs",
+            service.buffsEnabled() ? "aktif" : "MATI (skills.buffs.enabled: false)",
+            "max",
+            Integer.toString(service.maxLevel()),
+            "skills",
+            Integer.toString(service.enabledSkillCount())
+         );
+
+      if (sender instanceof Player player) {
+         String mode = player.getGameMode() == null ? "-" : player.getGameMode().name();
+         this.plugin
+            .messages()
+            .send(
+               sender,
+               "skill.check-gamemode",
+               "gamemode",
+               mode,
+               "effect",
+               service.gameModeAllowed(player) ? "aktif" : "DILEWATI",
+               "list",
+               String.join(", ", service.skippedGameModes())
+            );
+         String world = player.getWorld() == null ? "-" : player.getWorld().getName();
+         this.plugin
+            .messages()
+            .send(
+               sender,
+               "skill.check-world",
+               "world",
+               world,
+               "effect",
+               service.worldAllowed(player.getWorld()) ? "aktif" : "DILEWATI",
+               "list",
+               service.allowedWorlds().isEmpty() ? "semua world" : String.join(", ", service.allowedWorlds())
+            );
+
+         // Uji hidup: benar-benar memasukkan 1 XP dan melihat apakah tercatat.
+         SkillType tested = SkillType.ENDURANCE;
+         double before = service.xp(player, tested);
+         service.addXp(player, tested, 1.0D);
+         double after = service.xp(player, tested);
+         this.plugin
+            .messages()
+            .send(
+               sender,
+               "skill.check-xp",
+               "skill",
+               service.label(tested),
+               "status",
+               after > before ? "OK (XP tercatat)" : "GAGAL (XP tidak masuk)",
+               "xp",
+               SkillService.format(after),
+               "level",
+               Integer.toString(service.level(player, tested))
+            );
+      }
+
+      if (!admin) {
+         this.plugin.messages().send(sender, "skill.check-note");
+         return;
+      }
+
+      this.plugin.messages().send(sender, "skill.check-api", "api", service.probe().summary());
+      service.diagnostics().inspect();
+      this.plugin
+         .messages()
+         .send(
+            sender,
+            "skill.check-listeners",
+            "status",
+            service.diagnostics().listenersOk() ? "terdaftar semua di server" : "ADA YANG HILANG (lihat baris di bawah)"
+         );
+
+      for (String line : service.diagnostics().listenerReport().split(" \\| ")) {
+         this.plugin.messages().send(sender, "skill.check-listener-line", "line", line);
+      }
+
+      List<String> errors = service.diagnostics().errorLines();
+      this.plugin.messages().send(sender, "skill.check-errors", "count", Integer.toString(errors.size()));
+
+      for (String error : errors) {
+         this.plugin.messages().send(sender, "skill.check-error-line", "line", error);
+      }
+
+      Map<String, Object> snapshot = service.debugSnapshot();
+      this.plugin
+         .messages()
+         .send(
+            sender,
+            "skill.check-data",
+            "file",
+            service.fileName(),
+            "profiles",
+            String.valueOf(snapshot.get("profiles")),
+            "dirty",
+            String.valueOf(snapshot.get("dirty"))
+         );
+
+      for (SkillType type : SkillType.values()) {
+         this.plugin.messages().send(sender, "skill.check-skill-line", "line", service.settings(type).summary());
+      }
+   }
+
    private void sendHelp(CommandSender sender, String label) {
       this.plugin.messages().send(sender, "skill.help-header", "label", label);
       this.plugin.messages().send(sender, "skill.help-open", "label", label);
       this.plugin.messages().send(sender, "skill.help-detail", "label", label);
       this.plugin.messages().send(sender, "skill.help-list", "label", label);
+      this.plugin.messages().send(sender, "skill.help-check", "label", label);
       if (sender.hasPermission(ADMIN_PERMISSION)) {
          this.plugin.messages().send(sender, "skill.help-info", "label", label);
          this.plugin.messages().send(sender, "skill.help-set", "label", label);

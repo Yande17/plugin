@@ -13,9 +13,6 @@ import me.w2n.w2nsmp.listener.ProfileGuiListener;
 import me.w2n.w2nsmp.listener.ScoreboardListener;
 import me.w2n.w2nsmp.listener.SellGuiListener;
 import me.w2n.w2nsmp.listener.SettingsGuiListener;
-import me.w2n.w2nsmp.listener.SkillFishingListener;
-import me.w2n.w2nsmp.listener.SkillGuiListener;
-import me.w2n.w2nsmp.listener.SkillListener;
 import me.w2n.w2nsmp.listener.StatsListener;
 import me.w2n.w2nsmp.listener.TeleportListener;
 import me.w2n.w2nsmp.listener.TpaGuiListener;
@@ -49,16 +46,28 @@ public final class ListenerManager {
       this.register(new TpaGuiListener(this.plugin));
       this.register(new BountyListener(this.plugin));
       this.register(new BountyGuiListener(this.plugin));
-      this.register(new SkillGuiListener(this.plugin));
-      if (this.plugin.skills() != null && this.plugin.skills().enabled()) {
-         this.register(new SkillListener(this.plugin));
-         // PlayerFishEvent adalah satu-satunya event yang tidak dipakai fitur lama; listenernya
-         // hanya didaftarkan bila kelas event itu benar-benar ada di server ini.
-         if (this.plugin.skills().probe().fishingEventApi()) {
-            this.register(new SkillFishingListener(this.plugin));
-         } else {
-            this.plugin.getLogger().info("Skill: PlayerFishEvent tidak ada di server ini - XP memancing dilewati (fitur lain tetap jalan).");
-         }
+      this.registerSkillListeners();
+   }
+
+   /**
+    * Listener skill didaftarkan oleh {@code SkillService} sendiri, bukan di sini, supaya hanya ada
+    * satu sumber kebenaran: watchdog fitur skill bisa memeriksa ke HandlerList server dan memasang
+    * ulang listener yang hilang tanpa pernah mendaftarkannya dua kali (yang akan membuat XP
+    * terhitung ganda). Pendaftaran juga tidak lagi bergantung pada {@code skills.enabled} - kalau
+    * fitur dimatikan lewat config, handler-nya sendiri yang diam, jadi {@code /w2nsmp reload}
+    * cukup untuk menyalakan fitur kembali tanpa restart.
+    */
+   private void registerSkillListeners() {
+      if (this.plugin.skills() == null) {
+         this.plugin.getLogger().severe("Skill: layanan skill belum siap - listener skill TIDAK didaftarkan.");
+         return;
+      }
+
+      try {
+         String result = this.plugin.skills().registerListeners();
+         this.plugin.getLogger().info("Skill: listener " + result + ".");
+      } catch (Throwable throwable) {
+         this.plugin.getLogger().severe("Skill: pendaftaran listener gagal -> " + throwable);
       }
    }
 

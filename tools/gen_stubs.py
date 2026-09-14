@@ -746,6 +746,13 @@ def render(name, methods, fields, nested=False):
     mod = 'public ' if (not nested or name in PUBLIC_NESTED) else ''
     out = []
     if kind == 'annotation':
+        # RETENTION RUNTIME ITU WAJIB. Bukkit mendaftarkan handler lewat refleksi
+        # (method.isAnnotationPresent(EventHandler.class)); tanpa @Retention(RUNTIME), Java
+        # memakai RetentionPolicy.CLASS sehingga anotasi TIDAK terlihat saat runtime dan
+        # seluruh @EventHandler di kelas hasil kompilasi ulang diam-diam tidak pernah
+        # dipanggil (listener terdaftar tapi "tuli": GUI tidak dibatalkan, XP tidak masuk).
+        out.append(f'{pad}@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)')
+        out.append(f'{pad}@java.lang.annotation.Target({{java.lang.annotation.ElementType.METHOD}})')
         out.append(f'{pad}{mod}@interface {short} {{')
         out.append(f'{pad}   org.bukkit.event.EventPriority priority() default org.bukkit.event.EventPriority.NORMAL;')
         out.append(f'{pad}   boolean ignoreCancelled() default false;')

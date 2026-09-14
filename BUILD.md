@@ -5,7 +5,8 @@
 ```
 W2NSMP-1.0.0.jar        JAR rilis asli (dipakai sebagai sumber class yang tidak diubah)
 W2NSMP-1.1.0.jar        rilis Paket A+B+C (perbaikan statistik, /top, scoreboard)
-W2NSMP-1.2.0.jar        rilis fitur /skill (11 skill, level 1-50, buff per skill)  <-- terbaru
+W2NSMP-1.2.1.jar        rilis fitur /skill + perbaikan fatal listener  <-- PAKAI INI
+# (W2NSMP-1.2.0.jar ditarik/dihapus: listener skill tuli - lihat "Jebakan stub: @Retention anotasi")
 src/main/java/          source Java (dipulihkan dari JAR via Vineflower 1.12) + kode baru
 src/main/resources/     plugin.yml, config.yml, messages.yml, prices.yml, gui/*.yml
 docs/                   catatan audit, desain, dan dokumentasi fitur
@@ -23,7 +24,8 @@ pom.xml                 build Maven (untuk komputer lokal / CI)
 |---------|------------------------------------------------------------------------------------------|
 | `1.0.0` | Build asli (sumber kebenaran bytecode untuk kelas yang tidak diedit)                     |
 | `1.1.0` | Paket A+B+C: `docs/AUDIT-statistik-scoreboard.md` — perbaikan nametag×sidebar, migrasi format statistik, `/top` & `/sb` |
-| `1.2.0` | Fitur `/skill`: 11 skill, kurva level (maks 50), buff per skill, GUI, admin — `docs/FITUR-skill.md` |
+| `1.2.0` | Fitur `/skill`: 11 skill, kurva level (maks 50), buff per skill, GUI, admin — `docs/FITUR-skill.md`. **Ditarik:** listener tuli (lihat jebakan di bawah) |
+| `1.2.1` | Perbaikan fatal v1.2.0 (`@Retention(RUNTIME)`), watchdog pendaftaran listener, `/skill check`, kegagalan tidak lagi diam-diam |
 
 Aturan main yang dipegang untuk setiap rilis: **fitur lama tidak diubah perilakunya**. Data
 fitur baru disimpan di berkas terpisah (`skills.yml`), dan class yang tidak disunting tetap
@@ -76,11 +78,31 @@ Langkahnya:
 | # | Langkah | Alat |
 |---|---------|------|
 | 1 | bangkitkan stub + kompilasi 135 sumber (→ 163 class, 0 error) | `tools/build.sh`, `tools/gen_stubs.py` |
-| 2 | uji logika murni Java (kurva level, profil XP, `fromKey`) | `tools/selftest/SkillSelfTest.java` |
+| 2a | uji logika murni Java (kurva level, profil XP, `fromKey`) | `tools/selftest/SkillSelfTest.java` |
+| 2b | uji refleksi ala Bukkit: setiap `@EventHandler` harus terlihat saat runtime | `tools/selftest/ListenerAnnotationTest.java` |
 | 3 | verifikasi linkage bytecode (311 + 447 referensi internal) | `tools/verify_linkage.py` |
 | 4 | verifikasi config/messages/plugin.yml/gui terhadap kode | `tools/verify_feature.py` (butuh `pyyaml`) |
 | 5 | kemas JAR hibrida | `tools/package_jar.py` |
 | 6 | verifikasi **isi** JAR byte-per-byte | `tools/verify_jar.py` |
+
+### Jebakan stub: `@Retention` anotasi
+
+Stub API dibangkitkan sendiri, jadi **sifat anotasi harus ditulis eksplisit**. `@EventHandler`
+Bukkit dibaca lewat refleksi (`method.isAnnotationPresent(...)`); tanpa `@Retention(RUNTIME)`
+Java memakai retention bawaan `CLASS`, anotasi tersimpan di class file tapi **tidak terlihat
+saat runtime**. Kompilasi tetap sukses, plugin tetap aktif, tidak ada error di log — namun
+Bukkit melihat nol handler, jadi listener "tuli": GUI tidak membatalkan klik (item bisa diambil),
+XP tidak bertambah, buff tidak dipasang. Inilah bug fatal v1.2.0.
+
+`tools/gen_stubs.py` kini selalu menulis `@Retention(RUNTIME)` + `@Target(METHOD)` untuk stub
+anotasi, dan tiga gerbang menjaganya: `ListenerAnnotationTest` (refleksi ala Bukkit),
+`verify_feature.py` (stub wajib memuat `RetentionPolicy.RUNTIME`), dan `verify_jar.py`
+(setiap class di JAR yang merujuk `@EventHandler` wajib punya `RuntimeVisibleAnnotations`).
+
+> Pelajaran umumnya: bila bytecode dikompilasi terhadap stub, yang berbahaya bukan hanya
+> *nama* member, tapi juga **bentuk metadata** (retention anotasi, class vs interface,
+> static vs instance). Karena itu rilis selalu diverifikasi di tingkat bytecode, bukan cuma
+> "kompilasi sukses".
 
 ### Cara kerja pengemasan hibrida
 

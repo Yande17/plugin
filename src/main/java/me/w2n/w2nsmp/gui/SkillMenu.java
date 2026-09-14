@@ -1,9 +1,12 @@
 package me.w2n.w2nsmp.gui;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import me.w2n.w2nsmp.W2NSMP;
 import me.w2n.w2nsmp.config.GuiConfig;
 import me.w2n.w2nsmp.skill.SkillInfo;
@@ -15,6 +18,7 @@ import me.w2n.w2nsmp.utility.GuiKit;
 import me.w2n.w2nsmp.utility.Items;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -29,7 +33,46 @@ import org.bukkit.inventory.ItemStack;
  * inventory bertumpuk.
  */
 public final class SkillMenu {
+   /**
+    * Menu yang sedang terbuka (kunci: UUID pemain). Ini jalur cadangan penjagaan GUI: pembatalan
+    * klik tidak lagi bergantung pada satu pemanggilan API pun, jadi item menu tidak bisa diambil
+    * walaupun {@code getHolder()} bermasalah di sebuah versi server.
+    */
+   private static final Map<UUID, Inventory> OPEN = new HashMap<>();
+
    private SkillMenu() {
+   }
+
+   /** Apakah inventory ini salah satu menu skill yang sedang terbuka (dibandingkan identitasnya). */
+   public static boolean isMenu(Inventory inventory) {
+      if (inventory == null) {
+         return false;
+      }
+
+      for (Inventory open : OPEN.values()) {
+         if (open == inventory) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   /** Apakah entity ini sedang punya menu skill terbuka (dipakai bila holder tidak terbaca). */
+   public static boolean isOwnerMenu(HumanEntity entity) {
+      return entity != null && OPEN.containsKey(entity.getUniqueId());
+   }
+
+   /** Lupakan menu entity ini. {@code inventory} null berarti hapus tanpa membandingkan. */
+   public static void markClosed(HumanEntity entity, Inventory inventory) {
+      if (entity == null) {
+         return;
+      }
+
+      Inventory open = OPEN.get(entity.getUniqueId());
+      if (open == null || inventory == null || open == inventory) {
+         OPEN.remove(entity.getUniqueId());
+      }
    }
 
    public static GuiConfig gui(W2NSMP plugin) {
@@ -68,6 +111,7 @@ public final class SkillMenu {
       holder.setInventory(inventory);
       render(plugin, inventory, player);
       player.openInventory(inventory);
+      OPEN.put(player.getUniqueId(), inventory);
       plugin.guiSounds().play(player, gui(plugin), "open");
    }
 
@@ -252,10 +296,16 @@ public final class SkillMenu {
 
    public static void closeAll(W2NSMP plugin) {
       for (Player player : Bukkit.getOnlinePlayers()) {
-         InventoryView view = player.getOpenInventory();
-         if (view != null && view.getTopInventory().getHolder() instanceof SkillMenuHolder) {
-            player.closeInventory();
+         try {
+            InventoryView view = player.getOpenInventory();
+            if (view != null && (view.getTopInventory().getHolder() instanceof SkillMenuHolder || isMenu(view.getTopInventory()))) {
+               player.closeInventory();
+            }
+         } catch (Throwable throwable) {
+            plugin.debug("Skill: gagal menutup menu untuk " + player.getName() + " (" + throwable + ").");
          }
       }
+
+      OPEN.clear();
    }
 }

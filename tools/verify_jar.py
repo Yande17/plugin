@@ -151,6 +151,48 @@ def main():
         else:
             notes.append('gui/skill.yml di JAR: 13 slot (11 skill + info + close)')
 
+    # ---- 5b: anotasi @EventHandler harus RUNTIME-visible di SETIAP class listener
+    # Bila tidak, Bukkit mendaftarkan listener-nya tapi tidak menemukan satu pun handler -> fitur
+    # terlihat hidup padahal "tuli". Ini penyebab bug v1.2.0, jadi diperiksa di level bytecode JAR.
+    deaf = []
+    for name, blob in sorted(release.items()):
+        if not name.endswith('.class') or b'Lorg/bukkit/event/EventHandler;' not in blob:
+            continue
+        if b'RuntimeVisibleAnnotations' not in blob:
+            deaf.append(name)
+        elif b'RuntimeInvisibleAnnotations' in blob:
+            deaf.append(name + ' (sebagian anotasi tidak terlihat saat runtime)')
+    if deaf:
+        for name in deaf:
+            fail(f'{name}: @EventHandler TIDAK terlihat saat runtime - Bukkit tidak akan memanggil handler apa pun')
+    else:
+        count = sum(1 for name, blob in release.items()
+                    if name.endswith('.class') and b'Lorg/bukkit/event/EventHandler;' in blob)
+        notes.append(f'{count} class listener punya @EventHandler yang terlihat saat runtime')
+
+    # ---- 5c: event yang ditangani listener skill harus benar-benar ada di bytecode-nya
+    expected_events = {
+        'me/w2n/w2nsmp/listener/SkillListener.class': [
+            'Lorg/bukkit/event/block/BlockBreakEvent;', 'Lorg/bukkit/event/entity/EntityDamageEvent;',
+            'Lorg/bukkit/event/entity/EntityDamageByEntityEvent;', 'Lorg/bukkit/event/entity/EntityDeathEvent;',
+            'Lorg/bukkit/event/player/PlayerMoveEvent;', 'Lorg/bukkit/event/player/PlayerJoinEvent;',
+        ],
+        'me/w2n/w2nsmp/listener/SkillGuiListener.class': [
+            'Lorg/bukkit/event/inventory/InventoryClickEvent;', 'Lorg/bukkit/event/inventory/InventoryDragEvent;',
+            'Lorg/bukkit/event/inventory/InventoryCloseEvent;',
+        ],
+        'me/w2n/w2nsmp/listener/SkillFishingListener.class': ['Lorg/bukkit/event/player/PlayerFishEvent;'],
+    }
+    for name, events in expected_events.items():
+        blob = release.get(name)
+        if blob is None:
+            fail(f'{name} tidak ada di JAR')
+            continue
+        for event in events:
+            if event.encode() not in blob:
+                fail(f'{name} tidak menangani {event} (handler hilang dari bytecode)')
+    notes.append('handler XP/buff/GUI/mancing lengkap di bytecode JAR')
+
     # ---- 6: class asli tidak ada yang hilang
     for name in sorted(original):
         if name.endswith('.class') and name not in release:

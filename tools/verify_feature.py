@@ -32,6 +32,7 @@ NEW_FILES = [
     'skill/SkillType.java', 'skill/BuffKind.java', 'skill/SkillCurve.java', 'skill/SkillProfile.java',
     'skill/SkillSettings.java', 'skill/SkillApiProbe.java', 'skill/SkillStorage.java',
     'skill/SkillService.java', 'skill/SkillInfo.java', 'skill/SkillMenuSlots.java',
+    'skill/SkillDiagnostics.java',
     'listener/SkillListener.java', 'listener/SkillFishingListener.java', 'listener/SkillGuiListener.java',
     'gui/SkillMenu.java', 'gui/SkillMenuHolder.java', 'command/SkillCommand.java',
 ]
@@ -187,9 +188,16 @@ def main():
         ('manager/CommandManager.java', 'registerRuntime("skill"', 'CommandManager mendaftarkan /skill saat runtime'),
         ('manager/CommandManager.java', '"w2nsmp.skill"', 'CommandManager memakai permission w2nsmp.skill'),
         ('manager/CommandManager.java', 'SkillCommand', 'CommandManager memakai SkillCommand'),
-        ('manager/ListenerManager.java', 'new SkillGuiListener(', 'ListenerManager memasang SkillGuiListener'),
-        ('manager/ListenerManager.java', 'new SkillListener(', 'ListenerManager memasang SkillListener'),
-        ('manager/ListenerManager.java', 'new SkillFishingListener(', 'ListenerManager memasang SkillFishingListener'),
+        ('manager/ListenerManager.java', 'registerSkillListeners()', 'ListenerManager memanggil pendaftaran listener skill'),
+        ('skill/SkillService.java', 'new SkillGuiListener(', 'SkillService membuat SkillGuiListener'),
+        ('skill/SkillService.java', 'new SkillListener(', 'SkillService membuat SkillListener'),
+        ('skill/SkillService.java', 'new SkillFishingListener(', 'SkillService membuat SkillFishingListener'),
+        ('skill/SkillService.java', 'manager.registerEvents(listener, this.plugin)', 'SkillService mendaftarkan listener ke server'),
+        ('skill/SkillService.java', 'public synchronized void ensureListeners()', 'SkillService punya watchdog pemasangan ulang listener'),
+        ('skill/SkillDiagnostics.java', 'getRegisteredListeners', 'SkillDiagnostics memeriksa HandlerList server'),
+        ('listener/SkillGuiListener.java', 'EventPriority.LOWEST', 'SkillGuiListener membatalkan klik paling awal'),
+        ('listener/SkillGuiListener.java', 'event.setCancelled(true)', 'SkillGuiListener membatalkan klik di menu'),
+        ('gui/SkillMenu.java', 'OPEN.put(player.getUniqueId(), inventory)', 'SkillMenu mencatat menu yang terbuka'),
         ('config/GuiConfigs.java', '"skill"', 'GuiConfigs mengenal gui id "skill"'),
     ]
     for rel, needle, label in wiring_checks:
@@ -267,6 +275,31 @@ def main():
     for perm in ('w2nsmp.skill', 'w2nsmp.skill.admin'):
         if isinstance(children, dict) and perm not in children:
             fail(f'plugin.yml: w2nsmp.admin.children belum memuat {perm}')
+
+    # ---- 6b. stub anotasi @EventHandler WAJIB retention RUNTIME
+    # Bukkit menemukan handler lewat refleksi. Stub tanpa @Retention(RUNTIME) membuat Java memakai
+    # RetentionPolicy.CLASS: class tetap terkompilasi rapi, tapi saat runtime Bukkit melihat nol
+    # handler sehingga listener "tuli" (GUI tidak membatalkan klik, XP tidak pernah masuk).
+    stub_annotation = ROOT / 'tools/stubs/generated/src/org/bukkit/event/EventHandler.java'
+    if not stub_annotation.is_file():
+        fail('stub org/bukkit/event/EventHandler.java tidak ada - jalankan tools/build.sh dulu')
+    else:
+        stub_text = stub_annotation.read_text(encoding='utf-8')
+        if 'RetentionPolicy.RUNTIME' not in stub_text:
+            fail('stub @EventHandler tidak punya @Retention(RUNTIME) -> semua listener hasil kompilasi '
+                 'akan tuli di server (bug yang pernah terjadi di v1.2.0)')
+        else:
+            ok('stub @EventHandler memakai @Retention(RUNTIME)')
+
+    # setiap listener baru harus punya handler dan mencatat kegagalannya
+    for rel in ('listener/SkillListener.java', 'listener/SkillGuiListener.java', 'listener/SkillFishingListener.java'):
+        text = (SRC / rel).read_text(encoding='utf-8')
+        handlers = text.count('@EventHandler')
+        if handlers == 0:
+            fail(f'{rel} tidak punya @EventHandler sama sekali')
+        if 'catch (Throwable' not in text:
+            fail(f'{rel} tidak membungkus handler dengan catch (Throwable) - kegagalan akan hilang diam-diam')
+    ok('3 listener skill punya handler + penjaga catch (Throwable)')
 
     # ---- 7. karakter asing di sumber & resource
     for rel in NEW_FILES:

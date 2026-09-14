@@ -47,6 +47,16 @@ public final class SkillListener implements Listener {
       this.plugin = plugin;
    }
 
+   /** Catat kegagalan handler sekali per lokasi (WARNING di konsol, rincian di /skill check). */
+   private void note(Throwable throwable, String where) {
+      SkillService service = this.plugin.skills();
+      if (service != null) {
+         service.diagnostics().noteError(where, throwable);
+      } else {
+         this.plugin.getLogger().warning("Skill: gangguan di " + where + " -> " + throwable);
+      }
+   }
+
    private SkillService service() {
       SkillService service = this.plugin.skills();
       return service != null && service.enabled() ? service : null;
@@ -54,6 +64,17 @@ public final class SkillListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR)
    public void onJoin(PlayerJoinEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleJoin(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "player-join");
+      }
+   }
+
+   private void handleJoin(PlayerJoinEvent event) {
       if (this.plugin.skills() != null) {
          this.plugin.skills().onJoin(event.getPlayer());
       }
@@ -61,6 +82,17 @@ public final class SkillListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR)
    public void onQuit(PlayerQuitEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleQuit(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "player-quit");
+      }
+   }
+
+   private void handleQuit(PlayerQuitEvent event) {
       if (this.plugin.skills() != null) {
          this.plugin.skills().onQuit(event.getPlayer());
       }
@@ -68,6 +100,17 @@ public final class SkillListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR)
    public void onDeath(PlayerDeathEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleDeath(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "player-death");
+      }
+   }
+
+   private void handleDeath(PlayerDeathEvent event) {
       if (this.plugin.skills() != null) {
          // Darah akan diisi ulang saat respawn; lupakan angka lama agar regen tidak terhitung.
          this.plugin.skills().onRespawnOrHealReset(event.getEntity());
@@ -76,6 +119,17 @@ public final class SkillListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
    public void onBreak(BlockBreakEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleBreak(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "block-break");
+      }
+   }
+
+   private void handleBreak(BlockBreakEvent event) {
       SkillService service = this.service();
       if (service == null || !service.probe().blockApi()) {
          return;
@@ -185,6 +239,17 @@ public final class SkillListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
    public void onMove(PlayerMoveEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleMove(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "player-move");
+      }
+   }
+
+   private void handleMove(PlayerMoveEvent event) {
       SkillService service = this.service();
       if (service != null) {
          service.onMove(event.getPlayer(), event.getTo());
@@ -194,6 +259,17 @@ public final class SkillListener implements Listener {
    /** Serangan pemain (tangan/pedang atau proyektil): buff damage + XP fighting/archery. */
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
    public void onDamageByEntity(EntityDamageByEntityEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleDamageByEntity(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "damage-by-entity");
+      }
+   }
+
+   private void handleDamageByEntity(EntityDamageByEntityEvent event) {
       SkillService service = this.service();
       if (service == null || !service.probe().damageApi()) {
          return;
@@ -265,6 +341,17 @@ public final class SkillListener implements Listener {
    /** Damage yang diterima pemain: buff pengurangan + XP defense/vitality. */
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
    public void onDamage(EntityDamageEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleDamage(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "damage");
+      }
+   }
+
+   private void handleDamage(EntityDamageEvent event) {
       SkillService service = this.service();
       if (service == null || !service.probe().damageApi()) {
          return;
@@ -335,6 +422,17 @@ public final class SkillListener implements Listener {
    /** XP kill: archery bila pukulan terakhir proyektil, selain itu fighting. */
    @EventHandler(priority = EventPriority.MONITOR)
    public void onEntityDeath(EntityDeathEvent event) {
+      // Seluruh isi handler dibungkus: satu API yang hilang di sebuah versi server tidak
+      // boleh membuat handler berhenti di tengah (mis. klik/XP batal diproses) dan tidak
+      // boleh pula hilang tanpa jejak - kegagalannya dicatat untuk /skill check.
+      try {
+         this.handleEntityDeath(event);
+      } catch (Throwable throwable) {
+         this.note(throwable, "entity-death");
+      }
+   }
+
+   private void handleEntityDeath(EntityDeathEvent event) {
       SkillService service = this.service();
       if (service == null) {
          return;

@@ -31,6 +31,20 @@ public final class SkillFishingListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
    public void onFish(PlayerFishEvent event) {
+      // Dibungkus: kegagalan satu pemanggilan API tidak boleh menjatuhkan handler tanpa jejak.
+      try {
+         this.handleFish(event);
+      } catch (Throwable throwable) {
+         SkillService service = this.plugin.skills();
+         if (service != null) {
+            service.diagnostics().noteError("memancing", throwable);
+         } else {
+            this.plugin.getLogger().warning("Skill: gangguan di memancing -> " + throwable);
+         }
+      }
+   }
+
+   private void handleFish(PlayerFishEvent event) {
       SkillService service = this.plugin.skills();
       if (service == null || !service.enabled() || !service.probe().fishingEventApi()) {
          return;

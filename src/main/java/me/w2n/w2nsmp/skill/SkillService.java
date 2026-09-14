@@ -11,6 +11,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import me.w2n.w2nsmp.W2NSMP;
+import me.w2n.w2nsmp.listener.SkillFishingListener;
+import me.w2n.w2nsmp.listener.SkillGuiListener;
+import me.w2n.w2nsmp.listener.SkillListener;
 import me.w2n.w2nsmp.player.PlayerSettingsService;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -19,6 +22,8 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
@@ -39,6 +44,7 @@ public final class SkillService {
    private final W2NSMP plugin;
    private final SkillStorage storage;
    private final SkillApiProbe probe;
+   private final SkillDiagnostics diagnostics;
    private final Map<UUID, SkillProfile> profiles = new ConcurrentHashMap<>();
    private final Map<UUID, SkillService.RuntimeState> runtime = new ConcurrentHashMap<>();
    private final Map<UUID, SkillService.WalkSpeed> walkSpeeds = new HashMap<>();
@@ -62,12 +68,17 @@ public final class SkillService {
    private int saveIntervalSeconds = 300;
    private BukkitTask tickTask;
    private BukkitTask saveTask;
+   private BukkitTask watchdogTask;
+   private SkillGuiListener guiListener;
+   private SkillListener xpListener;
+   private SkillFishingListener fishingListener;
    private boolean dirty;
 
    public SkillService(W2NSMP plugin) {
       this.plugin = plugin;
       this.storage = new SkillStorage(plugin);
       this.probe = new SkillApiProbe(plugin);
+      this.diagnostics = new SkillDiagnostics(plugin);
 
       for (SkillType type : SkillType.values()) {
          this.settings[type.ordinal()] = SkillSettings.load(plugin, type, SkillMenuSlots.fallback(type));
@@ -161,8 +172,93 @@ public final class SkillService {
       return result;
    }
 
+   /** Diagnostik fitur (laporan pendaftaran listener + kesalahan terakhir). */
+   public SkillDiagnostics diagnostics() {
+      return this.diagnostics;
+   }
+
+   /**
+    * Daftarkan listener skill ke server. Dipanggil {@code ListenerManager} saat enable dan oleh
+    * watchdog bila pendaftaran hilang. Aman dipanggil berulang: instance yang sudah ada tidak
+    * didaftarkan dua kali (XP tidak akan pernah terhitung ganda).
+    *
+    * @return ringkasan singkat hasil pendaftaran untuk log
+    */
+   public synchronized String registerListeners() {
+      PluginManager manager = Bukkit.getPluginManager();
+      List<String> notes = new ArrayList<>(3);
+      if (this.guiListener == null) {
+         this.guiListener = new SkillGuiListener(this.plugin);
+         this.register(manager, this.guiListener, "GUI", notes);
+      }
+
+      if (this.xpListener == null) {
+         this.xpListener = new SkillListener(this.plugin);
+         this.register(manager, this.xpListener, "XP & buff", notes);
+      }
+
+      if (this.fishingListener == null) {
+         if (this.probe.fishingEventApi()) {
+            this.fishingListener = new SkillFishingListener(this.plugin);
+            this.register(manager, this.fishingListener, "memancing", notes);
+         } else {
+            notes.add("memancing dilewati (PlayerFishEvent tidak ada di server ini)");
+         }
+      }
+
+      return String.join(", ", notes);
+   }
+
+   private void register(PluginManager manager, Listener listener, String label, List<String> notes) {
+      try {
+         manager.registerEvents(listener, this.plugin);
+         notes.add(label + " terdaftar");
+      } catch (Throwable throwable) {
+         notes.add(label + " GAGAL: " + throwable);
+         this.plugin.getLogger().severe("Skill: listener " + label + " gagal didaftarkan -> " + throwable);
+         this.diagnostics.noteError("pendaftaran-listener-" + label, throwable);
+      }
+   }
+
+   /**
+    * Watchdog: periksa ke {@code HandlerList} server apakah listener skill masih terdaftar, lalu
+    * pasang ulang yang hilang. Ini pengaman terhadap kejadian yang tidak terlihat dari luar -
+    * plugin lain yang membersihkan handler, atau reload server yang tidak rapi - yang membuat
+    * fitur "hidup tapi tuli".
+    */
+   public synchronized void ensureListeners() {
+      Set<String> missing = this.diagnostics.inspect();
+      if (missing.isEmpty()) {
+         return;
+      }
+
+      this.plugin.getLogger().severe("Skill: listener " + missing + " tidak terdaftar di server - dipasang ulang otomatis.");
+      if (missing.contains("SkillGuiListener")) {
+         this.guiListener = null;
+      }
+
+      if (missing.contains("SkillListener")) {
+         this.xpListener = null;
+      }
+
+      if (missing.contains("SkillFishingListener")) {
+         this.fishingListener = null;
+      }
+
+      String result = this.registerListeners();
+      if (this.diagnostics.inspect().isEmpty()) {
+         this.plugin.getLogger().info("Skill: perbaikan listener berhasil (" + result + ").");
+      } else {
+         this.plugin.getLogger().severe("Skill: listener masih hilang setelah dipasang ulang (" + result + ") - restart server diperlukan.");
+      }
+   }
+
    public void startTasks() {
       this.stopTasks();
+
+      // Pendaftaran listener diverifikasi sesudah server selesai meng-enable plugin (2 detik),
+      // lalu diperiksa ulang tiap menit. Murah: hanya membaca HandlerList beberapa event.
+      this.watchdogTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this::watchdog, 40L, 1200L);
       if (!this.enabled) {
          return;
       }
@@ -174,7 +270,21 @@ public final class SkillService {
       }
    }
 
+   /** Tugas watchdog: verifikasi + laporan sekali di awal, lalu diam bila semua beres. */
+   private void watchdog() {
+      try {
+         this.ensureListeners();
+      } catch (Throwable throwable) {
+         this.diagnostics.noteError("watchdog", throwable);
+      }
+   }
+
    public void stopTasks() {
+      if (this.watchdogTask != null) {
+         this.watchdogTask.cancel();
+         this.watchdogTask = null;
+      }
+
       if (this.tickTask != null) {
          this.tickTask.cancel();
          this.tickTask = null;
@@ -447,7 +557,12 @@ public final class SkillService {
       }
 
       SkillSettings settings = this.settings(type);
-      if (!settings.enabled() || !this.worldAllowed(player.getWorld()) || !this.gameModeAllowed(player)) {
+      if (!settings.enabled()) {
+         return;
+      }
+
+      if (!this.worldAllowed(player.getWorld()) || !this.gameModeAllowed(player)) {
+         this.hintSkipped(player);
          return;
       }
 
@@ -466,6 +581,36 @@ public final class SkillService {
          this.onLevelUp(player, type, before, after);
       } else if (this.actionbarXp && player.isOnline()) {
          player.sendActionBar(this.plugin.messages().component("skill.actionbar", "skill", this.label(type), "xp", format(total), "level", Integer.toString(after)));
+      }
+   }
+
+   /**
+    * Beri tahu pemain sekali per sesi kenapa XP-nya tidak bertambah (mode game atau world yang
+    * dilewati). Tanpa pesan ini, admin yang menguji sambil berada di mode kreatif melihat fitur
+    * seolah mati tanpa penjelasan apa pun.
+    */
+   private void hintSkipped(Player player) {
+      SkillService.RuntimeState state = this.state(player.getUniqueId());
+      if (state.skipHinted) {
+         return;
+      }
+
+      state.skipHinted = true;
+
+      try {
+         if (!this.gameModeAllowed(player)) {
+            String mode = player.getGameMode() == null ? "-" : player.getGameMode().name();
+            this.plugin
+               .messages()
+               .send(player, "skill.hint-gamemode", "gamemode", mode, "list", String.join(", ", this.skippedGameModes));
+         } else {
+            String world = player.getWorld() == null ? "-" : player.getWorld().getName();
+            this.plugin
+               .messages()
+               .send(player, "skill.hint-world", "world", world, "list", String.join(", ", this.allowedWorlds));
+         }
+      } catch (Throwable throwable) {
+         this.diagnostics.noteError("hint-xp-dilewati", throwable);
       }
    }
 
@@ -980,6 +1125,7 @@ public final class SkillService {
 
    /** Status runtime per pemain (hanya thread utama). */
    private static final class RuntimeState {
+      private boolean skipHinted;
       private double lastHealth;
       private long lastDamageAt;
       private long lastHealAt;
@@ -1014,12 +1160,22 @@ public final class SkillService {
       return this.allowedWorlds;
    }
 
+   /** Game mode yang tidak mendapat XP/buff (untuk pesan diagnostik). */
+   public Set<String> skippedGameModes() {
+      return this.skippedGameModes;
+   }
+
    /** Ringkasan untuk log diagnostik. */
    public List<String> infoLines() {
       List<String> lines = new ArrayList<>();
       lines.add("enabled=" + this.enabled + " buffs=" + this.buffsEnabled + " max-level=" + this.curve.maxLevel());
       lines.add("curve: base-xp=" + format(this.curve.baseXp()) + " exponent=" + format(this.curve.exponent()) + " multiplier=" + format(this.globalMultiplier));
       lines.add("api: " + this.probe.summary());
+      lines.add("diagnostik: " + this.diagnostics.summary());
+
+      for (String error : this.diagnostics.errorLines()) {
+         lines.add("  error terakhir: " + error);
+      }
 
       for (SkillSettings value : this.settings) {
          lines.add("  " + value.summary());

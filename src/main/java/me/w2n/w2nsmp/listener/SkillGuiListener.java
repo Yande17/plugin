@@ -4,7 +4,9 @@ import me.w2n.w2nsmp.W2NSMP;
 import me.w2n.w2nsmp.gui.SkillMenu;
 import me.w2n.w2nsmp.gui.SkillMenuHolder;
 import me.w2n.w2nsmp.skill.SkillInfo;
+import me.w2n.w2nsmp.skill.SkillService;
 import me.w2n.w2nsmp.skill.SkillType;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,16 +14,26 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 
 /**
  * Klik di GUI {@code /skill}.
  *
- * <p>Meniru penjagaan {@code SettingsGuiListener}: hanya inventory dengan holder
- * {@link SkillMenuHolder} yang disentuh, semua klik dibatalkan (item tidak pernah bisa diambil),
- * dan hanya klik kiri "bersih" yang memicu aksi - jadi shift-click, drag, swap offhand, dan
- * klik kreatif tidak bisa dipakai untuk menduplikasi item menu.
+ * <p>Aturan utamanya: <b>item menu tidak boleh pernah bisa diambil</b>. Karena itu pembatalan
+ * dilakukan lebih dulu (prioritas {@code LOWEST}, sebelum plugin lain bertindak) dan penandaan
+ * "ini menu kami" punya tiga jalur - holder inventory, pendaftaran menu terbuka
+ * ({@link SkillMenu#isMenu}), dan pendaftaran pemiliknya. Baru sesudah event dibatalkan, aksi
+ * klik dijalankan; seluruh aksi dibungkus {@code try/catch} dan kegagalannya dicatat ke
+ * {@link me.w2n.w2nsmp.skill.SkillDiagnostics} sehingga terlihat di konsol dan di
+ * {@code /skill check} - tidak ada lagi kegagalan yang terjadi diam-diam.
+ *
+ * <p>Sisanya meniru penjagaan {@code SettingsGuiListener}: hanya klik kiri "bersih" yang memicu
+ * aksi, jadi shift-click, drag, swap offhand, klik kreatif, dan double-click tidak bisa dipakai
+ * untuk menduplikasi item menu.
  */
 public final class SkillGuiListener implements Listener {
    private final W2NSMP plugin;
@@ -30,15 +42,53 @@ public final class SkillGuiListener implements Listener {
       this.plugin = plugin;
    }
 
-   @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+   @EventHandler(priority = EventPriority.LOWEST)
    public void onClick(InventoryClickEvent event) {
-      Inventory top = event.getView().getTopInventory();
-      if (!(top.getHolder() instanceof SkillMenuHolder holder)) {
+      Inventory top = null;
+      boolean ours = false;
+
+      try {
+         InventoryView view = event.getView();
+         top = view == null ? null : view.getTopInventory();
+         ours = isMenuInventory(top);
+      } catch (Throwable throwable) {
+         // Jalur cadangan: getView()/getHolder() bermasalah di server ini -> pakai pendaftaran
+         // menu terbuka. Pembatalan tetap jalan, jadi item menu tidak bisa diambil.
+         this.note(throwable, "gui-klik.getView");
+
+         try {
+            ours = SkillMenu.isOwnerMenu(event.getWhoClicked());
+         } catch (Throwable ignored) {
+            return;
+         }
+      }
+
+      if (!ours) {
          return;
       }
 
-      event.setCancelled(true);
-      if (!(event.getWhoClicked() instanceof Player player) || !holder.isOwner(player)) {
+      try {
+         event.setCancelled(true);
+      } catch (Throwable throwable) {
+         this.note(throwable, "gui-klik.setCancelled");
+         return;
+      }
+
+      try {
+         this.handleClick(event, top);
+      } catch (Throwable throwable) {
+         this.note(throwable, "gui-klik.aksi");
+      }
+   }
+
+   /** Aksi klik kiri bersih pada ikon skill / info / close. Event sudah dibatalkan sebelum ini. */
+   private void handleClick(InventoryClickEvent event, Inventory top) {
+      HumanEntity who = event.getWhoClicked();
+      if (!(who instanceof Player player) || top == null) {
+         return;
+      }
+
+      if (!(top.getHolder() instanceof SkillMenuHolder holder) || !holder.isOwner(player)) {
          return;
       }
 
@@ -70,6 +120,7 @@ public final class SkillGuiListener implements Listener {
       }
 
       if ("info".equals(key)) {
+         // Item ringkasan: hanya bunyi klik. Angka-angkanya sudah tertulis di lore item.
          this.plugin.guiSounds().play(player, SkillMenu.gui(this.plugin), "click");
          return;
       }
@@ -85,18 +136,59 @@ public final class SkillGuiListener implements Listener {
          this.plugin.guiSounds().play(player, SkillMenu.gui(this.plugin), "click");
          SkillInfo.sendDetail(this.plugin, player, player, type);
          SkillMenu.render(this.plugin, top, player);
-      } catch (RuntimeException exception) {
-         this.plugin.debug("Skill: klik GUI gagal untuk " + player.getName() + " (" + exception + ").");
       } finally {
          holder.pending(null);
          holder.endProcessing();
       }
    }
 
-   @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+   @EventHandler(priority = EventPriority.LOWEST)
    public void onDrag(InventoryDragEvent event) {
-      if (event.getView().getTopInventory().getHolder() instanceof SkillMenuHolder) {
-         event.setCancelled(true);
+      try {
+         InventoryView view = event.getView();
+         if (isMenuInventory(view == null ? null : view.getTopInventory())) {
+            event.setCancelled(true);
+         }
+      } catch (Throwable throwable) {
+         this.note(throwable, "gui-drag");
+      }
+   }
+
+   /** Pemain keluar: pastikan pendaftaran menu tidak tertinggal. */
+   @EventHandler(priority = EventPriority.MONITOR)
+   public void onQuit(PlayerQuitEvent event) {
+      try {
+         SkillMenu.markClosed(event.getPlayer(), null);
+      } catch (Throwable throwable) {
+         this.note(throwable, "gui-keluar");
+      }
+   }
+
+   /** Menu ditutup: lupakan pendaftaran supaya penjagaan tidak menempel ke inventory lain. */
+   @EventHandler(priority = EventPriority.MONITOR)
+   public void onClose(InventoryCloseEvent event) {
+      try {
+         SkillMenu.markClosed(event.getPlayer(), event.getInventory());
+      } catch (Throwable throwable) {
+         this.note(throwable, "gui-tutup");
+      }
+   }
+
+   /** Penanda "ini menu skill": holder kami, atau inventory yang memang tercatat sedang terbuka. */
+   private static boolean isMenuInventory(Inventory top) {
+      if (top == null) {
+         return false;
+      }
+
+      return top.getHolder() instanceof SkillMenuHolder || SkillMenu.isMenu(top);
+   }
+
+   private void note(Throwable throwable, String where) {
+      SkillService service = this.plugin.skills();
+      if (service != null) {
+         service.diagnostics().noteError(where, throwable);
+      } else {
+         this.plugin.getLogger().warning("Skill: gangguan di " + where + " -> " + throwable);
       }
    }
 }

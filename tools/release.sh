@@ -14,7 +14,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-VERSION="${1:-1.2.0}"
+VERSION="${1:-1.2.1}"
 JAVA_HOME="${JAVA_HOME:-/home/user/.cache/w2ntools/venv/lib/python3.11/site-packages/jdk4py/java-runtime}"
 ECJ_JAR="${ECJ_JAR:-/home/user/.cache/w2ntools/ecj.jar}"
 VENV_PY="${VENV_PY:-/home/user/.cache/w2ntools/venv/bin/python}"
@@ -50,23 +50,38 @@ TOUCHED=(
   me/w2n/w2nsmp/skill/SkillService
   me/w2n/w2nsmp/skill/SkillInfo
   me/w2n/w2nsmp/skill/SkillMenuSlots
+  me/w2n/w2nsmp/skill/SkillDiagnostics
 )
 
 echo "== [1/6] stub + kompilasi =="
 bash tools/build.sh
 
-echo "== [2/6] uji logika murni (kurva level & profil XP) =="
+echo "== [2/6] uji runtime: logika murni + handler listener =="
+rm -rf tools/work/selftest-classes && mkdir -p tools/work/selftest-classes
+
+# 2a. logika murni Java (kurva level, profil XP, kunci skill) - tanpa Bukkit
 if [ -f tools/selftest/SkillSelfTest.java ]; then
-  rm -rf tools/work/selftest-classes && mkdir -p tools/work/selftest-classes
   "$JAVA" -jar "$ECJ_JAR" -25 -nowarn -encoding UTF-8 -proc:none -d tools/work/selftest-classes \
     src/main/java/me/w2n/w2nsmp/skill/SkillCurve.java \
     src/main/java/me/w2n/w2nsmp/skill/SkillProfile.java \
     src/main/java/me/w2n/w2nsmp/skill/SkillType.java \
     src/main/java/me/w2n/w2nsmp/skill/BuffKind.java \
     tools/selftest/SkillSelfTest.java
-  "$JAVA" -cp tools/work/selftest-classes SkillSelfTest | tail -4
+  "$JAVA" -cp tools/work/selftest-classes SkillSelfTest | tail -3
 else
-  echo "  (tools/selftest tidak ada - dilewati)"
+  echo "  (tools/selftest/SkillSelfTest.java tidak ada - dilewati)"
+fi
+
+# 2b. handler listener harus TERLIHAT oleh refleksi, persis seperti cara Bukkit menemukannya.
+# Tanpa ini, listener terdaftar tapi tuli (bug v1.2.0: stub @EventHandler kurang @Retention(RUNTIME)).
+if [ -f tools/selftest/ListenerAnnotationTest.java ]; then
+  "$JAVA" -jar "$ECJ_JAR" -25 -nowarn -encoding UTF-8 -proc:none \
+    -cp tools/work/stubs-classes:tools/work/classes -d tools/work/selftest-classes \
+    tools/selftest/ListenerAnnotationTest.java
+  "$JAVA" -cp tools/work/stubs-classes:tools/work/classes:tools/work/selftest-classes \
+    ListenerAnnotationTest | grep -E "handler [0-9]+:|HASIL|GAGAL" | tail -16
+else
+  echo "  (tools/selftest/ListenerAnnotationTest.java tidak ada - dilewati)"
 fi
 
 echo "== [3/6] verifikasi linkage =="
