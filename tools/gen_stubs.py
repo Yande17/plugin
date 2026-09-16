@@ -490,6 +490,8 @@ FORCED_TYPES = {
     'org/bukkit/block/Biome',
     # status memancing (BITE/CAUGHT_FISH/...) - dipakai FishingListener v1.4.0
     'org/bukkit/event/player/PlayerFishEvent$State',
+    # v1.4.1 - autofishing: hentikan sesi saat pindah dunia (event ada sejak Bukkit lama)
+    'org/bukkit/event/player/PlayerChangedWorldEvent',
 }
 
 FORCED_MEMBERS = {
@@ -524,6 +526,10 @@ FORCED_MEMBERS = {
         # getItemInMainHand/getArmorContents mengembalikan SALINAN di CraftBukkit -
         # perubahan PDC gear wajib ditulis balik lewat setter ini
         ('setArmorContents', '([Lorg/bukkit/inventory/ItemStack;)V', False),
+        # v1.4.1 - autofishing: cek inventory penuh & cari item syarat (API lama & stabil)
+        ('getContents', '()[Lorg/bukkit/inventory/ItemStack;', False),
+        ('getStorageContents', '()[Lorg/bukkit/inventory/ItemStack;', False),
+        ('firstEmpty', '()I', False),
     ],
     'org/bukkit/event/entity/EntityDamageEvent': [
         ('getDamage', '()D', False),
@@ -539,6 +545,17 @@ FORCED_MEMBERS = {
     'org/bukkit/entity/Player': [
         ('getWalkSpeed', '()F', False),
         ('setWalkSpeed', '(F)V', False),
+        # v1.4.1 - autofishing: jangan menangkap untuk pemain yang sedang mati
+        ('isDead', '()Z', False),
+    ],
+    # v1.4.1 - autofishing: event pindah dunia (getPlayer diwarisi dari PlayerEvent scan)
+    'org/bukkit/event/player/PlayerChangedWorldEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
+    ],
+    # v1.4.1 - autofishing: cek stack sejenis masih muat (API ItemStack lama & stabil)
+    'org/bukkit/inventory/ItemStack': [
+        ('isSimilar', '(Lorg/bukkit/inventory/ItemStack;)Z', False),
+        ('getMaxStackSize', '()I', False),
     ],
     'org/bukkit/block/Block': [
         ('getLocation', '()Lorg/bukkit/Location;', False),

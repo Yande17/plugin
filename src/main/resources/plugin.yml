@@ -73,6 +73,7 @@ permissions:
       w2nsmp.skill.admin: true
       w2nsmp.rod: true
       w2nsmp.fish: true
+      w2nsmp.autofish: true
       w2nsmp.fishing.admin: true
       w2nsmp.economy.admin: true
   w2nsmp.economy.admin:
@@ -180,6 +181,9 @@ permissions:
     default: true
   w2nsmp.fish:
     description: Membuka Fishing Hub (/fish, v1.4.1)
+    default: true
+  w2nsmp.autofish:
+    description: Memakai autofishing (/autofishing, v1.4.1)
     default: true
   w2nsmp.fishing.admin:
     description: Memberi item pancing custom (/w2nsmp fishing give, v1.4.0)

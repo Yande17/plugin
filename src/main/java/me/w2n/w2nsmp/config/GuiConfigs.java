@@ -9,7 +9,7 @@ import me.w2n.w2nsmp.W2NSMP;
 
 public final class GuiConfigs {
    public static final String COMMON = "common";
-   private static final List<String> IDS = List.of("sell", "home", "auction", "top", "confirm", "profile", "settings", "skill", "tpa", "bounty", "rod", "fish", "common");
+   private static final List<String> IDS = List.of("sell", "home", "auction", "top", "confirm", "profile", "settings", "skill", "tpa", "bounty", "rod", "fish", "autofish", "common");
    private final W2NSMP plugin;
    private final Map<String, GuiConfig> configs = new LinkedHashMap<>();
 

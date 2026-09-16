@@ -1,0 +1,37 @@
+# =============================================================================================
+# Tampilan GUI /autofishing (v1.4.1)
+# =============================================================================================
+# Murni tampilan: status ON/OFF, rod, auto-sell, syarat, statistik sesi. Tidak ada item
+# pemain yang berpindah ke GUI (anti-dupe).
+enabled: true
+title: ""             # kosong = messages.yml (fishing.autofish.gui-title)
+size: 27
+
+filler:
+  enabled: true
+  material: LIGHT_BLUE_STAINED_GLASS_PANE
+  name: " "
+
+slots:
+  toggle: 11
+  rod: 13
+  auto-sell: 15
+  requirements: 21
+  stats: 23
+  close: 26
+
+on-material: LIME_DYE
+off-material: GRAY_DYE
+no-rod-material: BARRIER
+sell-material: GOLD_INGOT
+sell-off-material: GRAY_DYE
+requirements-material: BOOK
+stats-material: PAPER
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

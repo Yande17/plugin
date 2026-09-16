@@ -12,6 +12,7 @@ import me.w2n.w2nsmp.listener.GearListener;
 import me.w2n.w2nsmp.listener.HomeGuiListener;
 import me.w2n.w2nsmp.listener.LeaderboardGuiListener;
 import me.w2n.w2nsmp.listener.ProfileGuiListener;
+import me.w2n.w2nsmp.listener.AutoFishGuiListener;
 import me.w2n.w2nsmp.listener.FishGuiListener;
 import me.w2n.w2nsmp.listener.RodGuiListener;
 import me.w2n.w2nsmp.listener.ScoreboardListener;
@@ -53,6 +54,7 @@ public final class ListenerManager {
       this.register(new GearListener(this.plugin));
       this.register(new RodGuiListener(this.plugin));
       this.register(new FishGuiListener(this.plugin));
+      this.register(new AutoFishGuiListener(this.plugin));
       this.registerFishingListener();
       this.registerSkillListeners();
    }

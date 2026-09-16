@@ -11,11 +11,13 @@ import me.w2n.w2nsmp.config.GuiConfigs;
 import me.w2n.w2nsmp.config.Messages;
 import me.w2n.w2nsmp.economy.DynamicEconomy;
 import me.w2n.w2nsmp.economy.EconomyManager;
+import me.w2n.w2nsmp.fishing.AutoFishService;
 import me.w2n.w2nsmp.fishing.FishingService;
 import me.w2n.w2nsmp.gear.GearService;
 import me.w2n.w2nsmp.gui.AuctionMenu;
 import me.w2n.w2nsmp.gui.HomeMenu;
 import me.w2n.w2nsmp.gui.ProfileMenu;
+import me.w2n.w2nsmp.gui.AutoFishMenu;
 import me.w2n.w2nsmp.gui.FishMenu;
 import me.w2n.w2nsmp.gui.RodMenu;
 import me.w2n.w2nsmp.gui.SellMenu;
@@ -58,6 +60,7 @@ public final class W2NSMP extends JavaPlugin {
    private SkillService skillService;
    private GearService gearService;
    private FishingService fishingService;
+   private AutoFishService autoFishService;
    private NametagService nametagService;
    private TpaService tpaService;
    private BountyService bountyService;
@@ -122,6 +125,8 @@ public final class W2NSMP extends JavaPlugin {
       this.gearService.reload();
       this.fishingService = new FishingService(this);
       this.fishingService.reload();
+      this.autoFishService = new AutoFishService(this);
+      this.autoFishService.reload();
       this.nametagService = new NametagService(this);
       this.nametagService.load();
       this.nametagService.startTasks();
@@ -208,6 +213,7 @@ public final class W2NSMP extends JavaPlugin {
          SkillMenu.closeAll(this);
          RodMenu.closeAll(this);
          FishMenu.closeAll(this);
+         AutoFishMenu.closeAll(this);
       } catch (RuntimeException exception) {
          this.getLogger().warning("Gagal menutup GUI profile/setting saat disable: " + exception);
       }
@@ -253,6 +259,12 @@ public final class W2NSMP extends JavaPlugin {
       }
 
       this.gearService = null;
+
+      if (this.autoFishService != null) {
+         this.autoFishService.shutdown();
+         this.autoFishService = null;
+      }
+
       this.fishingService = null;
 
       if (this.nametagService != null) {
@@ -356,6 +368,10 @@ public final class W2NSMP extends JavaPlugin {
          this.fishingService.reload();
       }
 
+      if (this.autoFishService != null) {
+         this.autoFishService.reload();
+      }
+
       if (this.nametagService != null) {
          this.nametagService.reload();
       }
@@ -445,6 +461,11 @@ public final class W2NSMP extends JavaPlugin {
    /** Custom fishing & rod (v1.4.0). Bisa {@code null} di luar masa hidup plugin. */
    public FishingService fishing() {
       return this.fishingService;
+   }
+
+   /** Layanan autofishing (v1.4.1). Bisa {@code null} di luar masa hidup plugin. */
+   public AutoFishService autoFish() {
+      return this.autoFishService;
    }
 
    public GuiConfigs guiConfigs() {

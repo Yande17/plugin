@@ -1270,6 +1270,29 @@ gear:
 # Ikan custom & item pancing diidentifikasi lewat PersistentDataContainer - bukan nama -
 # jadi aman melewati chest, perdagangan, dan restart. Registry sepenuhnya dari config:
 # menambah ikan/item baru tidak butuh perubahan kode.
+# =============================================================================================
+# AUTOFISHING (v1.4.1) - memancing otomatis TERKONTROL
+# =============================================================================================
+# enabled false = fitur mati total (command menolak). interval-seconds dibatasi bawah 3 detik.
+# require: syarat menyala DAN bertahan (dicek tiap siklus; gagal -> sesi berhenti + notifikasi).
+# inventory-full: stop (berhenti + beri tahu; item TIDAK dibuang) | sell (jual otomatis bila
+# auto-sell.enabled true). skill-xp-multiplier: XP skill dari autofishing relatif manual.
+autofishing:
+  enabled: true
+  interval-seconds: 15
+  skill-xp-multiplier: 0.5
+  vanilla-catch: COD
+  vanilla-catch-skill-xp: 4.0
+  inventory-full: stop
+  auto-sell:
+    enabled: false
+  require:
+    rod: true
+    water: true
+    min-fishing-level: 10
+    attachment: ""            # id attachment yang wajib terpasang (kosong = tidak wajib)
+    item: ""                  # id item fishing yang wajib ada di inventory (kosong = tidak wajib)
+
 fishing:
   enabled: true
   # Peluang dasar (persen) satu tangkapan diganti ikan custom (sisanya hasil vanilla).
