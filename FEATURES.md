@@ -1,4 +1,4 @@
-# W2NSMP 1.4.0 - Daftar Fitur
+# W2NSMP 1.5.0 - Daftar Fitur
 
 Plugin SMP survival untuk **Paper 26.2** (Java 25). Semua fitur bisa dimatikan/diatur
 lewat `config.yml`; semua teks lewat `messages.yml`; semua tampilan GUI lewat `gui/*.yml`.
@@ -74,17 +74,40 @@ Endurance, Vitality, Recovery.
   Deep Sea Weight, Treasure Charm, XP Reel - pasang/copot lewat GUI tanpa risiko
   dupe/hilang (item tidak pernah dititipkan ke GUI).
 
-## /setting berkategori (baru 1.4.0)
+## /setting berkategori (1.4.0, diperbaiki 1.5.0)
 Halaman utama: kartu **Scoreboard / Notifikasi / Gameplay / Visual / Lain-lain**.
 Sub-halaman berisi toggle kategori (termasuk toggle per-baris scoreboard).
 `/setting toggle <kunci>` via chat tetap didukung.
+**1.5.0**: transisi Main <-> Kategori kini benar-benar bersih - tidak ada item halaman
+lain yang tersisa/aktif (render mengosongkan semua slot non-konten).
 
-## Command & permission baru/berubah (1.4.0)
+## Fishing Hub /fish (baru 1.5.0)
+- `/fish` (alias `/ikan`, `/fishing`) - hub: **Galeri Ikan** + pintu ke **Rod Saya**.
+- Galeri: semua ikan custom terurut rarity (Common -> Mythic), 28/halaman; ikan yang
+  belum ditemukan tampil `???` tanpa bocor data; yang sudah menampilkan rarity, nilai,
+  rentang ukuran, XP, dan syarat biome/cuaca/waktu/level.
+- Discovery per pemain di `fishing-discovery.yml`, tercatat otomatis saat tangkapan
+  custom pertama per jenis (manual maupun autofishing) + pengumuman.
+
+## /autofishing (baru 1.5.0)
+- GUI kontrol: ON/OFF, rod terpasang, auto-sell (bila diizinkan config), kartu syarat
+  dengan status terpenuhi/belum, statistik sesi. Subcommand `on`/`off`.
+- Configurable penuh (`autofishing.*`): interval (min keras 3 dtk), pengali XP skill,
+  hasil vanilla, syarat (rod/air/level Fishing/attachment/item), perilaku inventory
+  penuh (`stop` = berhenti + notifikasi, TIDAK PERNAH membuang item; `sell` = jual
+  otomatis bila diizinkan).
+- Performa: satu task global 1 dtk untuk semua pemain; berhenti sendiri saat idle.
+- Anti-abuse: berhenti saat keluar/mati/pindah dunia/rod hilang/jauh dari air/fitur
+  dimatikan; XP autofishing lebih kecil dari manual (bawaan 50%).
+
+## Command & permission baru/berubah (1.4.0-1.5.0)
 | Command | Permission | Default | Keterangan |
 |---|---|---|---|
-| `/rod` (`/pancingan`) | `w2nsmp.rod` | true | GUI rod (baru) |
-| `/w2nsmp fishing give` | `w2nsmp.fishing.admin` | op | Beri item pancing custom (baru) |
-| `/skill`, `/setting` | (tidak berubah) | | GUI di-rework, kunci lama tetap |
+| `/rod` (`/pancingan`) | `w2nsmp.rod` | true | GUI rod (1.4.0) |
+| `/fish` (`/ikan`, `/fishing`) | `w2nsmp.fish` | true | Fishing Hub + galeri (1.5.0) |
+| `/autofishing` (`/autofish`, `/afish`) | `w2nsmp.autofish` | true | Memancing otomatis (1.5.0) |
+| `/w2nsmp fishing give` | `w2nsmp.fishing.admin` | op | Beri item pancing custom (1.4.0) |
+| `/skill`, `/setting` | (tidak berubah) | | 1.5.0: klik skill langsung ke snake path |
 
 Config on/off command: `commands.rod.enabled`.
 
@@ -97,7 +120,9 @@ Config on/off command: `commands.rod.enabled`.
 - `fishing.*` (enabled, custom-chance-percent, rarity-level.*, rod.*, items.*, fish.*)
 - `gui/skill.yml`: `slots.path`, `path-material`, bagian `path.*`
 - `gui/settings.yml`: `slots.category-*`, `slots.back`, `category-materials.*`
-- `gui/rod.yml` (file baru)
+- `gui/rod.yml` (file baru 1.4.0)
+- **1.5.0**: `autofishing.*`, `fishing.treasure.*`, efek rod `luck`/`treasure`,
+  `gui/fish.yml`, `gui/autofish.yml` (file baru)
 
 ## Penyimpanan
 | Data | Tempat | Catatan |
@@ -106,8 +131,9 @@ Config on/off command: `commands.rod.enabled`.
 | Riwayat gear | PDC item | Tanpa file baru |
 | Ikan/rod/attachment | PDC item | Tanpa file baru |
 | Setting pemain | `settings.yml` | Format lama, tidak berubah |
+| Discovery ikan | `fishing-discovery.yml` | Baru 1.5.0, dibuat otomatis |
 
 ## Build & rilis
-`bash tools/build.sh` (kompilasi) - `bash tools/release.sh 1.4.0` (6 gerbang:
-kompilasi, selftest logika/listener/buff/top/path, linkage, konsistensi config,
-kemas JAR, verifikasi isi JAR). Hasil: `W2NSMP-1.4.0.jar`.
+`bash tools/build.sh` (kompilasi) - `bash tools/release.sh 1.5.0` (6 gerbang:
+kompilasi, selftest logika/listener/buff/top/path/settings/galeri, linkage,
+konsistensi config, kemas JAR, verifikasi isi JAR). Hasil: `W2NSMP-1.5.0.jar`.

@@ -210,8 +210,7 @@ public final class AutoFishMenu {
          FishingItem item = fishing.item(auto.requiredItem());
          lore.add(plugin.messages().raw("fishing.autofish.req-item",
             "name", item == null ? auto.requiredItem() : item.itemName(),
-            "status", auto.requirementBlocking(player) == null
-               || !"fishing.autofish.need-item".equals(auto.requirementBlocking(player)) ? yes : no));
+            "status", auto.hasRequiredItem(player) ? yes : no));
       }
 
       if (auto.requireWater()) {

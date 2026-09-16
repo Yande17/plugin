@@ -2,6 +2,80 @@
 
 Semua perubahan penting dicatat di sini. Format mengikuti [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.5.0] - 2026-09-16
+
+Update bertahap (PHASE 0-9): perbaikan GUI /setting & /skill, Fishing Hub /fish dengan
+galeri ikan + discovery, penyempurnaan efek rod (Fishing Luck & Treasure Chance), dan
+fitur baru /autofishing terkontrol. **Kompatibel penuh ke belakang** - tidak ada data lama
+yang hilang; berkas baru (`fishing-discovery.yml`) dibuat otomatis.
+
+### Diperbaiki
+
+- **/setting (PHASE 1)**: item halaman utama (kartu kategori) tidak lagi tersisa/aktif di
+  sub-halaman kategori. Render sekarang menghitung slot konten per halaman lalu
+  MENGOSONGKAN semua slot lain sebelum mengisi filler (`SettingsMenu.pageContent`,
+  diuji `SettingsPageTest`). Transisi Main <-> Kategori bersih untuk semua jenis klik.
+- **/skill (PHASE 2)**: klik satu skill kini membuka **jalur progres (snake path)
+  LANGSUNG** - halaman info perantara dihapus dari alur. Tombol back di jalur progres
+  kembali ke menu skill utama. Ikon jalur kini menampilkan level, XP sekarang/butuh,
+  persen progres, XP total, buff aktif, buff berikutnya, dan max level.
+
+### Ditambahkan
+
+#### Fishing Hub /fish (PHASE 3)
+- Perintah baru `/fish` (alias `/ikan`, `/fishing`; izin `w2nsmp.fish`, bawaan true):
+  hub berisi **Galeri Ikan** dan pintu ke **Rod Saya** (menu /rod).
+- **Galeri Ikan**: semua ikan custom terurut rarity Common -> Mythic, 28 per halaman.
+  Ikan yang belum pernah ditangkap tampil `??? (belum ditemukan)` tanpa membocorkan
+  nama/nilai. Ikan yang sudah ditemukan menampilkan rarity, nilai jual, rentang ukuran,
+  XP, dan syarat (biome/cuaca/waktu/level skill/level rod).
+- **Discovery**: tangkapan custom pertama per jenis tercatat otomatis ke
+  `fishing-discovery.yml` (per UUID) + pengumuman "ikan baru ditemukan". Data ikan
+  yang dihapus dari config tetap disimpan (tidak menghapus data lama).
+- Kelas baru: `FishDiscovery`, `FishMenu`, `FishMenuHolder`, `FishCommand`,
+  `FishGuiListener`, `gui/fish.yml`.
+
+#### Rod & custom fishing (PHASE 4-5)
+- Efek rod/attachment baru (semuanya lewat config, tanpa hardcode):
+  - `luck` (**Fishing Luck**): menaikkan peluang bonus bahan upgrade secara relatif.
+  - `treasure` (**Treasure Chance**): peluang harta karun tambahan per tangkapan;
+    daftar harta di `fishing.treasure.items` (material vanilla + amount + weight),
+    peluang dasar `fishing.treasure.base-chance-percent`.
+- Attachment `lucky_hook` kini memakai efek `luck` (+20% relatif) dan `treasure_charm`
+  memakai efek `treasure` (+5%), sesuai namanya.
+- Jenjang level rod menambah efek `luck`/`treasure`/`xp`/`value` di level 6/8/9/10.
+- Gerbang level rarity bawaan diselaraskan ke **10/20/30/40/50**
+  (uncommon/rare/epic/legendary/mythic) - tetap bebas disetel di `fishing.rarity-level`.
+
+#### /autofishing (PHASE 6)
+- Perintah baru `/autofishing` (alias `/autofish`, `/afish`; izin `w2nsmp.autofish`)
+  dengan GUI: status ON/OFF, rod terpasang, auto-sell, kartu syarat (dengan status
+  terpenuhi/belum), statistik sesi (tangkapan, ikan custom, hasil auto-sell).
+  Subcommand `on`/`off` untuk tanpa GUI.
+- **Terkontrol & configurable** (`autofishing.*` di config.yml):
+  - `enabled` (bawaan true), `interval-seconds` (bawaan 15, **minimal keras 3 detik**),
+    `skill-xp-multiplier` (bawaan 0.5 - XP skill autofishing separuh manual),
+    `vanilla-catch` + `vanilla-catch-skill-xp`.
+  - Syarat (`require.*`): rod di tangan, dekat air (radius 3 blok), level skill
+    Fishing minimum (bawaan 10), attachment tertentu, item tertentu.
+  - `inventory-full`: `stop` (berhenti + notifikasi; **item tidak pernah dibuang**)
+    atau `sell` (jual otomatis bila `auto-sell.enabled` true).
+- **Performa**: SATU task global per detik untuk semua pemain (bukan per-pemain-per-tick);
+  task berhenti sendiri saat tidak ada sesi aktif.
+- **Anti-abuse**: sesi berhenti otomatis saat keluar server, mati, pindah dunia,
+  rod hilang/tidak dipegang, menjauh dari air, syarat lain gugur, atau fitur
+  dimatikan admin (reload). Efek rod & discovery tetap dihitung; ikan custom hasil
+  autofishing masuk galeri.
+- Kelas baru: `AutoFishService`, `AutoFishMenu`, `AutoFishMenuHolder`,
+  `AutoFishCommand`, `AutoFishGuiListener`, `gui/autofish.yml`.
+
+### Catatan migrasi
+
+- Tidak ada migrasi manual. Server yang naik dari 1.4.0 cukup mengganti JAR;
+  seksi config baru (`autofishing`, `fishing.treasure`) punya nilai bawaan.
+- `lucky_hook`/`treasure_charm` yang SUDAH terpasang di rod pemain otomatis memakai
+  efek barunya (efek dibaca dari config saat runtime, bukan disimpan di item).
+
 ## [1.4.0] - 2026-09-16
 
 Update besar: rework skill, gear history, custom fishing + rod, /setting berkategori.

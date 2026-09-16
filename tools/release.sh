@@ -15,7 +15,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-VERSION="${1:-1.4.0}"
+VERSION="${1:-1.5.0}"
 JAVA_HOME="${JAVA_HOME:-/home/user/.cache/w2ntools/venv/lib/python3.11/site-packages/jdk4py/java-runtime}"
 ECJ_JAR="${ECJ_JAR:-/home/user/.cache/w2ntools/ecj.jar}"
 VENV_PY="${VENV_PY:-/home/user/.cache/w2ntools/venv/bin/python}"
@@ -80,6 +80,17 @@ TOUCHED=(
   me/w2n/w2nsmp/gui/SettingsMenuHolder
   me/w2n/w2nsmp/listener/SettingsGuiListener
   me/w2n/w2nsmp/sell/SellManager
+  # v1.4.1 - /fish hub + galeri (discovery), /autofishing, efek luck & treasure:
+  me/w2n/w2nsmp/fishing/FishDiscovery
+  me/w2n/w2nsmp/fishing/AutoFishService
+  me/w2n/w2nsmp/gui/FishMenu
+  me/w2n/w2nsmp/gui/FishMenuHolder
+  me/w2n/w2nsmp/gui/AutoFishMenu
+  me/w2n/w2nsmp/gui/AutoFishMenuHolder
+  me/w2n/w2nsmp/command/FishCommand
+  me/w2n/w2nsmp/command/AutoFishCommand
+  me/w2n/w2nsmp/listener/FishGuiListener
+  me/w2n/w2nsmp/listener/AutoFishGuiListener
 )
 
 echo "== [1/6] stub + kompilasi =="

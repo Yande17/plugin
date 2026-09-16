@@ -280,7 +280,7 @@ def main():
         ('listener/SkillGuiListener.java', 'event.setCancelled(true)', 'SkillGuiListener membatalkan klik di menu'),
         ('gui/SkillMenu.java', 'OPEN.put(player.getUniqueId(), inventory)', 'SkillMenu mencatat menu yang terbuka'),
         ('gui/SkillProgressMenu.java', 'OPEN.put(player.getUniqueId(), inventory)', 'SkillProgressMenu mencatat menu yang terbuka'),
-        ('listener/SkillGuiListener.java', 'SkillProgressMenu.open(', 'Klik ikon skill membuka menu progres'),
+        ('listener/SkillGuiListener.java', 'SkillPathMenu.open(', 'Klik ikon skill membuka jalur progres langsung (v1.4.1)'),
         ('listener/SkillGuiListener.java', 'SkillProgressMenuHolder', 'SkillGuiListener mengenal holder menu progres'),
         ('skill/SkillService.java', 'public double buffValue(Player player, SkillType type, BuffKind kind)',
          'SkillService bisa menghitung nilai buff per jenis'),

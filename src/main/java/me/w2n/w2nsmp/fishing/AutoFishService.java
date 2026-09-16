@@ -260,6 +260,11 @@ public final class AutoFishService {
       return null;
    }
 
+   /** Publik untuk kartu syarat GUI (status per-syarat tanpa urutan pengecekan). */
+   public boolean hasRequiredItem(Player player) {
+      return this.requiredItem().isEmpty() || this.hasItem(player, this.requiredItem());
+   }
+
    private boolean hasItem(Player player, String itemId) {
       FishingService fishing = this.plugin.fishing();
       if (fishing == null) {
