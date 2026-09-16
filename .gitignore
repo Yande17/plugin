@@ -1,0 +1,22 @@
+# Build output
+target/
+build/
+out/
+dist/
+
+# Toolchain sandbox (ECJ, JDK, decompiler) — tidak perlu masuk git
+tools/stubs/generated/
+tools/work/
+.cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project

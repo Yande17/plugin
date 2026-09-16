@@ -1,0 +1,28 @@
+# =============================================================================================
+# Tampilan GUI konfirmasi (dipakai pembelian slot home, pembatalan listing, /bounty, dll.)
+# =============================================================================================
+# Judul, nama, dan lore tetap diambil dari messages.yml pada masing-masing fitur
+# (mis. home.purchase.*, auction.cancel.*), karena tiap konteks punya teksnya sendiri.
+enabled: true
+size: 27
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+buttons:
+  icon:
+    slot: 13
+  confirm:
+    slot: 11
+  cancel:
+    slot: 15
+
+sounds:
+  open: "minecraft:ui.button.click"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

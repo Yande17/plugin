@@ -1,0 +1,122 @@
+# ============================================================================
+#  W2NSMP - prices.yml
+#
+#  Harga jual item ke server (dipakai oleh GUI /sell).
+#
+#  ATURAN:
+#    - Harga HARUS angka bulat (integer), tanpa desimal.
+#    - Harga 0 atau baris dihapus = item TIDAK dijual ke server.
+#    - Nama item memakai nama Material Bukkit (huruf besar), contoh: DIAMOND.
+#    - Setelah mengubah file ini jalankan:  /w2nsmp reload
+#      (atau ubah langsung dari dalam game: /w2nsmp setprice <item> <harga>)
+#
+#  Bentuk penulisan yang diterima:
+#      DIAMOND:
+#        sell: 250
+#      COBBLESTONE: 2        # bentuk singkat, juga boleh
+# ============================================================================
+
+# --- Ore & mineral ----------------------------------------------------------
+COAL: 8
+CHARCOAL: 6
+RAW_COPPER: 12
+RAW_IRON: 18
+RAW_GOLD: 25
+COPPER_INGOT: 15
+IRON_INGOT: 20
+GOLD_INGOT: 35
+REDSTONE: 4
+LAPIS_LAZULI: 5
+QUARTZ: 10
+AMETHYST_SHARD: 12
+DIAMOND: 250
+EMERALD: 300
+NETHERITE_SCRAP: 3000
+NETHERITE_INGOT: 12000
+ANCIENT_DEBRIS: 2500
+
+# --- Blok hasil tambang / bangunan -----------------------------------------
+COBBLESTONE: 2
+STONE: 2
+DEEPSLATE: 3
+COBBLED_DEEPSLATE: 3
+GRANITE: 3
+DIORITE: 3
+ANDESITE: 3
+SAND: 2
+RED_SAND: 3
+GRAVEL: 2
+DIRT: 1
+GRASS_BLOCK: 4
+OAK_LOG: 6
+SPRUCE_LOG: 6
+BIRCH_LOG: 6
+JUNGLE_LOG: 7
+ACACIA_LOG: 7
+DARK_OAK_LOG: 7
+MANGROVE_LOG: 8
+CHERRY_LOG: 9
+GLASS: 5
+OBSIDIAN: 45
+
+# --- Pertanian / makanan ----------------------------------------------------
+WHEAT: 6
+WHEAT_SEEDS: 1
+CARROT: 5
+POTATO: 5
+BAKED_POTATO: 8
+BEETROOT: 5
+SUGAR_CANE: 4
+BAMBOO: 2
+MELON_SLICE: 3
+PUMPKIN: 6
+APPLE: 12
+SWEET_BERRIES: 3
+GLOW_BERRIES: 5
+COCOA_BEANS: 6
+NETHER_WART: 10
+KELP: 2
+BREAD: 15
+COOKED_BEEF: 12
+COOKED_PORKCHOP: 12
+COOKED_CHICKEN: 10
+COOKED_MUTTON: 10
+COOKED_COD: 10
+COOKED_SALMON: 12
+
+# --- Mob drop ---------------------------------------------------------------
+ROTTEN_FLESH: 2
+BONE: 6
+BONE_MEAL: 2
+STRING: 5
+SPIDER_EYE: 8
+GUNPOWDER: 12
+ENDER_PEARL: 45
+BLAZE_ROD: 60
+MAGMA_CREAM: 40
+GHAST_TEAR: 120
+SLIME_BALL: 15
+LEATHER: 10
+FEATHER: 3
+INK_SAC: 4
+GLOW_INK_SAC: 10
+PHANTOM_MEMBRANE: 80
+SHULKER_SHELL: 350
+PRISMARINE_SHARD: 25
+PRISMARINE_CRYSTALS: 30
+
+# --- Item langka / bernilai tinggi -----------------------------------------
+ELYTRA: 100000
+NETHER_STAR: 25000
+DRAGON_HEAD: 20000
+DRAGON_EGG: 50000
+WITHER_SKELETON_SKULL: 15000
+TOTEM_OF_UNDYING: 30000
+# Catatan: item yang tidak ingin dijual cukup dihilangkan dari file ini,
+# atau ditulis dengan harga 0 maka akan dilewati saat load.
+BEACON: 40000
+CONDUIT: 20000
+TRIDENT: 15000
+ENCHANTED_GOLDEN_APPLE: 25000
+GOLDEN_APPLE: 2500
+EXPERIENCE_BOTTLE: 35

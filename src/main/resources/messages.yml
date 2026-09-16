@@ -1,0 +1,1451 @@
+# ============================================================================
+#  W2NSMP - messages.yml
+#
+#  Semua pesan yang dilihat pemain bisa diubah di sini (tanpa restart):
+#      /w2nsmp reload
+#
+#  - Kode warna memakai '&'   (contoh: &a hijau, &c merah, &l bold, &7 abu-abu)
+#  - %prefix% diambil dari baris prefix di bawah / config.yml
+#  - Placeholder lain: %player% %balance% %amount% %minimum% %seconds%
+#    %permission% %usage% %subcommand% %label%
+#  - Pesan yang tidak dipakai tidak masalah (boleh dihapus/ditambah di phase nanti)
+# ============================================================================
+
+prefix: "&8[&bW2NSMP&8] &r"
+
+# --- Pesan umum command ------------------------------------------------------
+command:
+  no-permission: "%prefix%&cAnda tidak memiliki izin &f%permission%&c."
+  player-only: "%prefix%&cPerintah ini hanya dapat dijalankan oleh pemain."
+  unknown-subcommand: "%prefix%&cSubcommand &f%subcommand% &ctidak dikenal. Gunakan &f/%label% help&c."
+  reload-success: "%prefix%&aKonfigurasi dimuat ulang &7(config, messages, ekonomi)&a."
+  reload-failed: "%prefix%&cGagal memuat ulang konfigurasi. Cek console untuk detailnya."
+
+# --- Header GUI / daftar command --------------------------------------------
+help:
+  header: "%prefix%&bDaftar perintah W2NSMP"
+  footer: "&7Gunakan &f/%label% help &7kapan saja."
+  admin-header: "%prefix%&cPerintah admin"
+  balance: "&f/saldo &8(&7atau &f/w2nsmp:balance&8) &7- melihat saldo Anda"
+  pay: "&f/bayar <pemain> <jumlah> &7- mengirim uang ke pemain lain"
+  sell: "&f/jual &8(&7atau &f/w2nsmp:sell&8) &7- menjual item ke server lewat GUI"
+  home: "&f/home &8(&7atau &f/w2nsmp:home&8) &7- membuka menu home (GUI)"
+  sethome: "&f/sethome <nama> &8(&7atau &f/w2nsmp:sethome&8) &7- menyimpan lokasi sebagai home"
+  delhome: "&f/delhome <nama> &8(&7atau &f/w2nsmp:delhome&8) &7- menghapus home"
+  rtp: "&f/rtp &8(&7atau &f/wild&8) &7- teleport ke lokasi acak yang aman"
+  auction: "&f/ah &8(&7atau &f/w2nsmp:ah&8) &7- auction house (jual & beli item antar pemain)"
+  worth: "&f/harga &8(&7atau &f/worth&8) &7- melihat harga jual item (lore harga ikut tampil di item)"
+  top: "&f/top [kategori] &8(&7atau &f/w2nsmp:top&8) &7- daftar peringkat pemain (GUI, juga &f/top chat&7)"
+  scoreboard: "&f/sb &8(&7atau &f/scoreboard&8) &7- menyalakan/mematikan sidebar statistik pribadi"
+  profile: "&f/profile [pemain] [chat] &7- profil pemain (GUI: uang, statistik, home, bounty)"
+  setting: "&f/setting &7- pengaturan pribadi (sidebar, baris sidebar, nametag uang, bunyi, notifikasi)"
+  skill: "&f/skill &8(&7atau &f/keahlian&8) &7- level & buff skill (fighting, mining, farming, ...)"
+  rod: "&f/rod &8(&7atau &f/pancingan&8) &7- GUI rod pancing (level, upgrade, attachment, v1.4.0)"
+  tpa: "&f/tpa [pemain] &7- GUI permintaan teleport antar-pemain"
+  tpahere: "&f/tpahere <pemain> &7- meminta pemain lain teleport ke lokasimu"
+  tpaccept: "&f/tpaccept [pemain] &7- menerima permintaan teleport"
+  tpdeny: "&f/tpdeny [pemain] &7- menolak permintaan teleport"
+  tpacancel: "&f/tpacancel [pemain] &7- membatalkan permintaan teleport yang dikirim"
+  bounty: "&f/bounty [pemain] [jumlah] &7- daftar bounty & memasang hadiah buruan (GUI)"
+
+# --- Economy -----------------------------------------------------------------
+economy:
+  disabled: "%prefix%&cFitur ekonomi tidak aktif &7(Vault atau provider ekonomi tidak ditemukan)&c."
+  balance-self: "%prefix%&7Saldo Anda: &a%balance%"
+  balance-others: "%prefix%&7Saldo &f%player%&7: &a%balance%"
+  balance-others-disabled: "%prefix%&cMelihat saldo pemain lain sedang dinonaktifkan."
+  account-not-found: "%prefix%&cPemain &f%player% &cbelum memiliki akun ekonomi."
+  player-not-found: "%prefix%&cPemain &f%player% &ctidak ditemukan &7(belum pernah masuk server ini)&c."
+  player-offline: "%prefix%&cPemain &f%player% &csedang tidak online."
+  invalid-amount: "%prefix%&cJumlah uang &f%input% &ctidak valid. Pakai angka seperti &f1500&c atau format singkat &f1k&c, &f1.5k&c, &f2m&c."
+  transaction-failed: "%prefix%&cTransaksi gagal dan dibatalkan. Saldo Anda tidak berubah."
+  pay-disabled: "%prefix%&cFitur /pay sedang dinonaktifkan."
+  pay-usage: "%prefix%&cPenggunaan: &f%usage%"
+  pay-self: "%prefix%&cAnda tidak dapat mengirim uang ke diri sendiri."
+  pay-minimum: "%prefix%&cJumlah minimum pengiriman adalah &f%minimum%&c."
+  pay-cooldown: "%prefix%&cTunggu &f%seconds% &cdetik sebelum mengirim uang lagi."
+  pay-insufficient: "%prefix%&cUang Anda tidak cukup. Saldo saat ini: &f%balance%&c."
+  pay-success: "%prefix%&aAnda mengirim &f%amount% &akepada &f%player%&a."
+  pay-received: "%prefix%&aAnda menerima &f%amount% &adari &f%player%&a."
+
+# --- SELL GUI (PHASE 3) ------------------------------------------------------
+# Material tombol memakai nama Material Bukkit; teks memakai kode warna '&'.
+# Judul GUI & isi tombol tersedia untuk Java dan Bedrock (keduanya memakai inventory chest).
+sell:
+  # Ekonomi dinamis (PHASE 11 batch 3): informasi pengali harga di item TOTAL.
+  dynamic-lore:
+    - "&7Harga dasar: &f%base%"
+    - "&7Pengali harga: &f%multiplier% &8(&7tren: %trend%&8)"
+  trend-falling: "turun"
+  trend-rising: "naik"
+  trend-stable: "stabil"
+  gui-title: "&8&lSELL ITEMS"
+  total-material: PAPER
+  total-name: "&e&lTOTAL &8» &a%total%"
+  total-lore:
+    - "&7Nilai item di GUI: &a%total%"
+    - "&7Jumlah item bisa dijual: &f%count%"
+    - ""
+    - "&7Masukkan item ke area atas,"
+    - "&7lalu tekan tombol &aSELL&7."
+  filler-material: GRAY_STAINED_GLASS_PANE
+  filler-name: " "
+  sell-button-material: LIME_CONCRETE
+  sell-button-name: "&a&l✔ SELL"
+  sell-button-lore:
+    - "&7Klik untuk menjual semua item"
+    - "&7yang punya harga di &fprices.yml&7."
+  cancel-button-material: RED_CONCRETE
+  cancel-button-name: "&f&l✕ CANCEL"
+  cancel-button-lore:
+  # Tombol keterangan di baris tombol GUI /sell (slot & material: gui/sell.yml).
+  info-name: "&bInfo"
+  info-lore:
+    - "&7Masukkan item ke area atas."
+    - "&7Item yang punya harga di &fprices.yml &7bisa dijual."
+    - "&7Item tanpa harga tetap tersimpan di GUI."
+    - "&7Klik untuk mengembalikan item"
+    - "&7ke inventory Anda."
+  disabled: "%prefix%&cFitur /sell sedang dinonaktifkan."
+  no-items: "%prefix%&cTidak ada item yang bisa dijual di GUI."
+  no-price: "%prefix%&eItem berikut tidak punya harga jadi tetap di GUI: &f%items%"
+  partially-unsellable: "%prefix%&eItem tanpa harga tetap tersimpan di GUI: &f%items%"
+  over-limit: "%prefix%&cTotal sekali jual melebihi batas &f%limit%&c."
+  success: "%prefix%&aBerhasil menjual &f%items% &aitem &8(%stacks% stack)&a senilai &f%total%&a."
+  actionbar: "&a+%total% &7| &f%items% item &7terjual"
+  actionbar-partial: "&a+%total% &7| &f%items% item &7terjual &8(%skipped% item tanpa harga tetap di GUI)"
+  items-returned: "%prefix%&7Item di GUI dikembalikan ke inventory Anda &8(%amount% item)&7."
+  cancelled: "%prefix%&7Dibatalkan. &f%amount% &7item dikembalikan ke inventory Anda."
+  cancelled-empty: "%prefix%&7Penjualan dibatalkan &8(GUI kosong)&7."
+  no-space: "%prefix%&cArea item di GUI penuh."
+
+# --- Admin: harga item (PHASE 3) --------------------------------------------
+admin:
+  setprice-usage: "%prefix%&cPenggunaan: &f%usage%"
+  getprice-usage: "%prefix%&cPenggunaan: &f%usage%"
+  invalid-item: "%prefix%&cItem &f%item% &cbukan nama item yang valid."
+  invalid-price: "%prefix%&cHarga harus angka &f0&c atau lebih (tanpa desimal). Format singkat boleh: &f1k&c, &f2.5k&c, &f1m&c."
+  setprice-success: "%prefix%&aHarga &f%item% &adiubah: &f%old% &a-> &f%new%&a."
+  setprice-removed: "%prefix%&aHarga &f%item% &adihapus &7(sebelumnya %old%) &8- &7item ini tidak lagi bisa dijual lewat &f/sell&7."
+  setprice-failed: "%prefix%&cGagal menyimpan prices.yml. Cek console."
+  getprice-result: "%prefix%&7Harga &f%item%&7: &a%price%"
+  getprice-none: "%prefix%&7Item &f%item% &7tidak punya harga jual."
+  givehome-usage: "%prefix%&cPenggunaan: &f%usage%"
+  removehome-usage: "%prefix%&cPenggunaan: &f%usage%"
+  player-not-found: "%prefix%&cPemain &f%player% &ctidak ditemukan &7(belum pernah masuk server ini)&c."
+  home-slot-invalid: "%prefix%&cNomor slot harus &f1&c-&f%max%&c."
+  givehome-success: "%prefix%&aSlot &f%slot% &auntuk &f%player% &adibuka."
+  givehome-failed: "%prefix%&7Slot &f%slot% &7untuk &f%player% &7sudah terbuka atau tidak bisa dibuka."
+  removehome-success: "%prefix%&aSlot &f%slot% &auntuk &f%player% &adikunci kembali."
+  removehome-failed: "%prefix%&7Slot &f%slot% &7untuk &f%player% &7masih dipakai home atau tidak bisa dikunci."
+  combatinfo-usage: "%prefix%&cPenggunaan: &f%usage%"
+  combat-offline: "%prefix%&cPemain &f%player% &csedang tidak online, jadi tidak punya combat tag aktif."
+  combat-target: "%prefix%&e%player% &7sedang combat: sisa &f%seconds% &7detik &8(lawan terakhir: &f%attacker%&8)&7."
+  combat-target-clear: "%prefix%&a%player% &7sedang tidak dalam combat."
+  untag-usage: "%prefix%&cPenggunaan: &f%usage%"
+  untag-success: "%prefix%&aCombat tag &f%player% &adihapus."
+  untag-none: "%prefix%&7%player% &7sedang tidak dalam combat."
+  auctioninfo-usage: "%prefix%&cPenggunaan: &f%usage%"
+  auctionexpire-usage: "%prefix%&cPenggunaan: &f%usage%"
+  auction-removed: "%prefix%&aListing &f#%id% &adihapus; &f%item% &amasuk ke kotak &f%seller%&a."
+  auctionremove-usage: "%prefix%&cPenggunaan: &f%usage%"
+  worthinfo-usage: "%prefix%&cPenggunaan: &f%usage%"
+  worthclear-usage: "%prefix%&cPenggunaan: &f%usage%"
+  worthclear-player-offline: "%prefix%&c%player% harus online agar inventory-nya bisa dibersihkan."
+  worthclear-done: "%prefix%&aLore harga dilepas dari &f%count% &aitem milik &f%player%&a."
+  worthclear-all: "%prefix%&aLore harga dilepas dari &f%count% &aitem milik seluruh pemain online."
+  auction-remove-failed: "%prefix%&cListing &f#%id% &ctidak ditemukan."
+  statsinfo-usage: "%prefix%&cPenggunaan: &f%usage%"
+  statsinfo-header: "%prefix%&bStatus statistik"
+  statsinfo-status: "&7Status   : %status% &8| &7penyimpanan: &f%storage% &8| &7pemain: &f%players%"
+  statsinfo-file: "&7File     : &f%file% &8| &7autosave: &f%autosave%"
+  statsinfo-on: "aktif"
+  statsinfo-off: "nonaktif"
+  statsinfo-autosave-off: "hanya saat shutdown"
+  statsinfo-autosave-unit: "menit"
+  statsinfo-player-header: "%prefix%&bStatistik &f%player% &7(%uuid%)"
+  statsinfo-player-none: "%prefix%&7Tidak ada data statistik untuk &f%player%&7."
+  statsreset-usage: "%prefix%&cPenggunaan: &f%usage%"
+  statsreset-done: "%prefix%&aStatistik &f%player% &adibersihkan &7(%count% kategori)&a."
+  statsreset-all: "%prefix%&aStatistik &f%count% &apemain dibersihkan."
+  statsreset-failed: "%prefix%&cStatistik &f%player% &ctidak ditemukan."
+  economy-header: "%prefix%&bEkonomi dinamis &7(harga dasar prices.yml + pengali)"
+  economy-status: "&7Status   : %status% &8| &7interval: &f%interval% detik &8| &7berkas: &f%file%"
+  economy-range: "&7Pengali : &f%min% &7- &f%max% &8| &7dampak jual: &f%impact% &8| &7pemulihan: &f%recovery%"
+  economy-none: "&7Semua item memakai harga dasar (belum ada harga yang bergerak)."
+  economy-entry: "&8- &f%item% &7pengali &f%multiplier% &8(&7sekarang &f%price% &7/ dasar &f%base%&8)"
+  economy-more: "&7...dan &f%count% &7material lain sedang menyesuaikan."
+  economy-on: "aktif"
+  economy-off: "nonaktif"
+  bounty-header: "%prefix%&bBounty &7(pot yang menempel pada pemain)"
+  bounty-status: "&7Status   : %status% &8| &7pemain: &f%players% &8| &7total pot: &f%total% &8| &7berkas: &f%file%"
+  bounty-limits: "&7Per pemasangan: &f%min% &7- &f%max% &8| &7pajak: &f%tax%%&8"
+  bounty-entry: "&8- #%rank% &f%player% &7pot &f%amount%"
+  bounty-target: "%prefix%&f%player% &7memiliki bounty &f%amount%&7."
+  bounty-set: "%prefix%&aBounty &f%player% &aditetapkan menjadi &f%amount%&a."
+  bounty-cleared-all: "%prefix%&aSeluruh bounty dibersihkan &7(%count% pemain)&a."
+  bounty-invalid-amount: "%prefix%&cJumlah &f%input% &ctidak valid. Contoh: &f5000&c, &f5k&c, &f1.5m&c."
+  bounty-unknown: "%prefix%&cPemain &f%player% &ctidak ditemukan."
+  bounty-usage: "%prefix%&cPenggunaan: %usage%"
+  bounty-disabled: "%prefix%&cFitur bounty sedang dinonaktifkan atau belum siap."
+  bounty-on: "aktif"
+  bounty-off: "nonaktif"
+  compat-usage: "%prefix%&cPenggunaan: &f%usage%"   # PHASE 10: /w2nsmp compat
+  commands-usage: "%prefix%&cPenggunaan: &f%usage%"   # PHASE 11: /w2nsmp commands
+
+# --- STATISTIK & LEADERBOARD (PHASE 9) --------------------------------------
+# Statistik disimpan per UUID (statistics.yml atau w2nsmp.db). Label kategori
+# dipakai oleh /top, /w2nsmp statsinfo, dan chat.
+stats:
+  disabled: "%prefix%&cFitur statistik sedang dinonaktifkan admin."
+  header: "%prefix%&bStatistik &f%player%"
+  line: "&8• &7%label%&8: &f%value%"
+  rank: "&8• &7Peringkat %label%&8: &f#%rank% &7dari &f%total%"
+  empty: "%prefix%&7Belum ada statistik untuk &f%player%&7."
+  playtime-format: "&f%hours% &7jam &f%minutes% &7menit"
+  category:
+    money: "Uang"
+    money-earned: "Uang didapat"
+    items-sold: "Item terjual ke server"
+    auction-listed: "Listing dipasang"
+    auction-sold: "Barang terjual di auction"
+    auction-bought: "Barang dibeli di auction"
+    homes: "Home disimpan"
+    home-teleports: "Teleport ke home"
+    rtp: "Pakai /rtp"
+    kills: "Bunuh pemain"
+    deaths: "Mati"
+    mobs: "Bunuh mob"
+    blocks-broken: "Blok ditambang"
+    blocks-placed: "Blok dipasang"
+    playtime: "Waktu bermain"
+    highest-money: "Saldo tertinggi"
+    bounty: "Bounty"
+    tpa-sent: "Permintaan teleport dikirim"
+    tpa-accepted: "Teleport antar-pemain"
+    online: "Pemain online"
+    ping: "Ping"
+
+top:
+  gui-title: "&8&lLEADERBOARD &8» &7%category% &8(%page%/%pages%)"
+  categories-title: "&8&lLEADERBOARD &8» &7Kategori"
+  # Material tombol GUI (bisa diganti admin; nama sesuai Material Bukkit).
+  filler-material: GRAY_STAINED_GLASS_PANE
+  filler-name: " "
+  prev-material: ARROW
+  next-material: ARROW
+  categories-material: NETHER_STAR
+  info-material: PLAYER_HEAD
+  close-material: BARRIER
+  back-material: ARROW
+  back-name: "&f← Back"
+  back-lore: "&7Kembali ke halaman peringkat."
+  entry-name: "&6#%rank% &f%player%"
+  # Material baris peringkat. PLAYER_HEAD = kepala pemain asli (bawaan, terlihat premium);
+  # admin boleh menggantinya dengan ikon kategori, mis. NETHER_STAR / PAPER.
+  entry-material: "PLAYER_HEAD"
+  entry-lore-value: "&7%category%&8: &f%value%"
+  entry-lore-rank: "&8Peringkat %rank% dari %total% pemain"
+  entry-click: "%prefix%&f%player% &8- %category%&8: &f%value% &8(peringkat &f#%rank%&8 dari &f%total%&8)"
+  category-name: "&b%category%"
+  category-selected: "&a%category% &7(dipilih)"
+  category-lore: "&7Klik untuk melihat peringkat kategori ini."
+  category-lore-selected: "&8Kategori yang sedang tampil."
+  prev-name: "&f← Previous"
+  prev-lore: "&7Ke halaman &f%page% &7dari &f%pages%&7."
+  next-name: "&fNext →"
+  page-lore: "&7Halaman &f%page% &7dari &f%pages%"
+  info-name: "&bPosisimu di kategori ini"
+  info-lore-rank: "&7Peringkat: &f#%rank%"
+  info-lore-value: "&7%category%&8: &f%value%"
+  info-lore-none: "&7Belum masuk daftar peringkat."
+  close-name: "&f&l✕ CLOSE"
+  close-lore: "&7Keluar dari daftar peringkat."
+  chat-header: "%prefix%&bPeringkat &f%category% &7(halaman %page%/%pages%)"
+  chat-entry: "&f#%rank% &e%player% &8- &f%value%"
+  # Baris penutup daftar chat. Placeholder: %label% %category% %page% %pages% %next% %previous%
+  # (%next%/%previous% berisi "-" bila tidak ada halaman berikutnya/sebelumnya).
+  chat-footer: "&8« &7Halaman &f%page%&7/&f%pages% &8| &7berikutnya: &f/%label% %category% chat %next% &8| &7GUI: &f/%label% %category% &8»"
+  empty: "%prefix%&7Belum ada data untuk diperingkatkan."
+  page-invalid: "%prefix%&cNomor halaman &f%input% &ctidak valid. Pakai angka, mis. &f2&c."
+  page-out-of-range: "%prefix%&cHalaman &f%page% &ctidak ada. Halaman terakhir: &f%pages%&c."
+  unknown-category: "%prefix%&cKategori &f%input% &ctidak dikenal. Pilihan: &f%list%&c."
+  usage: "%prefix%&cPenggunaan: &f%usage%"
+  help-header: "%prefix%&bPeringkat pemain (/top)"
+  help-list: "&f/%label% &7- membuka daftar peringkat (GUI)"
+  help-category: "&f/%label% <kategori> &7- langsung membuka kategori tertentu"
+  help-page: "&f/%label% <kategori> <halaman> &7- membuka GUI pada halaman tertentu"
+  help-chat: "&f/%label% chat [kategori] [halaman] &7- menampilkan peringkat di chat (berhalaman)"
+  help-help: "&f/%label% help &7- bantuan ini"
+
+  help-note: "&7Kategori: &f%list%"
+
+scoreboard:
+  enabled: "%prefix%&aSidebar statistik dinyalakan."
+  disabled: "%prefix%&7Sidebar statistik dimatikan. &f/sb on &7untuk menyalakan lagi."
+  already-on: "%prefix%&7Sidebar statistik memang sedang menyala."
+  already-off: "%prefix%&7Sidebar statistik memang sedang mati."
+  feature-off: "%prefix%&cSidebar statistik dimatikan admin lewat config.yml."
+  toggle-disabled: "%prefix%&cPilihan on/off dimatikan admin lewat &fconfig.yml&c (scoreboard.personal-toggle)."
+  player-only: "%prefix%&cSidebar statistik hanya bisa diatur pemain."
+  usage: "%prefix%&cPenggunaan: &f%usage%"
+  help-header: "%prefix%&bSidebar statistik (/sb)"
+  help-toggle: "&f/%label% &7- menyalakan/mematikan sidebar"
+  help-on: "&f/%label% on &8| &f/%label% off &7- pilihan eksplisit"
+  help-help: "&f/%label% help &7- bantuan ini"
+
+  # Teks bawaan tiap baris sidebar (PHASE 11).
+  # Dipakai bila baris pada config.yml tidak menulis "text:".
+  # Satu entri = satu baris sidebar, contoh "&fMoney: &a%money%" -> "Money: $100k".
+  # Bila admin ingin label dan nilai terpisah, tulis daftar dua entri di sini.
+  # Pemain bisa menyembunyikan baris yang ditandai "player-toggle: true" lewat /setting.
+  lines:
+    money:
+      - "&fMoney: &a%money%"
+    kills:
+      - "&fKills: &c%kills%"
+    deaths:
+      - "&fDeaths: &c%deaths%"
+    playtime:
+      - "&fPlaytime: &b%playtime%"
+    online:
+      - "&fOnline: &a%online%"
+    bounty:
+      - "&fBounty: &6%bounty%"
+    ping:
+      - "&fPing: &a%ping%"
+    mobs:
+      - "&fMob dibunuh: &e%mobs%"
+    items-sold:
+      - "&fItem terjual: &e%items-sold%"
+    money-earned:
+      - "&fUang didapat: &6%money-earned%"
+    homes:
+      - "&fHome: &e%homes%"
+    combat:
+      - "&fCombat: &c%combat%"
+
+# --- STATISTIK (bagian admin) -------------------------------------------------
+# --- HOME (PHASE 4) ---------------------------------------------------------
+# 3 slot pertama gratis untuk semua pemain; slot 4-8 dibeli memakai uang
+# (harga & jumlahnya diatur di config.yml pada blok "home").
+#
+# GUI memakai inventory chest standar + holder custom, jadi pemain Java dan
+# Bedrock/Geyser sama-sama bisa memakai (klik kiri = teleport/pasang/ beli,
+# klik kanan = hapus). Semua teks di bawah ini bisa diubah bebas.
+#
+# Placeholder yang tersedia: %home% %slot% %world% %coords% %price% %used%
+#                            %slots% %max% %seconds% %label%
+home:
+  gui-title: "&8&lHOMES &8» &7%used%/%slots%"
+
+  # Material tombol (nama Material Bukkit). Salah tulis = dipakai nilai bawaan.
+  filler-material: GRAY_STAINED_GLASS_PANE
+  filler-name: " "
+
+  slot-home-material: RED_BED
+  slot-home-name: "&a✓ &f%home% &8(slot %slot%)"
+  slot-home-lore:
+    - "&7Lokasi: &f%world%"
+    - "&7Koordinat: &f%coords%"
+    - ""
+    - "&eKlik kiri &7- teleport ke home ini"
+    - "&eKlik kanan &7- hapus home ini"
+
+  slot-empty-material: GRAY_BED
+  slot-empty-name: "&7✗ Kosong &8(slot %slot%)"
+  slot-empty-lore:
+    - "&7Belum ada home di slot ini."
+    - ""
+    - "&eKlik kiri &7- simpan lokasi Anda sekarang"
+
+  slot-locked-material: BLACK_BED
+  slot-locked-name: "&e🔒 Terkunci &8(slot %slot%)"
+  slot-locked-lore:
+    - "&7Buka slot ini untuk menambah home."
+    - "&7Harga: &a%price%"
+    - ""
+    - "&eKlik kiri &7- beli slot ini"
+
+  slot-unavailable-material: BARRIER
+  slot-unavailable-name: "&8▣ Tidak tersedia"
+  slot-unavailable-lore:
+    - "&7Slot ini di luar batas &fhome.max-slots&7."
+    - "&7Hubungi admin bila perlu ditambah."
+
+  info-material: BOOK
+  info-name: "&b&lHOME"
+  info-lore:
+    - "&7Terpakai: &f%used%&7/&f%slots%"
+    - "&7Slot maksimum server: &f%max%"
+    - ""
+    - "&7Klik kiri tempat tidur untuk teleport,"
+    - "&7klik kanan untuk menghapus home."
+
+  close-material: BARRIER
+  close-name: "&f&l✕ CLOSE"
+  close-lore:
+    - "&7Klik untuk menutup menu."
+
+  # --- Konfirmasi pembelian slot (menarik uang) ---
+  purchase:
+    title: "&8&lKONFIRMASI &8» &7Beli slot %slot%"
+    icon-material: GOLD_INGOT
+    icon-name: "&eSlot %slot%"
+    icon-lore:
+      - "&7Harga: &a%price%"
+      - "&7Uang diambil hanya sekali."
+    confirm-material: LIME_CONCRETE
+    confirm-name: "&a&l✔ CONFIRM &8(%price%)"
+    confirm-lore:
+      - "&7Klik untuk membayar &a%price%&7."
+    cancel-material: RED_CONCRETE
+    cancel-name: "&c&l✕ CANCEL"
+    cancel-lore:
+      - "&7Klik untuk membatalkan."
+
+  purchase-success: "%prefix%&aSlot &f%slot% &abuka. Anda membayar &f%price%&a."
+  purchase-already: "%prefix%&eSlot &f%slot% &esudah terbuka sebelumnya."
+  purchase-insufficient: "%prefix%&cUang Anda tidak cukup untuk slot &f%slot% &8(harga &f%price%&8)&c."
+  purchase-unavailable: "%prefix%&cSlot &f%slot% &ctidak dapat dibeli."
+  purchase-cancelled: "%prefix%&7Pembelian slot &f%slot% &7dibatalkan."
+
+  # --- Konfirmasi hapus home ---
+  delete:
+    title: "&8&lKONFIRMASI &8» &7Hapus home"
+    icon-material: RED_BED
+    icon-name: "&c%home%"
+    icon-lore:
+      - "&7Lokasi: &f%world%"
+      - "&7Koordinat: &f%coords%"
+      - ""
+      - "&cHome ini akan dihapus dari slot %slot%."
+    confirm-material: LIME_CONCRETE
+    confirm-name: "&c&l✔ HAPUS"
+    confirm-lore:
+      - "&7Klik untuk menghapus home ini."
+    cancel-material: RED_CONCRETE
+    cancel-name: "&f&l✕ CANCEL"
+    cancel-lore:
+      - "&7Klik untuk membatalkan."
+
+  delete-success: "%prefix%&aHome &f%home% &adihapus. Slot itu bisa dipakai lagi tanpa membayar ulang."
+  delete-none: "%prefix%&7Tidak ada home di slot itu."
+
+  # --- Simpan home ---
+  set-success: "%prefix%&aHome &f%home% &adisimpan di slot &f%slot%&a."
+  set-overwritten: "%prefix%&aHome &f%home% &adiperbarui ke lokasi Anda sekarang."
+  set-failed: "%prefix%&cGagal menyimpan home &f%home%&c. Cek console."
+  set-no-slot: "%prefix%&cSemua slot home Anda penuh &8(%used%/%slots%)&c. Buka slot baru lewat &f/home&c."
+  invalid-name: "%prefix%&cNama home hanya boleh huruf, angka, &f_&c dan &f-&c, maksimal 16 karakter."
+  not-found: "%prefix%&cAnda tidak punya home bernama &f%home%&c."
+
+  # --- Daftar home di chat (/home list) ---
+  list-empty: "%prefix%&7Anda belum punya home. Simpan dulu dengan &f/sethome <nama>&7."
+  list-header: "%prefix%&bDaftar home Anda:"
+  list-entry: "&8- &f%home% &7(slot %slot%) &8- &7%coords%"
+
+  # --- Petunjuk penggunaan ---
+  usage-header: "%prefix%&bPemakaian command home:"
+  usage-open: "&f/%label% &7- membuka menu home"
+  usage-set: "&f/sethome <nama> &7- menyimpan lokasi Anda sebagai home"
+  usage-del: "&f/delhome <nama> &7- menghapus home"
+  usage-teleport: "&f/%label% <nama> &7- teleport ke home"
+  usage-buy: "&f/home buy <slot 1-%max%> &7- membeli slot home"
+
+  # --- Teleport ---
+  teleport-countdown: "%prefix%&eTeleport ke &f%home% &edalam &f%seconds% &edetik. Jangan bergerak!"
+  teleport-actionbar: "&eTeleport ke &f%home% &edalam &f%seconds%&e..."
+  teleport-cancelled-actionbar: "&cTeleport ke &f%home% &cdibatalkan"
+  teleport-cancelled-move: "%prefix%&cTeleport dibatalkan karena Anda bergerak."
+  teleport-cancelled-damage: "%prefix%&cTeleport dibatalkan karena Anda menerima damage."
+  teleport-cancelled-death: "%prefix%&cTeleport dibatalkan karena Anda mati."
+  teleport-cancelled-combat: "%prefix%&cTeleport dibatalkan karena Anda sedang combat."
+  teleport-blocked-combat: "%prefix%&cKamu sedang combat! Teleport ke home masih diblokir &f%seconds% &cdetik."
+  teleport-success: "%prefix%&aSelamat datang di &f%home% &8(&7%coords%&8)&a."
+  teleport-failed: "%prefix%&cTeleport ke &f%home% &cgagal. Coba lagi sebentar."
+  world-missing: "%prefix%&cHome &f%home% &cberada di dunia &f%world% &cyang tidak lagi tersedia di server ini."
+
+# --- AUCTION HOUSE (PHASE 7) -------------------------------------------------
+# Pemain memasang item dengan /ah sell <harga>, membeli lewat GUI (klik listing),
+# membatalkan listing sendiri (klik listing sendiri -> konfirmasi), dan mengambil
+# item dari kotak dengan /ah collect. Item yang kedaluwarsa atau tidak muat di
+# inventory masuk ke kotak, jadi tidak pernah hilang.
+#
+# Placeholder: %id% %item% %amount% %price% %net% %tax% %seller% %buyer% %time%
+#              %page% %pages% %count% %mailbox% %limit% %mine% %usage% %player%
+auction:
+  disabled: "%prefix%&cFitur auction house sedang dinonaktifkan."
+  player-only: "%prefix%&cCommand auction house hanya bisa dipakai pemain."
+  gui-title: "&8&lAUCTION HOUSE &8» &7%page%/%pages%"
+  # Tombol & dekorasi GUI (nama Material Bukkit; salah tulis = dipakai nilai bawaan).
+  filler-material: GRAY_STAINED_GLASS_PANE
+  filler-name: " "
+  prev-material: ARROW
+  prev-name: "&f← Previous"
+  prev-lore:
+    - "&7Klik untuk kembali ke halaman sebelumnya."
+  next-material: ARROW
+  next-name: "&fNext →"
+  next-lore:
+    - "&7Klik untuk lanjut ke halaman berikutnya."
+  info-material: BOOK
+  info-name: "&bAuction House &7(halaman %page%/%pages%)"
+  info-lore:
+    - "&7Listing tampil: &f%count%"
+    - "&7Listing milikmu: &f%mine%&7/&f%limit%"
+    - "&7Pajak penjualan: &f%tax%%"
+    - "&7Item di kotakmu: &f%mailbox%"
+    - ""
+    - "&7Klik listing orang lain → konfirmasi beli."
+    - "&7Klik listing sendiri → konfirmasi batalkan."
+  collect-material: CHEST
+  collect-name: "&eKotak item &7(%amount%)"
+  collect-lore:
+    - "&7Ambil item yang menunggu di kotak:"
+    - "&7listing kedaluwarsa & item yang tidak muat."
+    - "&aKlik untuk mengambil."
+  collect-lore-empty:
+    - "&7Kotakmu sedang kosong."
+  close-material: BARRIER
+  close-name: "&f&l✕ CLOSE"
+  close-lore:
+    - "&7Klik untuk menutup menu."
+  empty-material: BARRIER
+  empty-name: "&7Belum ada listing"
+  empty-lore:
+    - "&7Jadilah yang pertama: pegang item, lalu"
+    - "&f/ah sell <harga>&7 untuk memasangnya."
+  listing-name: "&f%item% &7x%amount% &8(#%id%)"
+  listing-lore:
+    - "&7Harga: &a%price%"
+    - "&7Penjual: &f%seller%"
+    - "&7Sisa waktu: &f%time%"
+    - ""
+    - "&7Kamu dapat: &a%net% &8(pajak %tax%)"
+    - "&eKlik untuk membeli."
+  listing-own-lore:
+    - "&8Ini listing milikmu."
+    - "&cKlik untuk membatalkan listing ini."
+  own-marker: "&8[&7milikmu&8] "
+  # Aksi player
+  list-success: "%prefix%&aListing dipasang: &f%price% &7(hasil bersih &a%net%&7, pajak &f%tax%&7)."
+  sold-notify: "%prefix%&aTerjual! &f%buyer% &amembeli &f%item% &ax%amount% seharga &f%price% &7(bersih &a%net%&7)."
+  buy-success: "%prefix%&aKamu membeli &f%item% &ax%amount% dari &f%seller% &aseharga &f%price%&a."
+  buy-mailed: "%prefix%&e%amount% &eitem tidak muat di inventory dan dikirim ke kotak: &f/ah collect&e."
+  cancel-success: "%prefix%&aListing &f#%id% &adibatalkan; item kembali ke inventory."
+  cancel-mailed: "%prefix%&aListing &f#%id% &adibatalkan; &f%amount% &aitem masuk ke kotak (&f/ah collect&a)."
+  expired: "%prefix%&eListing &f#%id% &e(&f%item%&e) kedaluwarsa; &f%amount% &eitem ada di kotak (&f/ah collect&e)."
+  collect-success: "%prefix%&aItem dari kotak sudah diambil."
+  collect-full: "%prefix%&cInventory penuh: sebagian item masih tertinggal di kotak."
+  collect-none: "%prefix%&7Kotakmu sedang kosong."
+  mailbox-full-drop: "%prefix%&eKotak penuh, item dijatuhkan di lokasimu."
+  # Kesalahan
+  no-item: "%prefix%&cPegang item yang mau dijual di tangan utama, lalu pakai &f/ah sell <harga>&c."
+  blacklisted: "%prefix%&cItem ini tidak boleh dijual di auction house."
+  price-invalid: "%prefix%&cHarga &f%input% &ctidak dikenali. Pakai angka biasa atau format singkat seperti &f1k&c, &f25k&c, &f1.5k&c, &f2m&c."
+  price-too-low: "%prefix%&cHarga minimum adalah &f%min%&c."
+  price-too-high: "%prefix%&cHarga maksimum adalah &f%max%&c."
+  limit-reached: "%prefix%&cKamu sudah punya &f%limit% &clisting aktif. Batalkan salah satu dulu."
+  fee-failed: "%prefix%&cBiaya pemasangan &f%fee% &cbelum bisa dibayar."
+  save-failed: "%prefix%&cGagal menyimpan data auction. Item & uangmu tidak berubah, coba lagi."
+  not-found: "%prefix%&cListing &f#%id% &csudah tidak tersedia."
+  busy: "%prefix%&7Listing itu sedang diproses. Tunggu sebentar."
+  buy-own: "%prefix%&cItu listing milikmu sendiri."
+  buy-insufficient: "%prefix%&cUangmu tidak cukup (&f%price%&c)."
+  buy-no-space: "%prefix%&cInventory-mu penuh. Kosongkan dulu sebelum membeli."
+  cancel-not-owner: "%prefix%&cItu bukan listing milikmu."
+  player-not-found: "%prefix%&cPemain &f%player% &ctidak ditemukan."
+  filter-empty: "%prefix%&7%player% &7sedang tidak punya listing."
+  list-empty: "%prefix%&7Kamu belum punya listing aktif. Gunakan &f/ah sell <harga>&7."
+  list-header: "%prefix%&bListing milikmu &7(%count%/%limit%)"
+  list-entry: "&8#%id% &f%item% &7x%amount% &8| &a%price% &7(bersih &a%net%&7) &8| &7sisa &f%time%"
+  list-mailbox: "%prefix%&eKotakmu berisi &f%amount% &eitem: &f/ah collect&e."
+  sell-usage: "%prefix%&cPenggunaan: &f%usage% &7(harga &f%min%&7-&f%max%&7)."
+  cancel-usage: "%prefix%&cPenggunaan: &f%usage%"
+  # Halaman bantuan
+  help-header: "%prefix%&bAuction House"
+  help-open: "&f/%label% &7- membuka GUI auction house"
+  help-sell: "&f/%label% sell <harga> &7- memasang item di tangan (harga %min%-%max%)"
+  help-cancel: "&f/%label% cancel <id> &7- membatalkan listing milikmu"
+  help-collect: "&f/%label% collect &7- mengambil item dari kotak"
+  help-list: "&f/%label% list &7- daftar listing milikmu"
+  help-tax: "&7Pajak penjualan &f%tax%%&7, listing kedaluwarsa dalam &f%hours% &7jam."
+  # Konfirmasi (dipakai GUI konfirmasi generik)
+  buy:
+    title: "&8&lKONFIRMASI &8» &7Beli item"
+    icon-material: PAPER
+    icon-name: "&f%item% &7x%amount%"
+    icon-lore:
+      - "&7Penjual: &f%seller%"
+      - "&7Harga: &a%price%"
+    confirm-material: LIME_CONCRETE
+    confirm-name: "&a&l✔ CONFIRM &8(%price%)"
+    confirm-lore:
+      - "&7Klik untuk membeli item ini."
+    cancel-material: RED_CONCRETE
+    cancel-name: "&c&l✕ CANCEL"
+    cancel-lore:
+      - "&7Klik untuk kembali ke auction house."
+  cancel:
+    title: "&8&lKONFIRMASI &8» &7Batalkan listing"
+    icon-material: PAPER
+    icon-name: "&f%item% &7x%amount%"
+    icon-lore:
+      - "&7Listing &f#%id%"
+      - "&7Harga: &a%price%"
+    confirm-material: LIME_CONCRETE
+    confirm-name: "&a&l✔ CONFIRM"
+    confirm-lore:
+      - "&7Item akan dikembalikan ke inventory-mu."
+    cancel-material: RED_CONCRETE
+    cancel-name: "&c&l✕ CANCEL"
+    cancel-lore:
+      - "&7Biarkan listing tetap aktif."
+
+# --- WORTH / HARGA ITEM (PHASE 8) --------------------------------------------
+# Lore harga ditempelkan ke item di inventory pemain dan ke item di GUI /sell.
+# Setiap baris lore ditandai di NBT item, jadi /harga clear (atau mematikan
+# fitur) melepasnya kembali tanpa menyentuh lore custom milik pemain.
+# Placeholder: %item% %amount% %unit% %total% %stack% %max% %count% %input%
+worth:
+  disabled: "%prefix%&cFitur harga item sedang dinonaktifkan."
+  player-only: "%prefix%&cCommand harga item hanya bisa dipakai pemain."
+  # Lore yang ditempel ke item
+  lore-unit: "&7Worth: &a%unit%"
+  lore-total: "&7Total &f%amount%x&7: &a%total%"
+  lore-unsellable: "&cTidak bisa dijual lewat &f/sell"
+  # Hasil command
+  hand: "%prefix%&7%item% &7x&f%amount% &8| &7harga satuan &a%unit% &8| &7total &a%total%"
+  hand-hint: "%prefix%&7Buka &f/sell &7untuk menjual item ini."
+  hand-empty: "%prefix%&cPegang item yang ingin diperiksa di tangan utama."
+  not-sellable: "%prefix%&c%item% tidak punya harga jual &7(x%amount%)&c. Item tetap bisa dijual ke pemain lain lewat &f/ah&c."
+  material: "%prefix%&7%item% &8| &7harga satuan &a%unit% &8| &7satu tumpuk penuh (%max%x) &a%stack%"
+  material-not-sellable: "%prefix%&c%item% tidak punya harga jual di prices.yml."
+  unknown-item: "%prefix%&cItem &f%input% &ctidak dikenal. Contoh: &f/harga DIAMOND&c."
+  list-header: "%prefix%&bDaftar harga &7(menampilkan %count% dari %total% item)"
+  list-entry: "&8• &f%item% &8| &a%unit%"
+  list-empty: "%prefix%&7Tidak ada harga yang cocok &8(&f%total% &7item punya harga)&7."
+  clear-self: "%prefix%&aLore harga dilepas dari &f%count% &aitem di inventory-mu."
+  clear-usage: "%prefix%&cPenggunaan: &f%usage%"
+  # Preferensi pemain (/harga on|off)
+  turn-on: "%prefix%&aLore harga dinyalakan kembali &7(%count% item sudah diberi harga)&a."
+  turn-off: "%prefix%&7Lore harga dimatikan untukmu. &f/harga on &7untuk menyalakan lagi."
+  already-on: "%prefix%&7Lore harga memang sedang menyala untukmu."
+  already-off: "%prefix%&7Lore harga memang sedang mati untukmu."
+  toggle-disabled: "%prefix%&cPilihan on/off dimatikan admin lewat &fconfig.yml&c (worth.personal-toggle)."
+  inventory-lore-off: "%prefix%&cLore harga di inventory sedang dimatikan admin; &f/harga clear &ctetap bisa dipakai."
+  # Halaman bantuan
+  help-header: "%prefix%&bHarga item (worth)"
+  help-hand: "&f/%label% &7- harga item yang sedang dipegang"
+  help-material: "&f/%label% <item> &7- harga sebuah jenis item (mis. %label% DIAMOND)"
+  help-list: "&f/%label% list [kata] &7- daftar harga jual"
+  help-clear: "&f/%label% clear &7- melepas lore harga dari inventory-mu"
+  help-toggle: "&f/%label% on &8| &f/%label% off &7- menyalakan/mematikan lore harga untukmu"
+  help-note: "&7Lore harga juga tampil pada item di dalam GUI &f/sell&7."
+
+# --- Combat tag (PHASE 6) ----------------------------------------------------
+# Pesan combat. Selama tertag, pemain melihat sisa waktu di action bar dan
+# command teleport pada combat.block-commands ditolak.
+combat:
+  tagged: "%prefix%&cKamu masuk combat dengan &f%player%&c! Teleport diblokir &f%seconds% &cdetik."
+  tagged-generic: "%prefix%&cKamu masuk combat! Teleport diblokir &f%seconds% &cdetik."
+  actionbar: "&cCOMBAT &8| &f%seconds%&c..."
+  command-blocked: "%prefix%&cCommand &f/%command% &ctidak bisa dipakai saat combat &7(sisa &f%seconds%&7 detik)&c."
+  ended: "%prefix%&aCombat selesai. Teleport bisa dipakai kembali."
+  untagged: "%prefix%&7Combat tag kamu dihapus oleh &f%player%&7."
+  logout-broadcast: "%prefix%&c%player% &7keluar saat combat &8(sisa &f%seconds%&7 detik&8) &7dan tewas."
+
+# --- RTP - random teleport (PHASE 5) ----------------------------------------
+# Pesan hitung mundur & pembatalan memakai pola <prefix>.teleport-* yang sama
+# dengan home, jadi terjemahannya konsisten. Lokasi aman = blok pijakan solid
+# yang tidak berbahaya dan 2 blok di atasnya kosong.
+rtp:
+  disabled: "%prefix%&cFitur /rtp sedang dinonaktifkan."
+  world-missing: "%prefix%&cDunia tujuan &f%world% &ctidak ditemukan di server ini."
+  busy: "%prefix%&7Masih mencari lokasi aman di &f%world%&7. Tunggu sebentar..."
+  searching: "%prefix%&eMencari lokasi aman di &f%world%&e..."
+  cooldown: "%prefix%&cTunggu &f%seconds% &cdetik lagi sebelum memakai &f/rtp&c."
+  no-safe-location: "%prefix%&cTidak menemukan lokasi aman di &f%world% &csetelah &f%attempts% &cpercobaan. Coba lagi."
+  teleport-countdown: "%prefix%&eTeleport ke lokasi acak dalam &f%seconds% &edetik. Jangan bergerak!"
+  teleport-actionbar: "&eRTP &8| &f%seconds%&e..."
+  teleport-cancelled-actionbar: "&cTeleport ke lokasi acak dibatalkan"
+  teleport-cancelled-move: "%prefix%&cTeleport dibatalkan karena Anda bergerak."
+  teleport-cancelled-damage: "%prefix%&cTeleport dibatalkan karena Anda menerima damage."
+  teleport-cancelled-death: "%prefix%&cTeleport dibatalkan karena Anda mati."
+  teleport-cancelled-combat: "%prefix%&cTeleport dibatalkan karena kamu sedang combat."
+  teleport-blocked-combat: "%prefix%&cKamu sedang combat! Teleport ke lokasi acak masih diblokir &f%seconds% &cdetik."
+  teleport-success: "%prefix%&aKamu muncul di &f%world% %x%, %y%, %z%&a. Selamat menjelajah!"
+  teleport-failed: "%prefix%&cTeleport ke lokasi acak gagal. Coba lagi sebentar."
+
+# --- Profil pemain & pengaturan pribadi (PHASE 11) ---------------------------
+# /profile  : semua angka diambil dari data yang sudah ada (Vault, statistik, home).
+# /setting  : pilihan pribadi per UUID; nilai bawaan mengikuti config.yml.
+profile:
+  disabled: "%prefix%&cFitur profil sedang dinonaktifkan."
+  self-only: "%prefix%&cPengaturan hanya bisa dibuka dari profil sendiri."
+  unknown-player: "%prefix%&cPemain &f%player% &ctidak ditemukan &7(belum pernah masuk server ini)&c."
+  gui-title: "&8&lPROFILE &8» &7%player%"
+  filler-material: GRAY_STAINED_GLASS_PANE
+  filler-name: " "
+  head-material: PLAYER_HEAD
+  head-name: "&f%player%"
+  head-lore:
+    - "&7Profil pemain W2NSMP"
+    - "&7Uang: &a%money%"
+    - "&7Waktu bermain: &f%playtime%"
+  money-name: "&aUang"
+  money-lore:
+    - "&7Saldo saat ini: &a%value%"
+  highest-money-name: "&6Saldo tertinggi"
+  highest-money-lore:
+    - "&7Tertinggi yang pernah dimiliki: &6%value%"
+    - "&8Tidak pernah turun walau saldo berkurang."
+  kills-name: "&cKills"
+  kills-lore:
+    - "&7Membunuh pemain: &f%value%"
+  deaths-name: "&7Deaths"
+  deaths-lore:
+    - "&7Mati: &f%value%"
+  playtime-name: "&bWaktu bermain"
+  playtime-lore:
+    - "&7Total: &f%value%"
+  bounty-name: "&6Bounty"
+  bounty-lore:
+    - "&7Bounty aktif: &6%value%"
+    - "&8Bounty bisa dipasang dari GUI &f/bounty&8."
+  homes-name: "&dHome"
+  homes-lore:
+    - "&7Slot terpakai: &f%value%"
+  items-sold-name: "&aItem terjual"
+  items-sold-lore:
+    - "&7Jumlah item yang dijual ke server: &f%value%"
+  settings-name: "&ePengaturan"
+  settings-lore:
+    - "&7Buka &f/setting &7(sidebar, nametag uang, bunyi, notifikasi)."
+  top-material: NETHER_STAR
+  top-name: "&bPapan peringkat"
+  top-lore:
+    - "&7Lihat peringkat pemain &f/top&7."
+  close-material: BARRIER
+  close-name: "&f&l✕ CLOSE"
+  close-lore:
+    - "&7Klik untuk menutup."
+  chat-header: "%prefix%&bProfil &f%player%"
+  chat-line: "&8• &7%label%&8: &f%value%"
+  chat-label:
+    money: "Uang"
+    highest-money: "Saldo tertinggi"
+    kills: "Kills"
+    deaths: "Deaths"
+    playtime: "Waktu bermain"
+    bounty: "Bounty"
+    homes: "Home (terpakai/terbuka)"
+    items-sold: "Item terjual ke server"
+
+setting:
+  disabled: "%prefix%&cFitur pengaturan sedang dinonaktifkan."
+  unavailable: "%prefix%&cPenyimpanan pengaturan belum siap. Coba lagi sebentar."
+  gui-title: "&8&lSETTINGS &8» &7%player%"
+  filler-material: GRAY_STAINED_GLASS_PANE
+  filler-name: " "
+  state-on: "&a✔ Enabled"
+  state-off: "&c✖ Disabled"
+  state-locked: "&e🔒 Locked"
+  item-name: "&f%setting% &8» %state%"
+  item-lore:
+    - "&7Klik untuk mengubah pilihan ini."
+    - "&7Keadaan sekarang: %state%"
+    - "&8Tersimpan otomatis di settings.yml."
+  label:
+    scoreboard: "Sidebar statistik"
+    nametag-money: "Uang di nametag"
+    sounds: "Bunyi GUI"
+    notifications: "Notifikasi"
+    teleport-countdown: "Hitung mundur teleport"
+    notify-bounty: "Notifikasi bounty"
+    notify-auction: "Notifikasi auction"
+    notify-tpa: "Notifikasi TPA"
+    line: "Baris &f%line%"
+  # ---- Kategori (v1.4.0): halaman utama menampilkan kartu ini; klik -> sub-halaman. ----
+  category:
+    scoreboard:
+      name: "&b&lScoreboard"
+      lore:
+        - "&7Sidebar statistik & tiap barisnya."
+        - "&f%count% &7pengaturan."
+        - "&eKlik untuk membuka."
+    notifications:
+      name: "&e&lNotifikasi"
+      lore:
+        - "&7Notifikasi umum, bounty, auction, TPA."
+        - "&f%count% &7pengaturan."
+        - "&eKlik untuk membuka."
+    gameplay:
+      name: "&a&lGameplay"
+      lore:
+        - "&7Hitung mundur teleport dan lainnya."
+        - "&f%count% &7pengaturan."
+        - "&eKlik untuk membuka."
+    visual:
+      name: "&d&lVisual"
+      lore:
+        - "&7Tampilan nametag & visual lain."
+        - "&f%count% &7pengaturan."
+        - "&eKlik untuk membuka."
+    misc:
+      name: "&7&lLain-lain"
+      lore:
+        - "&7Bunyi GUI dan pengaturan lain."
+        - "&f%count% &7pengaturan."
+        - "&eKlik untuk membuka."
+  back-name: "&fKembali ke kategori"
+  back-lore: "&7Kembali ke halaman kategori pengaturan."
+  info-material: BOOK
+  info-name: "&eInformasi"
+  info-lore:
+    - "&7Pilihanmu disimpan di &f%file%"
+    - "&7per akun (UUID), jadi tetap sama di Java & Bedrock."
+  info-chat: "%prefix%&7Pilihanmu disimpan di &f%file% &7(%count% pemain tercatat)."
+  close-material: BARRIER
+  close-name: "&f&l✕ CLOSE"
+  close-lore:
+    - "&7Klik untuk menutup."
+  toggled: "%prefix%&7Pengaturan &f%setting% &7diperbarui."
+  locked: "%prefix%&cPengaturan &f%setting% &cdikunci admin dan tidak bisa diubah pemain."
+  not-changed: "%prefix%&cPengaturan &f%setting% &ctidak bisa diubah saat ini."
+  unknown: "%prefix%&cPilihan &f%setting% &ctidak dikenal. Lihat &f/setting list&c."
+  usage-toggle: "%prefix%&cPenggunaan: &f/setting toggle <pilihan>&c."
+  list-header: "%prefix%&bPengaturan &f%player%"
+  list-line: "&8• &7%setting%&8: &f%state% &8(&7%key%&8)"
+
+# ---------------------------------------------------------------------------
+# Teleport antar-pemain /tpa (PHASE 11 batch 3)
+# Semua teks GUI & command fitur ini ada di sini; tampilannya di gui/tpa.yml.
+# ---------------------------------------------------------------------------
+tpa:
+  enabled: true
+  gui-title: "&8&lTELEPORT &8» &7%incoming% masuk &8/ &7%outgoing% keluar"
+  sent: "%prefix%&aPermintaan teleport dikirim ke &f%target%&a. Ditunggu &f%seconds% &adetik."
+  sent-here: "%prefix%&aPermintaan agar &f%target%&a teleport ke tempatmu dikirim. Ditunggu &f%seconds% &adetik."
+  received: "%prefix%&e%player% &7ingin teleport ke tempatmu. &a/tpaccept &7| &c/tpdeny &7(&f%seconds%&7 detik)"
+  received-here: "%prefix%&e%player% &7ingin kamu teleport ke tempatnya. &a/tpaccept &7| &c/tpdeny &7(&f%seconds%&7 detik)"
+  accepted-target: "%prefix%&aPermintaan dari &f%player%&a diterima. Teleport dalam &f%seconds% &adetik."
+  accepted-sender: "%prefix%&a%player% menerima permintaanmu. Teleport dalam &f%seconds% &adetik."
+  denied-target: "%prefix%&7Permintaan dari &f%player%&7 ditolak."
+  denied-sender: "%prefix%&c%player% menolak permintaan teleportmu."
+  cancelled: "%prefix%&7Permintaan teleport ke &f%player%&7 dibatalkan."
+  cancelled-other: "%prefix%&7Permintaan teleport dari &f%player%&7 dibatalkan."
+  timeout-sender: "%prefix%&7Permintaan teleport ke &f%player%&7 kedaluwarsa (tidak dijawab)."
+  timeout-target: "%prefix%&7Permintaan teleport dari &f%player%&7 kedaluwarsa."
+  no-request: "%prefix%&cTidak ada permintaan teleport yang menunggu."
+  no-request-from: "%prefix%&cTidak ada permintaan teleport dari &f%player%&c."
+  no-outgoing: "%prefix%&cKamu tidak punya permintaan teleport yang menunggu."
+  self: "%prefix%&cKamu tidak bisa mengirim permintaan teleport ke dirimu sendiri."
+  disabled: "%prefix%&cFitur teleport antar-pemain sedang dimatikan."
+  cooldown: "%prefix%&cTunggu &f%seconds% &cdetik sebelum mengirim permintaan lagi."
+  outgoing-limit: "%prefix%&cKamu sudah punya &f%count% &cpermintaan yang menunggu jawaban."
+  incoming-limit: "%prefix%&c%target% sedang menerima terlalu banyak permintaan."
+  target-busy: "%prefix%&c%target% sedang dalam perjalanan teleport."
+  target-offline: "%prefix%&c%target% tidak online."
+  combat-blocked: "%prefix%&cKamu tidak bisa memakai /tpa saat combat (&f%seconds%&c detik lagi)."
+  usage: "%prefix%&cPenggunaan: &f%usage%&c."
+  usage-here: "%prefix%&cPenggunaan: &f%usage%&c."
+  usage-accept: "%prefix%&cPenggunaan: &f/tpaccept [pemain]&c."
+  # Bantuan versi chat
+  help-header: "%prefix%&bTeleport antar-pemain (/tpa)"
+  help-list: "&f/%label% &7- membuka daftar permintaan (GUI)"
+  help-request: "&f/%label% <pemain> &7- meminta teleport ke pemain itu"
+  help-accept: "&f/tpaccept [pemain] &7- menerima permintaan"
+  help-deny: "&f/tpdeny [pemain] &7- menolak permintaan"
+  help-here: "&f/tpahere <pemain> &7- meminta pemain lain teleport ke lokasimu"
+  help-cancel: "&f/tpacancel [pemain] &7- membatalkan permintaan yang kamu kirim"
+  help-note: "&7Permintaan kedaluwarsa sendiri; teleport dibatalkan bila bergerak, menerima damage, mati, atau terkena combat."
+  # Daftar versi chat (/tpa list)
+  info-header: "%prefix%&bPermintaan teleport: &f%incoming% &7masuk, &f%outgoing% &7keluar"
+  info-entry-incoming: "&8• &aMasuk &7dari &f%player% &8(&7%type%&8, &f%seconds%&8 detik lagi)"
+  info-entry-outgoing: "&8• &eKeluar &7ke &f%player% &8(&7%type%&8, &f%seconds%&8 detik lagi)"
+  # Teleport berjeda (dipakai TeleportService dengan prefix "tpa.")
+  teleport-countdown: "%prefix%&aTeleport ke &f%player% &adalam &f%seconds% &adetik. Jangan bergerak."
+  teleport-actionbar: "&eTeleport dalam &f%seconds% &edetik"
+  teleport-success: "%prefix%&aTeleport berhasil."
+  teleport-failed: "%prefix%&cTeleport gagal (lokasi tujuan tidak bisa dimuat)."
+  teleport-cancelled-move: "%prefix%&cTeleport dibatalkan karena kamu bergerak."
+  teleport-cancelled-damage: "%prefix%&cTeleport dibatalkan karena kamu menerima damage."
+  teleport-cancelled-death: "%prefix%&cTeleport dibatalkan karena kamu mati."
+  teleport-cancelled-combat: "%prefix%&cTeleport dibatalkan karena kamu terkena combat tag."
+  teleport-cancelled-cancel: "%prefix%&7Teleport dibatalkan."
+  teleport-cancelled-actionbar: "&cTeleport dibatalkan"
+  teleport-blocked-combat: "%prefix%&cTeleport ditolak: kamu sedang combat (&f%seconds%&c detik lagi)."
+  # Tampilan GUI /tpa (material bisa diganti; teks di atas)
+  gui-incoming-material: PLAYER_HEAD
+  gui-outgoing-material: PAPER
+  gui-empty-material: LIGHT_GRAY_DYE
+  gui-accept-material: LIME_DYE
+  gui-deny-material: RED_DYE
+  gui-cancel-material: BARRIER
+  gui-refresh-material: COMPASS
+  gui-close-material: BARRIER
+  gui-filler-material: GRAY_STAINED_GLASS_PANE
+  gui-filler-name: " "
+  gui-incoming-name: "&a%player% &7ingin teleport ke tempatmu"
+  gui-incoming-lore:
+    - "&7Klik untuk &amenerima&7 permintaan ini."
+    - "&7Sisa waktu: &f%seconds% &7detik"
+  gui-outgoing-name: "&eMenunggu &f%target%"
+  gui-outgoing-lore:
+    - "&7Klik untuk &cmembatalkan&7 permintaan ini."
+    - "&7Sisa waktu: &f%seconds% &7detik"
+  gui-empty-name: "&7Tidak ada permintaan teleport"
+  gui-empty-lore:
+    - "&7Kirim permintaan dengan &f/tpa <pemain>&7."
+  gui-accept-name: "&a&l✔ ACCEPT &8(%count%)"
+  gui-accept-lore:
+    - "&7Menerima permintaan terbaru dari &f%player%&7."
+  gui-deny-name: "&c&l✕ DENY &8(%count%)"
+  gui-deny-lore:
+    - "&7Menolak permintaan terbaru dari &f%player%&7."
+  gui-cancel-name: "&c&l✕ CANCEL &8(%count%)"
+  gui-cancel-lore:
+    - "&7Membatalkan semua permintaan yang kamu kirim."
+    - "&7Terbaru: &f%player%"
+  gui-refresh-name: "&e⟳ Segarkan"
+  gui-refresh-lore:
+    - "&7Menampilkan permintaan terbaru."
+  gui-close-name: "&f&l✕ CLOSE"
+  gui-close-lore:
+    - "&7Keluar dari daftar permintaan."
+
+# ---------------------------------------------------------------------------
+# Bounty /bounty (PHASE 11 batch 3)
+# Uang bounty dipegang plugin; dipasang lewat /bounty & GUI, dibayarkan saat target dibunuh.
+# ---------------------------------------------------------------------------
+bounty:
+  enabled: true
+  disabled: "%prefix%&cFitur bounty sedang dimatikan."
+  none: "&7(tidak ada)"
+  self: "%prefix%&cKamu tidak bisa memasang bounty untuk dirimu sendiri."
+  unknown-player: "%prefix%&cPemain &f%player% &ctidak ditemukan."
+  no-economy: "%prefix%&cFitur bounty butuh ekonomi Vault yang aktif."
+  no-money: "%prefix%&cSaldo kamu tidak cukup. Butuh &f%amount%&c, saldo &f%balance%&c."
+  too-low: "%prefix%&cBounty minimum adalah &f%amount%&c."
+  too-high: "%prefix%&cBounty maksimum per pemasangan adalah &f%amount%&c."
+  over-limit: "%prefix%&cTotal bounty pemain itu akan melewati batas &f%amount% &c(sekarang &f%current%&c)."
+  invalid-amount: "%prefix%&cJumlah &f%input% &ctidak valid. Contoh: &f10000&c atau format singkat &f10k&c, &f1.5m&c."
+  placed: "%prefix%&aBounty &f%amount% &adipasang untuk &f%target%&a. Total bounty: &f%total%&a."
+  received: "%prefix%&e%player% memasang bounty &f%amount% &euntukmu. Total: &f%total%&e. Hati-hati!"
+  broadcast: "%prefix%&c[BOUNTY] &f%target% &7kini diburu dengan hadiah &f%amount% &7(dipasang oleh &f%creator%&7)."
+  paid: "%prefix%&aKamu mendapat bounty &f%amount% &adari &f%target%&a!"
+  paid-tax: "%prefix%&aKamu mendapat bounty &f%amount% &adari &f%target% &7(pot &f%total%&7, pajak &f%tax%&7)."
+  lost: "%prefix%&cBounty-mu diambil &f%player%&c sebesar &f%amount%&c."
+  broadcast-claim: "%prefix%&f%killer% &7mengambil bounty &f%amount% &7dari &f%target%&7."
+  blocked-same-ip: "%prefix%&cBounty &f%player% &ctidak dibayarkan (alamat IP sama - anti alt-account)."
+  blocked-repeat: "%prefix%&cBounty &f%player% &ctidak dibayarkan lagi (anti-farm, tunggu &f%seconds% &cdetik)."
+  blocked-playtime: "%prefix%&cBounty &f%player% &ctidak dibayarkan (korban belum cukup lama bermain)."
+  usage: "%prefix%&cPenggunaan: &f%usage%&c."
+  info-own: "%prefix%&bBounty server: &f%count% &7pemain buruan, total &f%total%&7. Bounty-mu: &f%own%&7 (min &f%minimum%&7, maks &f%maximum%&7)."
+  info-self: "%prefix%&7Bounty untukmu: &f%amount%"
+  info-other: "%prefix%&7Bounty &f%player%&7: &f%amount%"
+  top-header: "%prefix%&bDaftar bounty &7(%count% pemain, total %total%)"
+  top-entry: "&f#%rank% &e%player% &8- &f%amount%"
+  top-empty: "%prefix%&7Belum ada bounty yang dipasang."
+  help-header: "%prefix%&bBounty (/bounty)"
+  help-list: "&f/%label% &7- membuka GUI bounty (daftar + pasang)"
+  help-set: "&f/%label% <pemain> <jumlah> &7- memasang bounty"
+  help-top: "&f/%label% top &7- daftar bounty terbesar"
+  help-info: "&f/%label% info [pemain] &7- melihat bounty seseorang"
+  help-note: "&7Batas: &f%minimum% &7- &f%maximum%&7. Bounty dibayarkan ke pemain yang membunuh target."
+  # Tampilan GUI /bounty (material bisa diganti; teks di atas)
+  gui-title: "&8&lBOUNTY &8» &7%page%/%pages% &8| &6%total%"
+  gui-targets-title: "&8&lBOUNTY &8» &7Pilih pemain online"
+  gui-amount-title: "&8&lBOUNTY &8» &6%player%"
+  # Material baris daftar bounty. PLAYER_HEAD = kepala pemain asli (bawaan).
+  gui-entry-material: "PLAYER_HEAD"
+  gui-target-material: PLAYER_HEAD
+  gui-amount-material: GOLD_INGOT
+  gui-prev-material: ARROW
+  gui-next-material: ARROW
+  gui-targets-material: PLAYER_HEAD
+  gui-info-material: WRITABLE_BOOK
+  gui-close-material: BARRIER
+  gui-empty-material: LIGHT_GRAY_DYE
+  gui-filler-material: GRAY_STAINED_GLASS_PANE
+  gui-filler-name: " "
+  gui-entry-name: "&6#%rank% &f%player% &8» &6%amount%"
+  gui-entry-lore:
+    - "&7Bounty: &f%amount%"
+    - "&7Klik untuk memasang bounty &a(bonus)&7 untuk pemain ini."
+    - "&8Peringkat %rank% dari %total% pemain buruan."
+  gui-target-name: "&e%player%"
+  gui-target-lore:
+    - "&7Bounty sekarang: &f%current%"
+    - "&7Klik untuk memilih jumlah bounty."
+  gui-amount-name: "&6+ &f%amount%"
+  gui-amount-lore:
+    - "&7Untuk: &f%player%"
+    - "&7Bounty sekarang: &f%current%"
+    - "&7Saldomu: &f%balance%"
+  gui-prev-name: "&f← Previous"
+  gui-prev-lore:
+    - "&7Ke halaman &f%page% &7dari &f%pages%&7."
+  gui-next-name: "&fNext →"
+  gui-next-lore:
+    - "&7Ke halaman &f%page% &7dari &f%pages%&7."
+  gui-targets-name: "&aPilih pemain online"
+  gui-targets-lore:
+    - "&7Menampilkan pemain online untuk dipasangi bounty."
+  gui-top-name: "&eKembali ke daftar bounty"
+  gui-top-lore:
+    - "&7Menampilkan bounty terbesar."
+  gui-back-name: "&f← Back"
+  gui-back-lore:
+    - "&7Kembali ke daftar sebelumnya."
+  gui-info-name: "&bInfo bounty &7(%count% pemain)"
+  gui-info-lore:
+    - "&7Total bounty: &f%total%"
+    - "&7Bounty-mu: &f%own%"
+    - "&7Batas: &f%minimum% &7- &f%maximum%"
+  gui-close-name: "&f&l✕ CLOSE"
+  gui-close-lore:
+    - "&7Keluar dari daftar bounty."
+
+
+# --- Gaya bersama GUI (PHASE 12) --------------------------------------------
+# Dipakai semua GUI sebagai cadangan label/keadaan; gaya lengkap (border, pengisi,
+# material tombol, bunyi) ada di plugins/W2NSMP/gui/common.yml.
+gui:
+  common:
+    enabled: "&a✔ Enabled"
+    disabled: "&c✖ Disabled"
+    locked: "&e🔒 Locked"
+    option: "&f%name% &8» %state%"
+    back: "&f← Back"
+    close: "&f✕ Close"
+    prev: "&f← Previous"
+    next: "&fNext →"
+    confirm: "&a✔ Confirm"
+    cancel: "&c✕ Cancel"
+    info: "&bInfo"
+    page: "&7Halaman &f%page%&7/&f%pages%"
+
+# =============================================================================================
+# SKILL (/skill) - 11 skill, tiap skill punya beberapa buff bertahap (v1.3.0)
+# =============================================================================================
+# Placeholder yang tersedia (tergantung pesan):
+#   %player% %skill% %key% %level% %max% %next-level% %xp% %xp-into% %xp-needed%
+#   %xp-to-next% %percent% %bar% %buff% %buff-desc% %source% %unlock% %total-xp% %total-level%
+#   %buffs% %buff-count% %buffs-unlocked% %next-buff% %next-buff-level%
+# Khusus kartu buff & menu progres:
+#   %buff% (nama buff) %buff-value% %buff-kind% %per% %max% %power% %value% %cap-level% %amp-next%
+# Khusus peringkat (top): %rank% %rank-total% %scope% %count% %limit% %player%
+skill:
+  disabled: "%prefix%&cFitur skill sedang dinonaktifkan admin."
+  no-skills: "%prefix%&7Tidak ada skill yang aktif di server ini."
+  player-only: "%prefix%&cHanya pemain yang bisa memakai perintah itu. Coba &f%hint%&c."
+  skill-disabled: "%prefix%&7Skill &f%skill% &7sedang dimatikan admin."
+  unknown-skill: "%prefix%&cSkill &f%input% &ctidak dikenal. Pilihan: &f%list%&c."
+  invalid-number: "%prefix%&cAngka tidak valid: &f%input%&c."
+  target-not-found: "%prefix%&cPemain &f%player% &ctidak ditemukan (perlu sedang online)."
+  all-skills: "semua skill"
+  extra-drop: "%prefix%&aBuff &f%skill% &amemberi hasil tambahan!"
+  usage-info: "%prefix%&cPenggunaan: &f/skill info <pemain> [skill]"
+  usage-set: "%prefix%&cPenggunaan: &f/skill set <pemain> <skill> <level>"
+  usage-add: "%prefix%&cPenggunaan: &f/skill add <pemain> <skill> <xp>"
+  usage-reset: "%prefix%&cPenggunaan: &f/skill reset <pemain> [skill]"
+  actionbar: "&7%skill% &8+&a%xp% XP &8(&7Lv. &f%level%&8)"
+  # Dipakai bila buff double-xp sedang beruntung (XP yang masuk dua kali lipat).
+  actionbar-double: "&7%skill% &8+&a%xp% XP &6x2 &8(&7Lv. &f%level%&8)"
+  # Serangan critical (buff crit-chance fighting/archery) - hanya di action bar.
+  crit: "&6» CRITICAL &8| &7%skill% &f%damage% damage &8(&6+%power%%&8)"
+  # Loot mob ganda (buff mob-loot). Dipakai bila skills.notify-extra-drop: true.
+  mob-loot: "%prefix%&aBuff &f%skill% &amenggandakan satu drop mob!"
+  level-up: "%prefix%&a%skill% &7naik ke level &f%level%&7/&f%max% &8| &7buff: %buff%"
+  # Dikirim terpisah bila pada level itu ada buff baru yang terbuka (hapus kunci ini untuk mematikan).
+  level-up-buff: "%prefix%&6Buff baru terbuka &8| &f%buff% &8(&7%desc%&8) &7nilai: %buff-value%"
+  # Karakter bar kemajuan (%bar%).
+  bar-filled: "&a|"
+  bar-empty: "&8|"
+  # Nilai buff siap tampil. %value% diisi oleh plugin sesuai jenis buff.
+  buff-value:
+    format: "&a%value%"
+    none: "&8-"
+    locked: "&8(buka di Lv. &f%level%&8)"
+    disabled: "&8(dimatikan admin)"
+    # Ditampilkan bila API server tidak mendukung buff itu (lihat log "Skill:" saat startup).
+    unavailable: "&8(tidak didukung server ini)"
+    haste: "&bHaste %level%"
+    # Buff potion generik (absorption, fire resistance, ...): %name% %level% (angka Romawi).
+    potion: "&b%name% %level%"
+    heal: "&c+%amount% heart / %seconds% dtk"
+    # Buff peluang yang punya kekuatan tambahan (critical/block): %value% + %power%.
+    power: "&a%value% &8(&7+%power%&8)"
+  # Nama skill (dipakai di GUI, chat, dan pesan level-up).
+  name:
+    fighting: "Pertarungan"
+    defense: "Pertahanan"
+    archery: "Memanah"
+    agility: "Ketangkasan"
+    mining: "Menambang"
+    woodcutting: "Menebang Kayu"
+    farming: "Bertani"
+    fishing: "Memancing"
+    endurance: "Daya Tahan"
+    vitality: "Vitalitas"
+    recovery: "Pemulihan"
+  # Penjelasan buff menurut jenisnya (skill.buff.<jenis-buff>).
+  buff:
+    damage-melee: "Damage serangan jarak dekat bertambah."
+    damage-projectile: "Damage panah/proyektil bertambah."
+    crit-chance: "Peluang serangan menjadi critical (damage lebih besar)."
+    damage-reduction: "Damage yang diterima berkurang."
+    block-chance: "Peluang menahan sebagian damage satu pukulan."
+    environment-reduction: "Damage lingkungan (jatuh, api, tenggelam, lapar, ...) berkurang."
+    walk-speed: "Kecepatan jalan bertambah."
+    haste: "Menambang lebih cepat (efek Haste)."
+    potion: "Efek potion tambahan yang selalu aktif selama buff terbuka."
+    extra-drop: "Peluang mendapat satu hasil tambahan saat menebang/memanen."
+    extra-catch: "Peluang hasil pancingan ganda."
+    mob-loot: "Peluang satu drop mob digandakan saat kamu mengalahkannya."
+    vanilla-xp: "XP vanilla dari ore yang ditambang bertambah."
+    double-xp: "Peluang XP skill yang masuk menjadi dua kali lipat."
+    passive-heal: "Darah pulih perlahan saat tidak sedang bertarung."
+    regen-boost: "Regenerasi alami diperkuat."
+  # Nama pendek buff untuk lore GUI & daftar buff (skill.buff-short.<jenis-buff>).
+  buff-short:
+    damage-melee: "Damage melee"
+    damage-projectile: "Damage proyektil"
+    crit-chance: "Peluang critical"
+    damage-reduction: "Pengurangan damage"
+    block-chance: "Peluang block"
+    environment-reduction: "Pengurangan damage lingkungan"
+    walk-speed: "Kecepatan jalan"
+    haste: "Haste"
+    potion: "Efek potion"
+    extra-drop: "Peluang drop tambahan"
+    extra-catch: "Peluang tangkapan ganda"
+    mob-loot: "Peluang loot mob ganda"
+    vanilla-xp: "Bonus XP vanilla"
+    double-xp: "Peluang XP ganda"
+    passive-heal: "Heal pasif"
+    regen-boost: "Penguatan regen"
+  # Nama efek potion yang dipakai buff (skill.potion-name.<kunci-efek>). Tambahkan sendiri
+  # bila kamu memasang buff potion dengan efek lain di config.yml.
+  potion-name:
+    haste: "Haste"
+    slow_falling: "Slow Falling"
+    fire_resistance: "Fire Resistance"
+    absorption: "Absorption"
+    health_boost: "Health Boost"
+    regeneration: "Regeneration"
+    resistance: "Resistance"
+    strength: "Strength"
+    speed: "Speed"
+    night_vision: "Night Vision"
+  # Baris daftar buff (dipakai /skill list, detail chat, dan lore GUI).
+  buff-line:
+    active: "&8• &f%name%&8: %value%"
+    locked: "&8• &7%name% &8- &7terbuka di Lv. &f%level%"
+  # Pemisah antar buff bila beberapa buff diringkas dalam satu baris (%buffs%).
+  buff-separator: "&8 | &7"
+  # Cara menaikkan tiap skill (tampil di detail skill).
+  source:
+    fighting: "serang dan kalahkan makhluk dengan serangan jarak dekat"
+    defense: "terima damage - makin sering bertahan, makin cepat naik"
+    archery: "serang dan kalahkan makhluk dengan panah/proyektil"
+    agility: "tempuh jarak dengan berjalan atau berlari"
+    mining: "hancurkan batu dan ore"
+    woodcutting: "tebang batang kayu"
+    farming: "panen tanaman dan hasil kebun"
+    fishing: "tarik hasil pancingan"
+    endurance: "bermain terus (XP tiap menit online)"
+    vitality: "bertahan saat darah hampir habis"
+    recovery: "pulihkan darah secara alami"
+  # ----------------------------- GUI /skill -----------------------------
+  gui-title: "&8Skill &f%player%"
+  filler-material: GRAY_STAINED_GLASS_PANE
+  item-name: "&f%skill% &7Lv. &e%level%"
+  item-lore:
+    - "&8&m                      "
+    - "&7Level: &f%level%&7/&f%max%"
+    - "&7Kemajuan: %bar% &f%percent%%"
+    - "&7XP: &f%xp-into%&7/&f%xp-needed% &8(total &f%xp%&8)"
+    - "&7Buff: %buff%"
+    - "&8%buff-desc%"
+    - "&8&m                      "
+    - "&eKlik untuk melihat progres & buff skill ini."
+  # Tombol peringkat di GUI /skill (mencetak top total skill ke chat).
+  top-name: "&e&lTop Skill"
+  top-lore:
+    - "&7Peringkat total level semua pemain."
+    - "&7Posisi Anda: &f#%rank%"
+    - "&7Total level Anda: &f%total-level% &8(&f%total-xp% XP&8)"
+    - "&8&m                      "
+    - "&eKlik untuk melihat %limit% besar peringkat."
+  info-material: BOOK
+  info-name: "&bRingkasan skill &f%player%"
+  info-lore:
+    - "&7Total level: &f%total-level%"
+    - "&7Total XP: &f%total-xp%"
+    - "&7Skill tertinggi: &f%best% &7Lv. &f%best-level%"
+    - "&7Skill aktif: &f%skills%&7/&f11 &8(level maks &f%max%&8)"
+    - "&7Berkas data: &f%file%"
+  close-name: "&f&l✕ CLOSE"
+  close-lore: "&7Keluar dari menu skill."
+  # --------------------- GUI progres skill (klik ikon skill) ---------------------
+  progress-title: "&8Kemajuan &f%skill%"
+  progress-pane-name: " "
+  progress-item-name: "&f%skill% &7Lv. &e%level%&7/&f%max%"
+  progress-item-lore:
+    - "&8&m                      "
+    - "&7Level: &f%level%&7/&f%max%"
+    - "&7Kemajuan: %bar% &f%percent%%"
+    - "&7XP: &f%xp-into%&7/&f%xp-needed% &8(total &f%xp%&8)"
+    - "&7Menuju Lv. &f%next-level%&7: kurang &f%xp-to-next% XP"
+    - "&7Buff terbuka: &f%buffs-unlocked%&7/&f%buff-count%"
+    - "&8&m                      "
+    - "&7Cara menaikkan: &f%source%"
+  progress-buff-active-name: "&a%buff% &8| %buff-value%"
+  progress-buff-active-lore:
+    - "&8%buff-desc%"
+    - "&7Nilai sekarang: %buff-value%"
+    - "&7Terbuka sejak: &fLv. %unlock%"
+    - "&7Pertumbuhan: &f+%per%&7/level &8(plafon &f%max%&8)"
+    - "&8&m                      "
+    - "&eKlik untuk penjelasan di chat."
+  progress-buff-locked-name: "&8%buff% &7- buka di Lv. &f%unlock%"
+  progress-buff-locked-lore:
+    - "&8%buff-desc%"
+    - "&7Belum terbuka: naik ke &fLv. %unlock%"
+    - "&7Nilai awal: &f+%per%&7/level &8(plafon &f%max%&8)"
+    - "&8&m                      "
+    - "&eKlik untuk penjelasan di chat."
+  progress-next-level-name: "&bMenuju Lv. %next-level%"
+  progress-next-level-lore:
+    - "&7Kemajuan: %bar% &f%percent%%"
+    - "&7XP: &f%xp-into%&7/&f%xp-needed%"
+    - "&7Kurang: &f%xp-to-next% XP"
+  progress-maxed-name: "&aLevel maksimum tercapai"
+  progress-maxed-lore:
+    - "&7Skill ini sudah di &fLv. %max%&7."
+    - "&7Total XP: &f%xp%"
+  progress-next-buff-name: "&6Buff berikutnya: &f%buff%"
+  progress-next-buff-lore:
+    - "&8%buff-desc%"
+    - "&7Terbuka pada level &f%unlock%"
+    - "&7Level Anda sekarang: &f%level%"
+  progress-all-buffs-name: "&aSemua buff terbuka"
+  progress-all-buffs-lore:
+    - "&7Skill ini sudah membuka &f%buff-count%&7/&f%buff-count% buff."
+  progress-max-level-name: "&dLevel maksimum: &f%max%"
+  progress-max-level-lore:
+    - "&7Butuh total &f%xp-max-level% XP &7untuk Lv. %max%."
+    - "&7Admin bisa mengubahnya di &fskills.max-level&7."
+  progress-rank-name: "&ePeringkat Anda"
+  progress-rank-lore:
+    - "&7%skill%&8: &f#%rank%"
+    - "&7Total skill&8: &f#%rank-total%"
+    - "&7Total level: &f%total-level% &8(&f%total-xp% XP&8)"
+    - "&8&m                      "
+    - "&7Peringkat lengkap: &f/skill top"
+  progress-back-name: "&fKembali ke menu skill"
+  progress-back-lore: "&7Kembali ke daftar 11 skill."
+  progress-detail-name: "&bDetail di chat"
+  progress-detail-lore: "&7Kirim rincian skill ini ke chat."
+  progress-path-name: "&6Jalur progres &8(&7Lv. 1 - %max%&8)"
+  progress-path-lore:
+    - "&7Lihat perjalanan level skill ini dari"
+    - "&7Lv. 1 sampai Lv. %max% sebagai jalur node."
+    - "&8Milestone buff ditandai khusus."
+    - "&eKlik untuk membuka."
+  # ----------------------------- Jalur progres (snake path, v1.4.0) -----------------------------
+  path-title: "&8Jalur &f%skill% &8(%page%/%pages%)"
+  path-icon-name: "&f%skill% &7Lv. &e%level%"
+  path-icon-lore:
+    - "&7Level: &f%level%&7/&f%max%"
+    - "&7Kemajuan: %bar% &f%percent%%"
+    - "&7XP total: &f%xp%"
+  path-node-current: "&e&lLv. %level% &8(Anda di sini)"
+  path-node-unlocked: "&aLv. %level% &8- tercapai"
+  path-node-locked: "&7Lv. %level% &8- terkunci"
+  path-node-lore:
+    - "&7Butuh total &f%xp-total% XP &8(punya &f%xp-have%&8)"
+  path-node-buff: "&8• &6Buff: &f%buff% &8- &7%desc%"
+  path-node-milestone-hint: "&eMilestone! Klik untuk detail buff."
+  path-info-name: "&bHalaman %page%&7/&f%pages%"
+  path-info-lore:
+    - "&7Node hijau: level tercapai."
+    - "&7Node kuning: level Anda sekarang."
+    - "&7Node abu: belum tercapai."
+    - "&7Botol XP / ungu: milestone buff."
+  path-back-name: "&fKembali ke kemajuan skill"
+  path-back-lore: "&7Kembali ke menu kemajuan %skill%."
+  path-prev-name: "&fHalaman sebelumnya"
+  path-prev-lore: "&7Ke halaman %page% dari %pages%."
+  path-next-name: "&fHalaman berikutnya"
+  path-next-lore: "&7Ke halaman %page% dari %pages%."
+  # ----------------------------- Detail chat -----------------------------
+  detail-header: "%prefix%&bSkill &f%skill% &8- &7%player%"
+  detail-level: "&8• &7Level: &f%level%&7/&f%max% &8| &7XP total: &f%xp%"
+  detail-progress: "&8• &7Menuju Lv. &f%next-level%&8: %bar% &f%xp-into%&7/&f%xp-needed% &8(kurang &f%xp-to-next%&8)"
+  detail-max: "&8• &aLevel maksimal tercapai! &8(&f%xp% &7XP total&8)"
+  detail-buff: "&8• &7Buff aktif: %buff%"
+  detail-buff-desc: "&8• &7%buff-desc%"
+  detail-buffs-header: "&8• &7Buff skill ini: &f%unlocked%&7/&f%count% &7terbuka"
+  detail-buff-line: "&8   - &f%buff%&8: %buff-value% &8(&7%buff-desc%&8)"
+  detail-source: "&8• &7Cara menaikkan: &f%source%"
+  detail-next-buff: "&8• &7Buff berikutnya (&f%buff%&7) terbuka pada level &f%unlock%"
+  # Rincian satu buff (dipakai saat kartu buff di menu progres diklik).
+  buff-detail-header: "%prefix%&bBuff &f%buff% &8- &7%skill% &8(&7Lv. &f%level%&8)"
+  buff-detail-value: "&8• &7Nilai sekarang: %buff-value% &8(status: &f%status%&8)"
+  buff-detail-growth: "&8• &7Pertumbuhan: &f+%per%%&7/level dari Lv. &f%unlock% &8(plafon &f%max%%&7, tercapai di Lv. &f%cap-level%&8)"
+  buff-detail-unlock: "&8• &7Terbuka pada level &f%unlock% &8| &7jenis: &f%buff-kind%"
+  buff-detail-desc: "&8• &7%buff-desc%"
+  # ----------------------------- Peringkat (top) -----------------------------
+  # %scope% = "total skill" atau nama skill; %count% = jumlah baris yang ditampilkan.
+  top-scope-total: "total skill"
+  top-header: "%prefix%&bPeringkat &f%scope% &8- &7%count% teratas &8(level maks &f%max%&8)"
+  top-line: "&8#&f%rank% &7%player% &8- &fLv. %level% &8(&f%xp% XP&8)"
+  top-line-total: "&8#&f%rank% &7%player% &8- &fLv. %level% &8(total &f%total-xp% XP&8)"
+  top-self: "&8• &7Posisi Anda: &f#%rank% &8(&fLv. %level%&8, &f%xp% XP&8)"
+  top-empty: "&8• &7Belum ada data - mainkan dulu supaya XP skill tercatat."
+  top-footer: "&7Peringkat skill lain: &f/skill top <nama-skill>"
+  # ----------------------------- Ringkasan -----------------------------
+  list-header: "%prefix%&bSkill &f%player% &8- &7total level &f%total-level% &8(&f%total-xp% &7XP&8)"
+  list-line: "&8• &7%skill%&8: &fLv. %level% &8| %bar% &f%percent%% &8| buff: %buff%"
+  # ----------------------------- Admin -----------------------------
+  admin-set: "%prefix%&aLevel &f%skill% &7untuk &f%player% &7disetel ke &f%level%&7/&f%max%&7."
+  target-set: "%prefix%&7Admin menyetel skill &f%skill% &7Anda ke level &f%level%&7."
+  admin-add: "%prefix%&a%player%&7: &f%skill% &7XP &f%amount% &8-> &7total &f%xp% &8(Lv. &f%level%&8)"
+  admin-reset: "%prefix%&a%skill% &7untuk &f%player% &7direset &8(&f%count% &7skill&8)."
+  target-reset: "%prefix%&c%skill% &7Anda direset oleh admin."
+  # ----------------------------- Diagnostik (/skill check) -----------------------------
+  # Dipakai saat XP dilewati karena mode game / world, supaya tidak pernah "mati diam-diam".
+  hint-gamemode: "%prefix%&7XP skill tidak bertambah saat mode game &f%gamemode%&7. Mode yang dilewati: &f%list% &8(skills.skip-gamemodes)."
+  hint-world: "%prefix%&7XP skill tidak bertambah di world &f%world%&7. World yang diizinkan: &f%list% &8(skills.worlds)."
+  check-header: "%prefix%&bDiagnostik skill &8- &7%player%"
+  check-status: "&8• &7Fitur: &f%status% &8| &7buff: &f%buffs% &8| &7skill aktif: &f%skills% &8| &7level maks: &f%max%"
+  check-gamemode: "&8• &7Mode game Anda: &f%gamemode% &8-> XP &f%effect% &8(dilewati: &f%list%&8)"
+  check-world: "&8• &7World Anda: &f%world% &8-> XP &f%effect% &8(diizinkan: &f%list%&8)"
+  check-xp: "&8• &7Uji XP (+1 ke &f%skill%&7): &f%status% &8| &7XP &f%xp% &8| &7Lv. &f%level%"
+  check-api: "&8• &7API server: %api%"
+  check-potions: "&8• &cEfek potion ini tidak ada di server Anda (buff-nya dilewati): &f%list%"
+  check-listeners: "&8• &7Listener skill: &f%status%"
+  check-listener-line: "&8   - &7%line%"
+  check-errors: "&8• &7Kesalahan tercatat: &f%count%"
+  check-error-line: "&8   - &c%line%"
+  check-data: "&8• &7Berkas data: &f%file% &8(%profiles% profil, belum disimpan: %dirty%)"
+  check-skill-line: "&8   - &7%line%"
+  check-note: "&7Minta admin menjalankan &f/skill check &7untuk rincian listener & API server."
+  # ----------------------------- Bantuan -----------------------------
+  help-header: "%prefix%&bSkill (/skill)"
+  help-open: "&f/%label% &7- membuka menu skill (GUI)"
+  help-detail: "&f/%label% <skill> &7- detail satu skill"
+  help-list: "&f/%label% list &7- ringkasan semua skill Anda"
+  help-top: "&f/%label% top [skill] &7- peringkat total skill atau satu skill"
+  help-check: "&f/%label% check &7- diagnostik: memastikan XP, buff, dan listener benar-benar jalan"
+  help-info: "&f/%label% info <pemain> [skill] &7- melihat skill pemain lain &8(admin)"
+  help-set: "&f/%label% set <pemain> <skill> <level> &7- menyetel level &8(admin)"
+  help-add: "&f/%label% add <pemain> <skill> <xp> &7- menambah/mengurangi XP &8(admin)"
+  help-reset: "&f/%label% reset <pemain> [skill] &7- mereset skill &8(admin)"
+  help-note: "&7Skill: &f%list%"
+
+# ======================================================================
+# Riwayat & perk gear (v1.4.0)
+# ======================================================================
+gear:
+  # Blok lore riwayat yang ditulis di ekor lore item (dinamis).
+  lore-header: "&8&m                    "
+  lore-owner: "&7Pemilik pertama: &f%owner%"
+  lore-kills: "&7Kill pemain: &f%kills%"
+  lore-uses: "&7Pemakaian: &f%uses%"
+  lore-perk: "&a+ %perk% &8(%threshold%)"
+  lore-next: "&8- %perk% &8(%count%/%threshold%)"
+  lore-require: "&cSyarat: %skill% Lv. %level%"
+  # Pengumuman chat saat milestone baru terlewati.
+  milestone: "%prefix%&6Milestone gear! &fPerk &e%perk% &fterbuka pada &e%threshold% kill&f."
+  # Nama perk yang bisa dibaca (%value% & %ticks% dari config).
+  perk:
+    bleeding: "Bleeding (%value% dmg x%ticks%)"
+    lifesteal: "Lifesteal %value%%"
+    bonus-damage: "Damage +%value%%"
+    resistance: "Resistance %value%%"
+
+# ======================================================================
+# Custom fishing & rod (v1.4.0)
+# ======================================================================
+fishing:
+  disabled: "%prefix%&cFitur fishing sedang dimatikan."
+  gui-title: "&8Rod Pancing"
+  # Nama rarity berwarna (dipakai di lore ikan & pengumuman).
+  rarity:
+    common: "&fCommon"
+    uncommon: "&aUncommon"
+    rare: "&9Rare"
+    epic: "&5Epic"
+    legendary: "&6Legendary"
+    mythic: "&dMythic"
+  caught: "%prefix%&bIkan custom! &fAnda menangkap %rarity% &f%fish%&f!"
+  # Lore ikan custom.
+  fish-lore-rarity: "&7Rarity: %rarity%"
+  fish-lore-size: "&7Ukuran: &f%size% cm"
+  fish-lore-value: "&7Nilai jual: &f%value%"
+  # Lore rod.
+  rod-lore-level: "&7Level rod: &b%level%&7/&b%max%"
+  rod-lore-xp: "&7XP rod: &f%xp%&7/&f%needed%"
+  rod-lore-attachments: "&7Attachment: &f%count%&7/&f%slots%"
+  rod-lore-attachment: "&8 • &f%name%"
+  # Kartu menu /rod.
+  no-rod-name: "&cTidak memegang rod"
+  no-rod-lore:
+    - "&7Pegang fishing rod di tangan utama"
+    - "&7lalu buka ulang menu ini."
+  rod-name: "&bRod Pancing &7(Lv. %level%)"
+  rod-card-lore:
+    - "&7Level: &b%level%&7/&b%max%"
+    - "&7XP rod: &f%xp%&7/&f%needed%"
+    - "&8Memancing menambah XP rod."
+  stats-name: "&eStatistik rod"
+  stats-line: "&7%effect%&8: &f+%value%"
+  stats-empty-lore:
+    - "&7Belum ada efek aktif."
+    - "&7Upgrade rod atau pasang attachment."
+  effect:
+    bite-speed: "Kecepatan gigitan (%)"
+    custom-chance: "Peluang ikan custom (%)"
+    rarity-boost: "Bobot ikan langka (%)"
+    value: "Nilai jual (%)"
+    xp: "XP memancing (%)"
+    double-catch: "Tangkapan ganda (%)"
+  upgrade-name: "&6Upgrade rod"
+  upgrade-max-lore:
+    - "&aRod sudah level maksimum (%max%)."
+  upgrade-lore:
+    - "&7Naik ke level &b%next%&7 membutuhkan:"
+  upgrade-xp-line: "&8 • &7XP rod: &f%xp%&7/&f%needed%"
+  upgrade-cost-line: "&8 • &f%amount%x %item% &7(punya: &f%have%&7)"
+  upgrade-click-lore:
+    - "&eKlik untuk upgrade."
+  upgrade-already-max: "%prefix%&cRod Anda sudah level maksimum."
+  upgrade-need-xp: "%prefix%&cXP rod belum cukup: &f%xp%&c/&f%needed%&c."
+  upgrade-need-items: "%prefix%&cBahan kurang: butuh &f%amount%x %item%&c."
+  upgrade-success: "%prefix%&aRod naik ke level &f%level%&a!"
+  # Attachment.
+  slot-empty-name: "&7Slot attachment kosong"
+  slot-empty-lore:
+    - "&7Klik attachment di inventory Anda"
+    - "&7untuk memasangnya ke rod."
+  attachment-remove-lore:
+    - "&eKlik untuk mencopot."
+  attachment-installed: "%prefix%&aAttachment &f%name% &aterpasang."
+  attachment-removed: "%prefix%&7Attachment &f%name% &7dicopot & dikembalikan."
+  attachment-duplicate: "%prefix%&c%name% sudah terpasang di rod ini."
+  attachment-full: "%prefix%&cSlot attachment penuh (%slots%). Copot dulu salah satu."
+  hold-rod: "%prefix%&cPegang fishing rod di tangan utama dulu."
+  close-name: "&cTutup"
+  close-lore: "&7Tutup menu rod."
+  bonus-item: "%prefix%&eBonus! &fAnda juga mendapat &e%name%&f."
+  # Admin (/w2nsmp fishing give).
+  admin-usage: "%prefix%&7Pakai: &f/%label% fishing give <pemain> <id-item> [jumlah]"
+  admin-unknown-player: "%prefix%&cPemain &f%player% &ctidak online."
+  admin-unknown-item: "%prefix%&cItem &f%item% &ctidak dikenal. Tersedia: &f%list%"
+  admin-given: "%prefix%&a%amount%x %item% &7diberikan ke &f%player%&7."

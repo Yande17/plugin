@@ -1,0 +1,32 @@
+# =============================================================================================
+# Tampilan GUI /rod (v1.4.0)
+# =============================================================================================
+# Menu ini murni tampilan: item pemain TIDAK pernah dipindahkan ke GUI (anti-dupe).
+# Pasang attachment = klik itemnya di inventory Anda saat menu terbuka; copot = klik
+# kartu attachment di menu; upgrade = klik kartu upgrade (bahan dikonsumsi dari inventory).
+enabled: true
+title: ""            # kosong = messages.yml (fishing.gui-title)
+size: 27
+
+filler:
+  enabled: true
+  material: LIGHT_BLUE_STAINED_GLASS_PANE
+  name: " "
+
+slots:
+  rod: 4             # kartu rod (level, XP)
+  attachments: 10    # slot attachment pertama; berikutnya 11, 12, ... (fishing.rod.attachment-slots)
+  stats: 14          # statistik efek aktif
+  upgrade: 16        # kartu upgrade
+  close: 22
+
+stats-material: BOOK
+empty-attachment-material: GRAY_STAINED_GLASS_PANE
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

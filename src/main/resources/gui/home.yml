@@ -1,0 +1,38 @@
+# =============================================================================================
+# Tampilan GUI /home (PHASE 11)
+# =============================================================================================
+# Semua kunci opsional; nilai bawaan = tampilan sebelum PHASE 11. Teks tetap dari messages.yml
+# kecuali ditulis di sini. Reload: /w2nsmp reload
+# =============================================================================================
+
+enabled: true
+title: ""            # kosong = messages.yml (home.gui-title); %used% %slots%
+size: 54
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+buttons:
+  info:
+    slot: 4
+    # material: BOOK
+  close:
+    slot: 49         # bawaan: size - 5
+    # material: BARRIER
+
+# Slot tempat home ditampilkan (klik kiri = teleport, klik kanan = hapus).
+# start: slot pertama, slot berikutnya berurutan (home 1, home 2, ...).
+slots:
+  home-start: 10
+  # Bila true (bawaan), home diisi berurutan dari kiri atas seperti sebelumnya.
+  sequential: true
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

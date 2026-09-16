@@ -1,0 +1,36 @@
+# =============================================================================================
+# Tampilan GUI /profile (PHASE 11)
+# =============================================================================================
+# Data diambil dari sistem yang sudah ada (ekonomi Vault, statistik per-UUID, home) - tidak ada
+# penyimpanan baru untuk profil.
+enabled: true
+title: ""            # kosong = messages.yml (profile.gui-title); %player%
+size: 54
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# Slot tiap keterangan. Isi salah satu, atau tulis "nama" untuk mengganti teksnya di sini.
+slots:
+  head: 13           # kepala pemain + nama
+  money: 19
+  highest-money: 20
+  kills: 21
+  deaths: 22
+  playtime: 23
+  bounty: 24
+  homes: 25
+  items-sold: 30
+  settings: 49
+  top: 51
+  close: 53
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

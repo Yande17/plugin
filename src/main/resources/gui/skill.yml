@@ -1,0 +1,149 @@
+# =============================================================================================
+# Tampilan GUI /skill (fitur skill v1.3.0)
+# =============================================================================================
+# Isi menu: 11 ikon skill + tombol top + item ringkasan + tombol close.
+# Mengklik ikon skill membuka MENU PROGRES (bagian "progress:" di bawah): level, bar kemajuan,
+# kartu tiap buff (termasuk buff yang belum terbuka dan level pembukaannya), milestone, dan
+# peringkat pemain.
+# Kalimat (nama & lore item) diambil dari messages.yml bagian "skill"; nilai di berkas ini
+# hanya menimpa tampilan bila diisi. Slot di sini menang atas skills.list.<key>.slot di
+# config.yml - jaga agar setiap slot unik, bila bentrok salah satu skill tidak akan tampil.
+enabled: true
+title: ""            # kosong = messages.yml (skill.gui-title); placeholder %player%
+size: 54
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+border:
+  material: BLACK_STAINED_GLASS_PANE
+  name: " "
+
+slots:
+  fighting: 10
+  defense: 11
+  archery: 12
+  agility: 13
+  mining: 14
+  woodcutting: 15
+  farming: 16
+  fishing: 20
+  endurance: 21
+  vitality: 22
+  recovery: 23
+  top: 48
+  info: 49
+  close: 53
+
+# Material ikon. Nama material yang tidak dikenal versi server akan dilewati dan jatuh ke
+# skills.list.<key>.icon di config.yml, lalu ke material cadangan - plugin tidak gagal dimuat.
+skills:
+  fighting:
+    material: DIAMOND_SWORD
+  defense:
+    material: SHIELD
+  archery:
+    material: BOW
+  agility:
+    material: LEATHER_BOOTS
+  mining:
+    material: GOLDEN_PICKAXE
+  woodcutting:
+    material: GOLDEN_AXE
+  farming:
+    material: WHEAT
+  fishing:
+    material: FISHING_ROD
+  endurance:
+    material: COOKED_BEEF
+  vitality:
+    material: GOLDEN_APPLE
+  recovery:
+    material: GLISTERING_MELON_SLICE
+  # Contoh menimpa nama/lore satu skill (kosong = pakai messages.yml):
+  #   fighting:
+  #     material: NETHERITE_SWORD
+  #     name: "&c%skill% &7Lv. &e%level%"
+  #     lore:
+  #       - "&7Level &f%level%&7/&f%max%"
+  #       - "&7Buff: %buff%"
+
+info:
+  material: BOOK
+
+# Tombol peringkat: menutup GUI lalu mencetak top total skill ke chat.
+top:
+  material: GOLD_INGOT
+
+navigation:
+  close:
+    material: BARRIER
+  back:
+    material: ARROW
+  top:
+    material: GOLD_INGOT
+
+# ----------------------------- Menu progres skill -----------------------------
+# Dibuka saat sebuah ikon skill diklik. Semua nilai di sini opsional: bila dikosongkan,
+# plugin memakai angka/material bawaan di dalam kurung. Slot dijaga tetap di dalam ukuran
+# inventory, jadi nilai yang salah tidak pernah membuat menu gagal dibuka.
+progress:
+  title: ""            # kosong = messages.yml (skill.progress-title); placeholder %skill% %player%
+  size: 54
+  # Bar kemajuan (kaca berwarna) di baris ketiga.
+  bar-start: 18
+  bar-length: 9
+  bar-filled: LIME_STAINED_GLASS_PANE
+  bar-empty: GRAY_STAINED_GLASS_PANE
+  # Material kartu buff & milestone.
+  buff-active-material: EXPERIENCE_BOTTLE
+  buff-locked-material: GRAY_DYE
+  next-level-material: CLOCK
+  next-buff-material: ENDER_EYE
+  all-buffs-material: NETHER_STAR
+  max-level-material: DIAMOND
+  rank-material: GOLD_INGOT
+  detail-material: BOOK
+  slots:
+    icon: 4            # ikon skill (level, bar, XP, cara menaikkan)
+    buffs: 10          # kartu buff pertama; 1-3 buff dipasang di tengah (11/13/15), lebih dari itu berjejer
+    next-level: 28     # milestone: menuju level berikutnya
+    next-buff: 30      # milestone: buff berikutnya & level pembukaannya
+    max-level: 32      # milestone: level maksimum & total XP yang dibutuhkan
+    rank: 34           # milestone: peringkat pemain (skill ini & total)
+    back: 45           # kembali ke menu /skill
+    path: 47           # buka jalur progres (snake path) skill ini (v1.4.0)
+    detail: 49         # kirim detail skill ke chat
+    close: 53
+  path-material: FILLED_MAP
+
+# ----------------------------- Jalur progres (snake path, v1.4.0) -----------------------------
+# Dibuka dari menu progres (tombol "Jalur progres"). Setiap level adalah satu node yang
+# disusun berkelok seperti ular; 28 node per halaman, tombol prev/next untuk level 29+.
+# Node milestone (level tempat buff terbuka) memakai material khusus dan bisa diklik untuk
+# melihat detail buff di chat.
+path:
+  title: ""            # kosong = messages.yml (skill.path-title); %skill% %page% %pages%
+  # Material node menurut status.
+  node-current: YELLOW_STAINED_GLASS_PANE      # level pemain sekarang
+  node-unlocked: LIME_STAINED_GLASS_PANE       # level yang sudah dilewati
+  node-locked: GRAY_STAINED_GLASS_PANE         # level yang belum dicapai
+  node-milestone-unlocked: EXPERIENCE_BOTTLE   # milestone buff yang sudah dicapai
+  node-milestone-locked: PURPLE_STAINED_GLASS_PANE  # milestone buff yang belum dicapai
+  info-material: BOOK
+  slots:
+    back: 45
+    prev: 48
+    info: 49
+    next: 50
+    close: 53
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

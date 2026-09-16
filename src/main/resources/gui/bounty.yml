@@ -1,0 +1,48 @@
+# =============================================================================================
+# Tampilan GUI bounty /bounty (PHASE 11 batch 3)
+# =============================================================================================
+# GUI punya tiga mode (dipakai bergantian tanpa menutup inventory):
+#   TOP      : daftar bounty terbesar (berhalaman)
+#   TARGETS  : daftar pemain online untuk dipasangi bounty
+#   AMOUNT   : pemilihan jumlah bounty untuk pemain yang dipilih
+# Semua aksi cukup KLIK KIRI (tanpa klik kanan / mengetik) supaya nyaman di Bedrock.
+# Teksnya diambil dari messages.yml bagian "bounty:".
+# Setelah mengubah berkas ini jalankan:  /w2nsmp reload
+enabled: true
+title: ""     # kosong = messages.yml (bounty.gui-title / gui-targets-title / gui-amount-title)
+size: 54      # 6 baris (minimal 27, harus kelipatan 9)
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# Area entri: mulai slot 0 (baris 1). Jumlah entri per halaman mengikuti bounty.page-size
+# di config.yml, dibatasi tinggi GUI; bisa ditimpa di sini lewat entries-per-page.
+entries-start: 0
+# entries-per-page: 28
+
+buttons:
+  prev:
+    slot: 45
+    # material: ARROW
+  targets:
+    slot: 47      # pemilih "daftar bounty" <-> "pemain online" (juga tombol kembali di mode jumlah)
+    # material: PLAYER_HEAD
+  info:
+    slot: 49
+    # material: WRITABLE_BOOK
+  close:
+    slot: 51
+    # material: BARRIER
+  next:
+    slot: 53
+    # material: ARROW
+
+sounds:
+  open: "minecraft:ui.button.click"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

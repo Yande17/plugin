@@ -1,0 +1,52 @@
+# =============================================================================================
+# Tampilan GUI /setting (PHASE 11)
+# =============================================================================================
+# Semua pilihan pemain diatur dari satu GUI ini: sidebar, baris sidebar, nametag uang, bunyi,
+# notifikasi, dan hitung mundur teleport.
+enabled: true
+title: ""            # kosong = messages.yml (setting.gui-title); %player%
+size: 54
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# v1.4.0: menu memakai KATEGORI. Halaman utama menampilkan kartu kategori
+# (Scoreboard, Notifikasi, Gameplay, Visual, Lain-lain); klik kartu membuka sub-halaman
+# berisi toggle kategori itu. Toggle di sub-halaman menempati slot konten berurutan
+# (baris 1-4 kolom 1-7) - slot toggle per-kunci lama tidak dipakai lagi.
+slots:
+  # Kartu kategori di halaman utama (boleh digeser).
+  category-scoreboard: 20
+  category-notifications: 21
+  category-gameplay: 22
+  category-visual: 23
+  category-misc: 24
+  back: 45            # tombol kembali di sub-halaman
+  info: 49
+  close: 53
+
+# Material kartu kategori (opsional).
+category-materials:
+  scoreboard: CLOCK
+  notifications: BELL
+  gameplay: ENDER_PEARL
+  visual: NAME_TAG
+  misc: CHEST
+
+# Material untuk keadaan menyala/mati/dikunci. Kosong = pakai bawaan kelas GUI.
+# Catatan: jangan memakai nama kunci "on"/"off"/"yes"/"no" - YAML membacanya sebagai boolean.
+materials:
+  active: LIME_DYE     # pilihan menyala
+  inactive: GRAY_DYE   # pilihan mati
+  locked: BARRIER      # pilihan yang dikunci admin (player-toggle: false)
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  toggle: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

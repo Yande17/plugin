@@ -1,0 +1,37 @@
+# =============================================================================================
+# Tampilan GUI Auction House /ah (PHASE 11)
+# =============================================================================================
+enabled: true
+title: ""            # kosong = messages.yml (auction.gui-title); %page% %pages%
+size: 54
+
+filler:
+  enabled: true
+  material: GRAY_STAINED_GLASS_PANE
+  name: " "
+
+# Tombol di baris paling bawah. Bila diubah, pastikan tidak bertabrakan dengan area listing.
+buttons:
+  prev:
+    slot: 45         # bawaan: size - 9
+    # material: ARROW
+  collect:
+    slot: 47         # bawaan: size - 7
+    # material: CHEST
+  info:
+    slot: 49         # bawaan: size - 5
+    # material: BOOK
+  close:
+    slot: 51         # bawaan: size - 3
+    # material: BARRIER
+  next:
+    slot: 53         # bawaan: size - 1
+    # material: ARROW
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0
