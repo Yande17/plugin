@@ -1275,13 +1275,14 @@ fishing:
   # Peluang dasar (persen) satu tangkapan diganti ikan custom (sisanya hasil vanilla).
   custom-chance-percent: 25.0
   # Level skill Fishing minimum per rarity (0 = tanpa gerbang). Bisa disetel bebas.
+  # Bawaan v1.4.1 mengikuti jenjang 10/20/30/40/50 (Common selalu terbuka).
   rarity-level:
     common: 0
-    uncommon: 5
-    rare: 12
-    epic: 20
-    legendary: 30
-    mythic: 40
+    uncommon: 10
+    rare: 20
+    epic: 30
+    legendary: 40
+    mythic: 50
   # ---- Rod ----
   rod:
     max-level: 10
@@ -1328,6 +1329,7 @@ fishing:
           rare_scale: 2
         effects:
           custom-chance: 4.0
+          luck: 10.0
       7:
         xp: 280
         cost:
@@ -1344,6 +1346,7 @@ fishing:
           rare_scale: 3
         effects:
           rarity-boost: 10.0
+          treasure: 2.0
       9:
         xp: 500
         cost:
@@ -1352,6 +1355,7 @@ fishing:
           golden_thread: 1
         effects:
           custom-chance: 5.0
+          xp: 10.0
       10:
         xp: 650
         cost:
@@ -1361,9 +1365,14 @@ fishing:
         effects:
           double-catch: 5.0
           rarity-boost: 15.0
+          value: 10.0
+          treasure: 3.0
   # ---- Item pancing custom ----
   # kind: upgrade (bahan) | attachment (dipasang di rod lewat /rod).
-  # effect attachment: bite-speed | custom-chance | rarity-boost | value | xp | double-catch.
+  # effect attachment: bite-speed (Fishing Speed) | custom-chance (Custom Fish Chance) |
+  # rarity-boost (Rare Fish Chance) | value (nilai jual) | xp (XP Multiplier) |
+  # double-catch (tangkapan ganda) | luck (Fishing Luck, +persen relatif peluang bonus drop) |
+  # treasure (Treasure Chance, +persen peluang harta karun).
   items:
     rod_upgrade_crystal:
       name: "&bRod Upgrade Crystal"
@@ -1398,10 +1407,11 @@ fishing:
       name: "&aLucky Hook"
       material: TRIPWIRE_HOOK
       kind: attachment
-      effect: custom-chance
-      value: 5.0
+      effect: luck
+      value: 20.0
       lore:
-        - "&7Kail keberuntungan: &f+5% &7peluang ikan custom."
+        - "&7Kail keberuntungan: peluang bonus"
+        - "&7bahan upgrade &f+20% &7(relatif)."
     golden_hook:
       name: "&6Golden Hook"
       material: TRIPWIRE_HOOK
@@ -1438,10 +1448,11 @@ fishing:
       name: "&eTreasure Charm"
       material: NAUTILUS_SHELL
       kind: attachment
-      effect: custom-chance
-      value: 8.0
+      effect: treasure
+      value: 5.0
       lore:
-        - "&7Jimat harta: &f+8% &7peluang ikan custom."
+        - "&7Jimat harta: &f+5% &7peluang harta karun"
+        - "&7tambahan tiap tangkapan."
     xp_reel:
       name: "&2XP Reel"
       material: EXPERIENCE_BOTTLE
@@ -1450,6 +1461,32 @@ fishing:
       value: 15.0
       lore:
         - "&7Gulungan XP: &f+15% &7XP skill memancing."
+  # ---- Harta karun (efek treasure, v1.4.1) ----
+  # base-chance-percent: peluang dasar TANPA efek rod (0 = hanya lewat efek treasure).
+  # items.<id>: material vanilla + amount + weight (bobot undian relatif).
+  treasure:
+    base-chance-percent: 0.0
+    items:
+      emerald:
+        material: EMERALD
+        amount: 1
+        weight: 10.0
+      diamond:
+        material: DIAMOND
+        amount: 1
+        weight: 4.0
+      name_tag:
+        material: NAME_TAG
+        amount: 1
+        weight: 8.0
+      saddle:
+        material: SADDLE
+        amount: 1
+        weight: 6.0
+      xp_bottle:
+        material: EXPERIENCE_BOTTLE
+        amount: 8
+        weight: 12.0
   # ---- Ikan custom ----
   # weight = bobot relatif dalam undian; biomes kosong = semua biome (token dicocokkan ke
   # NAMA biome, mis. OCEAN cocok dengan DEEP_OCEAN); weather: any|rain|clear; time: any|day|night.

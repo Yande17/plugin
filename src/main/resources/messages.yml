@@ -1389,6 +1389,7 @@ fishing:
     legendary: "&6Legendary"
     mythic: "&dMythic"
   caught: "%prefix%&bIkan custom! &fAnda menangkap %rarity% &f%fish%&f!"
+  treasure-found: "%prefix%&6Harta karun! &fAnda menemukan &e%amount%x %item%&f."
   # ----------------------------- Fishing Hub /fish (v1.4.1) -----------------------------
   discovered: "%prefix%&dIkan baru ditemukan! &f%fish% &8(%rarity%&8) &7tercatat di galeri Anda (&f/fish&7)."
   hub-title: "&8Fishing Hub"
@@ -1472,6 +1473,8 @@ fishing:
     value: "Nilai jual (%)"
     xp: "XP memancing (%)"
     double-catch: "Tangkapan ganda (%)"
+    luck: "Fishing Luck (%)"
+    treasure: "Peluang harta karun (%)"
   upgrade-name: "&6Upgrade rod"
   upgrade-max-lore:
     - "&aRod sudah level maksimum (%max%)."

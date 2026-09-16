@@ -124,7 +124,9 @@ public final class FishingListener implements Listener {
          }
 
          // Bonus bahan upgrade (drop-chance-percent di config; inventory penuh -> jatuh di kaki).
-         me.w2n.w2nsmp.fishing.FishingItem bonus = fishing.rollBonusItem();
+         // Efek "luck" (Fishing Luck, v1.4.1) memperbesar peluang drop secara relatif.
+         double luck = holdingRod ? fishing.effectTotal(rod, "luck") : 0.0D;
+         me.w2n.w2nsmp.fishing.FishingItem bonus = fishing.rollBonusItem(luck);
          if (bonus != null) {
             ItemStack bonusStack = fishing.createItem(bonus, 1);
             java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(bonusStack);
@@ -138,6 +140,26 @@ public final class FishingListener implements Listener {
 
             this.plugin.messages().send(player, "fishing.bonus-item", "name", bonus.itemName());
          }
+      }
+
+      // Efek "treasure" (Treasure Chance, v1.4.1): peluang harta karun tambahan, berlaku juga
+      // untuk tangkapan vanilla. Inventory penuh -> jatuh di kaki (tidak pernah hilang).
+      double treasureChance = fishing.treasureBaseChance()
+         + (holdingRod ? fishing.effectTotal(rod, "treasure") : 0.0D);
+      ItemStack treasure = fishing.rollTreasure(treasureChance);
+      if (treasure != null) {
+         java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(treasure);
+         if (leftover != null) {
+            for (ItemStack rest : leftover.values()) {
+               if (rest != null) {
+                  player.getWorld().dropItemNaturally(player.getLocation(), rest);
+               }
+            }
+         }
+
+         this.plugin.messages().send(player, "fishing.treasure-found",
+            "item", treasure.getType().name(),
+            "amount", Integer.toString(treasure.getAmount()));
       }
 
       // Peluang tangkapan ganda dari rod/attachment (persen).

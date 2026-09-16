@@ -42,6 +42,8 @@ public final class FishingService {
    private final Map<Integer, Map<String, Integer>> rodCosts = new LinkedHashMap<>();
    /** XP rod minimum untuk upgrade ke level N. */
    private final Map<Integer, Double> rodXpNeeded = new LinkedHashMap<>();
+   /** Daftar harta karun untuk efek treasure (v1.4.1), dari config fishing.treasure.items. */
+   private final java.util.List<TreasureEntry> treasureItems = new java.util.ArrayList<>();
 
    private boolean enabled = true;
    private double customChance = 25.0D;
@@ -49,6 +51,7 @@ public final class FishingService {
    private int attachmentSlots = 3;
    private double rodXpPerCatch = 1.0D;
    private double rodXpPerCustom = 3.0D;
+   private double treasureBaseChance;
 
    public FishingService(W2NSMP plugin) {
       this.plugin = plugin;
@@ -84,6 +87,36 @@ public final class FishingService {
       this.loadFish(config);
       this.loadItems(config);
       this.loadRod(config);
+      this.loadTreasure(config);
+   }
+
+   /** Daftar harta karun efek treasure (v1.4.1): fishing.treasure.items.<id>.{material,amount,weight}. */
+   private void loadTreasure(FileConfiguration config) {
+      this.treasureItems.clear();
+      this.treasureBaseChance = clamp(config.getDouble("fishing.treasure.base-chance-percent", 0.0D), 0.0D, 100.0D);
+      ConfigurationSection root = config.getConfigurationSection("fishing.treasure.items");
+      if (root == null) {
+         return;
+      }
+
+      for (String id : root.getKeys(false)) {
+         ConfigurationSection section = root.getConfigurationSection(id);
+         if (section == null) {
+            continue;
+         }
+
+         Material material = Material.matchMaterial(section.getString("material", ""));
+         if (material == null || material.isAir()) {
+            this.plugin.getLogger().warning("Fishing: treasure '" + id + "' material tidak valid; dilewati.");
+            continue;
+         }
+
+         int amount = Math.max(1, Math.min(64, section.getInt("amount", 1)));
+         double weight = Math.max(0.0D, section.getDouble("weight", 1.0D));
+         if (weight > 0.0D) {
+            this.treasureItems.add(new TreasureEntry(material, amount, weight));
+         }
+      }
    }
 
    private void loadFish(FileConfiguration config) {
@@ -400,13 +433,71 @@ public final class FishingService {
 
    /** Undi bonus bahan upgrade saat menangkap ikan custom (drop-chance-percent per item). */
    public FishingItem rollBonusItem() {
+      return this.rollBonusItem(0.0D);
+   }
+
+   /**
+    * Undi bonus bahan upgrade. Efek {@code luck} (Fishing Luck, v1.4.1) menaikkan peluang
+    * drop tiap kandidat sebesar persen relatif (luck 20 = peluang x1,2), dibatasi 100%.
+    */
+   public FishingItem rollBonusItem(double luckPercent) {
+      double multiplier = 1.0D + Math.max(0.0D, luckPercent) / 100.0D;
+
       for (FishingItem candidate : this.items.values()) {
-         if (candidate.dropChance() > 0.0D && this.random.nextDouble() * 100.0D < candidate.dropChance()) {
+         double chance = Math.min(100.0D, candidate.dropChance() * multiplier);
+         if (chance > 0.0D && this.random.nextDouble() * 100.0D < chance) {
             return candidate;
          }
       }
 
       return null;
+   }
+
+   /**
+    * Undi harta karun tambahan (Treasure Chance, v1.4.1). {@code chancePercent} adalah total
+    * efek {@code treasure} dari rod+attachment ditambah peluang dasar config
+    * ({@code fishing.treasure.base-chance-percent}). Hasil berupa ItemStack vanilla dari
+    * daftar {@code fishing.treasure.items} (dipilih berbobot), atau {@code null}.
+    */
+   public ItemStack rollTreasure(double chancePercent) {
+      double chance = clamp(chancePercent, 0.0D, 100.0D);
+      if (chance <= 0.0D || this.treasureItems.isEmpty()) {
+         return null;
+      }
+
+      if (this.random.nextDouble() * 100.0D >= chance) {
+         return null;
+      }
+
+      double totalWeight = 0.0D;
+      for (TreasureEntry entry : this.treasureItems) {
+         totalWeight += entry.weight();
+      }
+
+      if (totalWeight <= 0.0D) {
+         return null;
+      }
+
+      double roll = this.random.nextDouble() * totalWeight;
+      for (TreasureEntry entry : this.treasureItems) {
+         roll -= entry.weight();
+         if (roll <= 0.0D) {
+            ItemStack stack = new ItemStack(entry.material());
+            stack.setAmount(entry.amount());
+            return stack;
+         }
+      }
+
+      return null;
+   }
+
+   /** Peluang dasar harta (persen) sebelum efek rod (config, 0 = hanya dari efek). */
+   public double treasureBaseChance() {
+      return this.treasureBaseChance;
+   }
+
+   /** Satu baris daftar harta: material vanilla + jumlah + bobot undian. */
+   record TreasureEntry(Material material, int amount, double weight) {
    }
 
    // ------------------------------------------------------------------ //
