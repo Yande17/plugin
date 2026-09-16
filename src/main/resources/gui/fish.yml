@@ -1,0 +1,40 @@
+# =============================================================================================
+# Tampilan GUI /fish - Fishing Hub (v1.4.1)
+# =============================================================================================
+# Hub: dua kartu (Fish Gallery, My Rod) + info + close. Galeri: 28 slot ikan per halaman,
+# terurut rarity Common -> Mythic; ikan yang belum ditemukan tampil sebagai "???".
+# Menu murni tampilan: tidak ada item pemain yang berpindah ke GUI (anti-dupe).
+enabled: true
+title: ""              # kosong = messages.yml (fishing.hub-title / fishing.gallery-title)
+hub-size: 27
+
+filler:
+  enabled: true
+  material: LIGHT_BLUE_STAINED_GLASS_PANE
+  name: " "
+
+slots:
+  # --- halaman hub (ukuran hub-size) ---
+  gallery: 11
+  rod: 15
+  hub-info: 22
+  hub-close: 26
+  # --- halaman galeri (selalu 54) ---
+  back: 45
+  prev: 48
+  info: 49
+  next: 50
+  close: 53
+
+gallery-material: TROPICAL_FISH
+rod-material: FISHING_ROD
+info-material: BOOK
+undiscovered-material: GRAY_DYE
+
+sounds:
+  open: "minecraft:block.chest.open"
+  click: "minecraft:ui.button.click"
+  success: "minecraft:entity.experience_orb.pickup"
+  error: "minecraft:entity.villager.no"
+  volume: 1.0
+  pitch: 1.0

@@ -116,6 +116,13 @@ public final class FishingListener implements Listener {
             "fish", rolled.fishName(),
             "rarity", fishing.rarityLabel(rolled.rarity()));
 
+         // v1.4.1: catat penemuan untuk Fish Gallery (/fish). Penemuan baru diumumkan.
+         if (fishing.discovery().discover(player.getUniqueId(), rolled.id())) {
+            this.plugin.messages().send(player, "fishing.discovered",
+               "fish", rolled.fishName(),
+               "rarity", fishing.rarityLabel(rolled.rarity()));
+         }
+
          // Bonus bahan upgrade (drop-chance-percent di config; inventory penuh -> jatuh di kaki).
          me.w2n.w2nsmp.fishing.FishingItem bonus = fishing.rollBonusItem();
          if (bonus != null) {

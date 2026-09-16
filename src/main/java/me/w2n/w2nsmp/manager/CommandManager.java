@@ -20,6 +20,7 @@ import me.w2n.w2nsmp.command.ScoreboardCommand;
 import me.w2n.w2nsmp.command.SellCommand;
 import me.w2n.w2nsmp.command.SetHomeCommand;
 import me.w2n.w2nsmp.command.SettingCommand;
+import me.w2n.w2nsmp.command.FishCommand;
 import me.w2n.w2nsmp.command.RodCommand;
 import me.w2n.w2nsmp.command.SkillCommand;
 import me.w2n.w2nsmp.command.TopCommand;
@@ -71,6 +72,7 @@ public final class CommandManager {
       this.registerRuntime("setting", new SettingCommand(this.plugin), "w2nsmp.setting", "help.setting", List.of("settings", "pengaturan"));
       this.registerRuntime("skill", new SkillCommand(this.plugin), "w2nsmp.skill", "help.skill", List.of("skills", "keahlian"));
       this.registerRuntime("rod", new RodCommand(this.plugin), "w2nsmp.rod", "help.rod", List.of("pancingan"));
+      this.registerRuntime("fish", new FishCommand(this.plugin), "w2nsmp.fish", "help.fish", List.of("ikan", "fishing"));
       this.registerRuntime("tpa", new TpaCommand(this.plugin), "w2nsmp.tpa", "help.tpa", List.of());
       this.registerRuntime("tpahere", new TpaHereCommand(this.plugin), "w2nsmp.tpahere", "help.tpahere", List.of());
       this.registerRuntime("tpaccept", new TpAcceptCommand(this.plugin), "w2nsmp.tpaccept", "help.tpaccept", List.of());

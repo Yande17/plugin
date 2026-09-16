@@ -72,6 +72,7 @@ permissions:
       w2nsmp.skill: true
       w2nsmp.skill.admin: true
       w2nsmp.rod: true
+      w2nsmp.fish: true
       w2nsmp.fishing.admin: true
       w2nsmp.economy.admin: true
   w2nsmp.economy.admin:
@@ -176,6 +177,9 @@ permissions:
   # SKILL (v1.2.0): 11 skill dengan level & buff (/skill).
   w2nsmp.rod:
     description: Membuka GUI rod pancing (/rod, v1.4.0)
+    default: true
+  w2nsmp.fish:
+    description: Membuka Fishing Hub (/fish, v1.4.1)
     default: true
   w2nsmp.fishing.admin:
     description: Memberi item pancing custom (/w2nsmp fishing give, v1.4.0)

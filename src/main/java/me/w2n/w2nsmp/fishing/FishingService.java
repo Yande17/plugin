@@ -29,6 +29,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 public final class FishingService {
    private final W2NSMP plugin;
    private final FishingKeys keys;
+   /** Catatan ikan yang pernah ditangkap per pemain (Fish Gallery /fish, v1.4.1). */
+   private final FishDiscovery discovery;
    private final Random random = new Random();
    private final Map<String, CustomFish> fish = new LinkedHashMap<>();
    private final Map<String, FishingItem> items = new LinkedHashMap<>();
@@ -51,6 +53,12 @@ public final class FishingService {
    public FishingService(W2NSMP plugin) {
       this.plugin = plugin;
       this.keys = new FishingKeys(plugin);
+      this.discovery = new FishDiscovery(plugin);
+   }
+
+   /** Catatan penemuan ikan (galeri /fish). Tidak pernah {@code null}. */
+   public FishDiscovery discovery() {
+      return this.discovery;
    }
 
    // ------------------------------------------------------------------ //
@@ -58,6 +66,7 @@ public final class FishingService {
    // ------------------------------------------------------------------ //
 
    public void reload() {
+      this.discovery.load();
       FileConfiguration config = this.plugin.config().raw();
       this.enabled = config.getBoolean("fishing.enabled", true);
       this.customChance = clamp(config.getDouble("fishing.custom-chance-percent", 25.0D), 0.0D, 100.0D);

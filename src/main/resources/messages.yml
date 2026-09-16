@@ -41,6 +41,7 @@ help:
   setting: "&f/setting &7- pengaturan pribadi (sidebar, baris sidebar, nametag uang, bunyi, notifikasi)"
   skill: "&f/skill &8(&7atau &f/keahlian&8) &7- level & buff skill (fighting, mining, farming, ...)"
   rod: "&f/rod &8(&7atau &f/pancingan&8) &7- GUI rod pancing (level, upgrade, attachment, v1.4.0)"
+  fish: "&f/fish &8(&7atau &f/ikan&8) &7- Fishing Hub: galeri ikan & rod (v1.4.1)"
   tpa: "&f/tpa [pemain] &7- GUI permintaan teleport antar-pemain"
   tpahere: "&f/tpahere <pemain> &7- meminta pemain lain teleport ke lokasimu"
   tpaccept: "&f/tpaccept [pemain] &7- menerima permintaan teleport"
@@ -1172,7 +1173,7 @@ skill:
     - "&7Buff: %buff%"
     - "&8%buff-desc%"
     - "&8&m                      "
-    - "&eKlik untuk melihat progres & buff skill ini."
+    - "&eKlik untuk membuka jalur progres skill ini."
   # Tombol peringkat di GUI /skill (mencetak top total skill ke chat).
   top-name: "&e&lTop Skill"
   top-lore:
@@ -1259,11 +1260,14 @@ skill:
     - "&eKlik untuk membuka."
   # ----------------------------- Jalur progres (snake path, v1.4.0) -----------------------------
   path-title: "&8Jalur &f%skill% &8(%page%/%pages%)"
-  path-icon-name: "&f%skill% &7Lv. &e%level%"
+  path-icon-name: "&f%skill% &7Lv. &e%level%&7/&f%max%"
   path-icon-lore:
     - "&7Level: &f%level%&7/&f%max%"
+    - "&7XP: &f%xp-into%&7/&f%xp-needed% &8(kurang &f%xp-to-next%&8)"
     - "&7Kemajuan: %bar% &f%percent%%"
-    - "&7XP total: &f%xp%"
+    - "&7XP total skill ini: &f%xp%"
+    - "&7Buff aktif: &f%buff%"
+    - "&7Buff berikut: &f%next-buff% &8(Lv. %next-buff-level%)"
   path-node-current: "&e&lLv. %level% &8(Anda di sini)"
   path-node-unlocked: "&aLv. %level% &8- tercapai"
   path-node-locked: "&7Lv. %level% &8- terkunci"
@@ -1277,8 +1281,8 @@ skill:
     - "&7Node kuning: level Anda sekarang."
     - "&7Node abu: belum tercapai."
     - "&7Botol XP / ungu: milestone buff."
-  path-back-name: "&fKembali ke kemajuan skill"
-  path-back-lore: "&7Kembali ke menu kemajuan %skill%."
+  path-back-name: "&fKembali ke daftar skill"
+  path-back-lore: "&7Kembali ke menu skill utama."
   path-prev-name: "&fHalaman sebelumnya"
   path-prev-lore: "&7Ke halaman %page% dari %pages%."
   path-next-name: "&fHalaman berikutnya"
@@ -1385,6 +1389,58 @@ fishing:
     legendary: "&6Legendary"
     mythic: "&dMythic"
   caught: "%prefix%&bIkan custom! &fAnda menangkap %rarity% &f%fish%&f!"
+  # ----------------------------- Fishing Hub /fish (v1.4.1) -----------------------------
+  discovered: "%prefix%&dIkan baru ditemukan! &f%fish% &8(%rarity%&8) &7tercatat di galeri Anda (&f/fish&7)."
+  hub-title: "&8Fishing Hub"
+  gallery-title: "&8Galeri Ikan"
+  filler-material: LIGHT_BLUE_STAINED_GLASS_PANE
+  hub-gallery-name: "&bGaleri Ikan"
+  hub-gallery-lore:
+    - "&7Semua ikan custom server, terurut"
+    - "&7rarity &fCommon &7sampai &dMythic&7."
+    - "&7Ditemukan: &f%found%&7/&f%total%"
+    - "&eKlik untuk membuka."
+  hub-rod-name: "&bRod Saya"
+  hub-rod-lore:
+    - "&7Level rod, XP, upgrade, attachment,"
+    - "&7dan statistik efek."
+    - "&eKlik untuk membuka menu rod."
+  hub-info-name: "&bFishing Hub"
+  hub-info-lore:
+    - "&7Memancinglah untuk menemukan ikan custom."
+    - "&7Penemuan tercatat otomatis di galeri."
+  # Galeri.
+  gallery-fish-name: "%rarity% &f%fish%"
+  gallery-fish-lore:
+    - "&7Rarity: %rarity%"
+    - "&7Nilai jual: &f%value%"
+    - "&7Ukuran: &f%min-size% &7- &f%max-size% cm"
+    - "&7XP skill: &f%xp%"
+  gallery-unknown-name: "&8??? &7(belum ditemukan)"
+  gallery-unknown-lore:
+    - "&7Rarity: %rarity%"
+    - "&8Tangkap ikan ini untuk membuka datanya."
+  gallery-req-biome: "&7Biome: &f%biomes%"
+  gallery-req-weather: "&7Cuaca: &f%weather%"
+  gallery-req-time: "&7Waktu: &f%time%"
+  gallery-req-level: "&7Butuh skill Fishing Lv. &f%level%"
+  gallery-req-rod: "&7Butuh rod Lv. &f%level%"
+  weather:
+    rain: "hujan"
+    clear: "cerah"
+  time:
+    day: "siang"
+    night: "malam"
+  gallery-info-name: "&bHalaman %page%&7/&f%pages%"
+  gallery-info-lore:
+    - "&7Ditemukan: &f%found%&7/&f%total%"
+    - "&7Ikan abu (&8???&7): belum pernah Anda tangkap."
+  gallery-back-name: "&fKembali ke Fishing Hub"
+  gallery-back-lore: "&7Kembali ke halaman utama /fish."
+  gallery-prev-name: "&fHalaman sebelumnya"
+  gallery-prev-lore: "&7Ke halaman %page% dari %pages%."
+  gallery-next-name: "&fHalaman berikutnya"
+  gallery-next-lore: "&7Ke halaman %page% dari %pages%."
   # Lore ikan custom.
   fish-lore-rarity: "&7Rarity: %rarity%"
   fish-lore-size: "&7Ukuran: &f%size% cm"

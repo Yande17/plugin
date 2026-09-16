@@ -76,6 +76,33 @@ public final class SettingsMenu {
    public static void render(W2NSMP plugin, Inventory inventory, Player player) {
       GuiConfig gui = gui(plugin);
       String category = inventory.getHolder() instanceof SettingsMenuHolder holder ? holder.category() : "";
+
+      // Kumpulkan slot yang BENAR-BENAR dipakai halaman ini. Semua slot lain dikosongkan
+      // dulu lalu diisi filler - tanpa ini, item halaman sebelumnya (kartu kategori) tetap
+      // tersisa saat pindah Main -> Kategori (ghost item, bug v1.4.0).
+      int[] cards = new int[CATEGORIES.size()];
+
+      for (int index = 0; index < cards.length; index++) {
+         cards[index] = categoryCardSlot(plugin, CATEGORIES.get(index), index);
+      }
+
+      java.util.Set<Integer> content = pageContent(
+         category,
+         category.isEmpty() ? 0 : categoryKeys(plugin, category).size(),
+         cards,
+         slot(plugin, "back", 45),
+         slot(plugin, "info", 49),
+         slot(plugin, "close", 53)
+      );
+
+      // Kosongkan slot non-konten secara eksplisit: shell() hanya menimpa bila filler aktif,
+      // jadi pembersihan manual ini yang menjamin tidak ada item lama tersisa.
+      for (int slot = 0; slot < inventory.getSize(); slot++) {
+         if (!content.contains(slot)) {
+            inventory.setItem(slot, null);
+         }
+      }
+
       GuiKit.shell(
          plugin,
          gui,
@@ -83,10 +110,7 @@ public final class SettingsMenu {
          Material.GRAY_STAINED_GLASS_PANE,
          "setting.filler-material",
          Material.BLACK_STAINED_GLASS_PANE,
-         slot -> slot >= 9 && slot <= 44
-            || slot == slot(plugin, "info", 49)
-            || slot == slot(plugin, "back", 45)
-            || slot == slot(plugin, "close", 53)
+         content::contains
       );
 
       if (category.isEmpty()) {
@@ -144,6 +168,34 @@ public final class SettingsMenu {
    /** Slot kartu kategori di halaman utama (bisa dipindah lewat gui/settings.yml slots.category-<id>). */
    public static int categoryCardSlot(W2NSMP plugin, String category, int index) {
       return slot(plugin, "category-" + category, 20 + index);
+   }
+
+   /**
+    * Logika murni v1.4.1: slot konten sebuah halaman /setting. Halaman utama hanya berisi
+    * kartu kategori; sub-halaman hanya toggle kategori itu + tombol back. Slot di luar
+    * himpunan ini WAJIB dikosongkan saat render agar tidak ada ghost item antar-halaman.
+    */
+   public static java.util.Set<Integer> pageContent(
+      String category, int keyCount, int[] cardSlots, int backSlot, int infoSlot, int closeSlot
+   ) {
+      java.util.Set<Integer> content = new java.util.HashSet<>();
+      if (category == null || category.isEmpty()) {
+         for (int slot : cardSlots) {
+            content.add(Integer.valueOf(slot));
+         }
+      } else {
+         int count = Math.min(Math.max(keyCount, 0), CONTENT_SLOTS.length);
+
+         for (int index = 0; index < count; index++) {
+            content.add(Integer.valueOf(CONTENT_SLOTS[index]));
+         }
+
+         content.add(Integer.valueOf(backSlot));
+      }
+
+      content.add(Integer.valueOf(infoSlot));
+      content.add(Integer.valueOf(closeSlot));
+      return content;
    }
 
    /** Kunci toggle milik satu kategori. Baris scoreboard ikut kategori "scoreboard". */

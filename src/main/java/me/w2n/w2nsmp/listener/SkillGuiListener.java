@@ -181,7 +181,14 @@ public final class SkillGuiListener implements Listener {
 
       try {
          this.plugin.guiSounds().play(player, SkillMenu.gui(this.plugin), "click");
-         this.openProgressLater(player, type);
+         // v1.4.1: klik skill langsung membuka halaman progresi (snake path),
+         // tanpa halaman info perantara. -1 = halaman tempat level pemain berada.
+         player.closeInventory();
+         Bukkit.getScheduler().runTask(this.plugin, () -> {
+            if (player.isOnline()) {
+               SkillPathMenu.open(this.plugin, player, type, -1);
+            }
+         });
       } finally {
          holder.pending(null);
          holder.endProcessing();
@@ -274,8 +281,13 @@ public final class SkillGuiListener implements Listener {
          }
 
          if ("back".equals(key)) {
+            // v1.4.1: kembali langsung ke menu skill utama (halaman info perantara dilewati).
             player.closeInventory();
-            this.openProgressLater(player, type);
+            Bukkit.getScheduler().runTask(this.plugin, () -> {
+               if (player.isOnline()) {
+                  SkillMenu.open(this.plugin, player);
+               }
+            });
             return;
          }
 
@@ -301,14 +313,6 @@ public final class SkillGuiListener implements Listener {
          holder.pending(null);
          holder.endProcessing();
       }
-   }
-
-   private void openProgressLater(Player player, SkillType type) {
-      Bukkit.getScheduler().runTask(this.plugin, () -> {
-         if (player.isOnline() && type != null) {
-            SkillProgressMenu.open(this.plugin, player, type);
-         }
-      });
    }
 
    /** Holder menu kami (bila server bisa membacanya); null bila inventory bukan menu skill. */

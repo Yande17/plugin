@@ -149,6 +149,28 @@ else
   echo "  (tools/selftest/SkillPathTest.java tidak ada - dilewati)"
 fi
 
+# 2f. v1.4.1: isi slot per halaman /setting (anti ghost item Main <-> Kategori).
+if [ -f tools/selftest/SettingsPageTest.java ]; then
+  "$JAVA" -jar "$ECJ_JAR" -25 -nowarn -encoding UTF-8 -proc:none \
+    -cp tools/work/stubs-classes:tools/work/classes -d tools/work/selftest-classes \
+    tools/selftest/SettingsPageTest.java
+  "$JAVA" -cp tools/work/stubs-classes:tools/work/classes:tools/work/selftest-classes \
+    SettingsPageTest | tail -2
+else
+  echo "  (tools/selftest/SettingsPageTest.java tidak ada - dilewati)"
+fi
+
+# 2g. v1.4.1: paging galeri ikan /fish.
+if [ -f tools/selftest/FishGalleryTest.java ]; then
+  "$JAVA" -jar "$ECJ_JAR" -25 -nowarn -encoding UTF-8 -proc:none \
+    -cp tools/work/stubs-classes:tools/work/classes -d tools/work/selftest-classes \
+    tools/selftest/FishGalleryTest.java
+  "$JAVA" -cp tools/work/stubs-classes:tools/work/classes:tools/work/selftest-classes \
+    FishGalleryTest | tail -2
+else
+  echo "  (tools/selftest/FishGalleryTest.java tidak ada - dilewati)"
+fi
+
 echo "== [3/6] verifikasi linkage =="
 PY=python3
 if [ -x "$VENV_PY" ]; then PY="$VENV_PY"; fi

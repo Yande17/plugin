@@ -16,6 +16,7 @@ import me.w2n.w2nsmp.gear.GearService;
 import me.w2n.w2nsmp.gui.AuctionMenu;
 import me.w2n.w2nsmp.gui.HomeMenu;
 import me.w2n.w2nsmp.gui.ProfileMenu;
+import me.w2n.w2nsmp.gui.FishMenu;
 import me.w2n.w2nsmp.gui.RodMenu;
 import me.w2n.w2nsmp.gui.SellMenu;
 import me.w2n.w2nsmp.gui.SettingsMenu;
@@ -206,6 +207,7 @@ public final class W2NSMP extends JavaPlugin {
          SettingsMenu.closeAll(this);
          SkillMenu.closeAll(this);
          RodMenu.closeAll(this);
+         FishMenu.closeAll(this);
       } catch (RuntimeException exception) {
          this.getLogger().warning("Gagal menutup GUI profile/setting saat disable: " + exception);
       }
