@@ -107,6 +107,10 @@ public final class FishingListener implements Listener {
       if (caughtIsFish) {
          rolled = fishing.roll(biome, storming, time, fishingLevel, rodLevel, bonusChance, rarityBoost, rodStrength);
       }
+      // v1.10.0 (PHASE 6): ikan custom yang BERHASIL didaratkan (untuk efek double-catch) -
+      // sejak Phase 4 entity tangkapan bisa tetap berisi ikan vanilla saat hasil custom
+      // masuk storage, jadi salinan double-catch harus diambil dari stack custom ini.
+      ItemStack landedCustom = null;
       if (rolled != null) {
          // Ganti isi entity item tangkapan dengan ikan custom - tetap "ditarik" secara vanilla,
          // jadi tidak ada dupe dan momentum kail tidak berubah. Efek "value" (Golden Hook /
@@ -174,6 +178,8 @@ public final class FishingListener implements Listener {
                return;
             }
          }
+
+         landedCustom = custom;
 
          if (holdingRod) {
             fishing.addRodXp(rod, fishing.rodXpPerCustomCatch());
@@ -244,9 +250,30 @@ public final class FishingListener implements Listener {
          double doubleChance = fishing.effectTotal(rod, "double-catch");
          if (doubleChance > 0.0D && Math.random() * 100.0D < doubleChance) {
             try {
-               ItemStack stack = caughtItem.getItemStack();
-               if (stack != null && !stack.getType().isAir()) {
-                  player.getInventory().addItem(stack.clone());
+               if (landedCustom != null) {
+                  // v1.10.0 (PHASE 6): salinan double-catch = ikan custom yang didaratkan
+                  // (entity bisa sudah dihapus/masih vanilla saat hasil masuk storage).
+                  // Rute sama dengan tangkapan asli: storage dulu, penuh -> inventory.
+                  ItemStack copy = landedCustom.clone();
+                  me.w2n.w2nsmp.fishing.FishInventory storage = this.plugin.fishInventory();
+                  boolean copyStored = storage != null && storage.enabled()
+                     && !storage.isFull(player.getUniqueId())
+                     && storage.add(player.getUniqueId(), copy);
+                  if (!copyStored) {
+                     java.util.HashMap<Integer, ItemStack> rest = player.getInventory().addItem(copy);
+                     if (rest != null) {
+                        for (ItemStack item : rest.values()) {
+                           if (item != null) {
+                              player.getWorld().dropItemNaturally(player.getLocation(), item);
+                           }
+                        }
+                     }
+                  }
+               } else {
+                  ItemStack stack = caughtItem.getItemStack();
+                  if (stack != null && !stack.getType().isAir()) {
+                     player.getInventory().addItem(stack.clone());
+                  }
                }
             } catch (Throwable ignored) {
             }

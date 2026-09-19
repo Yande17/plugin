@@ -404,11 +404,20 @@ public final class AutoFishService {
 
          double fishWeight = fishing.fishWeightKg(catchStack);
          if (fishing.weightEnabled() && rodStrength > 0.0D && fishWeight > rodStrength) {
-            // Ikan lolos: tanpa tangkapan, tanpa XP - sama seperti manual. Sesi lanjut.
+            // Ikan lolos: tanpa tangkapan, tanpa XP skill. Sesi lanjut.
             this.plugin.messages().send(player, "fishing.escaped-too-heavy",
                "fish", rolled.fishName(),
                "weight", String.format(java.util.Locale.ROOT, "%.1f", fishWeight),
                "strength", String.format(java.util.Locale.ROOT, "%.0f", rodStrength));
+
+            // v1.10.0 (PHASE 6): konsisten dengan manual - "tarikan" tetap memberi XP rod
+            // dasar (bukan XP custom) supaya progres rod tidak mati saat ikan sering lolos.
+            if (holdingRod) {
+               fishing.addRodXp(rod, fishing.rodXpPerCatch());
+               fishing.refreshRodLore(rod);
+               player.getInventory().setItemInMainHand(rod);
+            }
+
             return true;
          }
       } else {
@@ -451,15 +460,15 @@ public final class AutoFishService {
                return false;
             }
 
-            player.getInventory().addItem(catchStack);
+            this.giveOrDrop(player, catchStack);
          }
       } else if (toStorage) {
          if (!storage.add(player.getUniqueId(), catchStack)) {
             // Race sangat langka (penuh di antara cek dan add): fallback inventory normal.
-            player.getInventory().addItem(catchStack);
+            this.giveOrDrop(player, catchStack);
          }
       } else {
-         player.getInventory().addItem(catchStack);
+         this.giveOrDrop(player, catchStack);
       }
 
       session.caught++;
@@ -494,6 +503,21 @@ public final class AutoFishService {
    }
 
    /** Penuh = tidak ada slot kosong DAN tidak ada stack sejenis yang masih muat. */
+   /**
+    * v1.10.0 (PHASE 6): addItem dengan jaminan anti-hilang - sisa yang tidak muat
+    * (race inventory penuh) dijatuhkan di kaki pemain, tidak pernah dibuang diam-diam.
+    */
+   private void giveOrDrop(Player player, ItemStack stack) {
+      java.util.HashMap<Integer, ItemStack> leftover = player.getInventory().addItem(stack);
+      if (leftover != null) {
+         for (ItemStack rest : leftover.values()) {
+            if (rest != null) {
+               player.getWorld().dropItemNaturally(player.getLocation(), rest);
+            }
+         }
+      }
+   }
+
    private boolean isInventoryFull(Player player, ItemStack incoming) {
       try {
          if (player.getInventory().firstEmpty() >= 0) {
