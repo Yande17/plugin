@@ -98,6 +98,8 @@ TOUCHED=(
   me/w2n/w2nsmp/listener/NightVisionListener
   # v1.5.4 - PHASE 4: penegakan syarat gear di semua jalur equip:
   me/w2n/w2nsmp/listener/GearEquipListener
+  # v1.6.1 - PHASE 2 (uang di atas kepala): siklus hidup display passenger:
+  me/w2n/w2nsmp/listener/MoneyDisplayListener
 )
 
 echo "== [1/6] stub + kompilasi =="

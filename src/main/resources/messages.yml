@@ -764,7 +764,7 @@ setting:
     - "&e%action%"
   label:
     scoreboard: "Stats Sidebar"
-    nametag-money: "Money on Nametag"
+    nametag-money: "Money Display"
     sounds: "GUI Sounds"
     notifications: "Notifications"
     teleport-countdown: "Teleport Countdown"
@@ -796,7 +796,7 @@ setting:
     visual:
       name: "&d&lVisual"
       lore:
-        - "&7Nametag display and other visuals."
+        - "&7Money display above your head and other visuals."
         - "&f%count% &7settings."
         - "&eClick to open."
     misc:

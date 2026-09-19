@@ -305,6 +305,8 @@ INTERFACES = {
     'org/bukkit/entity/Entity', 'org/bukkit/entity/HumanEntity', 'org/bukkit/entity/Item',
     'org/bukkit/entity/LivingEntity', 'org/bukkit/entity/Player', 'org/bukkit/entity/Projectile',
     'org/bukkit/entity/FishHook', 'org/bukkit/block/Biome',
+    # v1.6.1 - uang di atas kepala (PHASE 2): entity display (API Paper/Bukkit 1.19.4+)
+    'org/bukkit/entity/Display', 'org/bukkit/entity/TextDisplay',
     'org/bukkit/event/Listener', 'org/bukkit/inventory/Inventory',
     'org/bukkit/inventory/InventoryHolder', 'org/bukkit/inventory/InventoryView',
     'org/bukkit/inventory/PlayerInventory', 'org/bukkit/inventory/meta/ItemMeta',
@@ -323,6 +325,8 @@ ENUMS = {
     'org/bukkit/event/inventory/ClickType', 'org/bukkit/event/inventory/InventoryAction',
     'org/bukkit/event/inventory/InventoryType', 'org/bukkit/scoreboard/DisplaySlot',
     'net/kyori/adventure/sound/Sound$Source', 'org/bukkit/event/EventPriority',
+    # v1.6.1 - uang di atas kepala: mode billboard entity display (1.19.4+)
+    'org/bukkit/entity/Display$Billboard',
 }
 
 ABSTRACT_CLASSES = {'org/bukkit/plugin/java/JavaPlugin'}
@@ -342,6 +346,9 @@ HIER = {
     'org/bukkit/entity/Item': ('org/bukkit/entity/Entity', []),
     'org/bukkit/entity/Projectile': ('org/bukkit/entity/Entity', []),
     'org/bukkit/entity/FishHook': ('org/bukkit/entity/Projectile', []),
+    # v1.6.1 - uang di atas kepala: hierarki entity display (Paper/Bukkit 1.19.4+)
+    'org/bukkit/entity/Display': ('org/bukkit/entity/Entity', []),
+    'org/bukkit/entity/TextDisplay': ('org/bukkit/entity/Display', []),
     'org/bukkit/command/TabExecutor': (None, ['org/bukkit/command/CommandExecutor',
                                               'org/bukkit/command/TabCompleter']),
     'org/bukkit/command/PluginCommand': ('org/bukkit/command/Command', []),
@@ -390,6 +397,7 @@ GENERICS = {
     ('org/bukkit/plugin/ServicesManager', 'getRegistration'): ('<T> org/bukkit/plugin/RegisteredServiceProvider<T>', ['java.lang.Class<T>']),
     ('org/bukkit/plugin/RegisteredServiceProvider', 'getProvider'): ('T', None),
     ('org/bukkit/World', 'getChunkAtAsync'): ('java.util.concurrent.CompletableFuture<org/bukkit/Chunk>', None),
+    ('org/bukkit/World', 'spawn'): ('<T extends org.bukkit.entity.Entity> T', ['org.bukkit.Location', 'java.lang.Class<T>']),
     ('org/bukkit/entity/Player', 'teleportAsync'): ('java.util.concurrent.CompletableFuture<java.lang.Boolean>', None),
     ('org/bukkit/command/Command', '<init>'): (None, ['java.lang.String', 'java.lang.String', 'java.lang.String', 'java.util.List<java.lang.String>']),
 }
@@ -499,6 +507,17 @@ FORCED_TYPES = {
     'org/bukkit/event/block/BlockDispenseArmorEvent',
     # v1.5.4 - tukar main-hand <-> offhand dengan tombol F (event Bukkit 1.9+)
     'org/bukkit/event/player/PlayerSwapHandItemsEvent',
+    # v1.6.1 - uang di atas kepala (PHASE 2): teleport melepas passenger, display harus
+    # dipasang ulang sesudahnya (event Bukkit lama & stabil)
+    'org/bukkit/event/player/PlayerTeleportEvent',
+    # v1.6.1 - enum billboard + transformasi (offset Y teks) + vektor JOML bawaan server
+    'org/bukkit/entity/Display$Billboard',
+    'org/bukkit/util/Transformation',
+    'org/joml/Vector3f',
+    'org/joml/AxisAngle4f',
+    # v1.6.1 - sneak & ganti gamemode (lihat FORCED_MEMBERS)
+    'org/bukkit/event/player/PlayerToggleSneakEvent',
+    'org/bukkit/event/player/PlayerGameModeChangeEvent',
 }
 
 FORCED_MEMBERS = {
@@ -531,6 +550,9 @@ FORCED_MEMBERS = {
         ('getTime', '()J', False),          # syarat waktu ikan custom (siang/malam)
         ('hasStorm', '()Z', False),         # syarat cuaca ikan custom
         ('isThundering', '()Z', False),
+        # v1.6.1 - uang di atas kepala: spawn TextDisplay (deklarasi generik di RegionAccessor,
+        # erasure return = Entity; ada sejak Bukkit sangat lama)
+        ('spawn', '(Lorg/bukkit/Location;Ljava/lang/Class;)Lorg/bukkit/entity/Entity;', False),
     ],
     'org/bukkit/event/block/BlockPlaceEvent': [
         # anti-abuse skill: blok yang baru dipasang pemain tidak memberi XP saat dipecah
@@ -568,6 +590,52 @@ FORCED_MEMBERS = {
         ('setWalkSpeed', '(F)V', False),
         # v1.4.1 - autofishing: jangan menangkap untuk pemain yang sedang mati
         ('isDead', '()Z', False),
+        # v1.6.1 - uang di atas kepala: display disembunyikan saat pemain menunduk
+        # (meniru perilaku nametag vanilla; API Bukkit sangat lama)
+        ('isSneaking', '()Z', False),
+    ],
+    # v1.6.1 - uang di atas kepala (PHASE 2): passenger TextDisplay di pemain.
+    # Semua member di bawah ada sejak Bukkit 1.19.4 (Display API) / jauh lebih lama (Entity).
+    'org/bukkit/entity/Entity': [
+        ('addPassenger', '(Lorg/bukkit/entity/Entity;)Z', False),
+        ('remove', '()V', False),
+        ('isValid', '()Z', False),
+        ('setPersistent', '(Z)V', False),
+        ('getVehicle', '()Lorg/bukkit/entity/Entity;', False),
+        ('teleport', '(Lorg/bukkit/Location;)Z', False),
+        ('getWorld', '()Lorg/bukkit/World;', False),
+        ('getLocation', '()Lorg/bukkit/Location;', False),
+    ],
+    'org/bukkit/entity/Display': [
+        ('setBillboard', '(Lorg/bukkit/entity/Display$Billboard;)V', False),
+        ('setTransformation', '(Lorg/bukkit/util/Transformation;)V', False),
+    ],
+    'org/bukkit/entity/TextDisplay': [
+        # metode Paper (adventure Component) - plugin memang menarget Paper
+        ('text', '(Lnet/kyori/adventure/text/Component;)V', False),
+        ('setShadowed', '(Z)V', False),
+        ('setSeeThrough', '(Z)V', False),
+    ],
+    'org/bukkit/util/Transformation': [
+        ('<init>', '(Lorg/joml/Vector3f;Lorg/joml/AxisAngle4f;Lorg/joml/Vector3f;Lorg/joml/AxisAngle4f;)V', False),
+    ],
+    'org/joml/Vector3f': [
+        ('<init>', '(FFF)V', False),
+    ],
+    'org/joml/AxisAngle4f': [
+        ('<init>', '()V', False),
+    ],
+    'org/bukkit/event/player/PlayerTeleportEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
+    ],
+    # v1.6.1 - sembunyikan display saat sneak (meniru nametag vanilla; event Bukkit lama)
+    'org/bukkit/event/player/PlayerToggleSneakEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
+        ('isSneaking', '()Z', False),
+    ],
+    # v1.6.1 - spectator tidak boleh bocor posisi lewat display uang (event Bukkit lama)
+    'org/bukkit/event/player/PlayerGameModeChangeEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
     ],
     # v1.4.1 - autofishing: event pindah dunia (getPlayer diwarisi dari PlayerEvent scan)
     'org/bukkit/event/player/PlayerChangedWorldEvent': [
@@ -650,6 +718,8 @@ FORCED_ENUM_CONSTANTS = {
         'FLY_INTO_WALL', 'FREEZE', 'HOT_FLOOR', 'KILL', 'LAVA', 'LIGHTNING', 'MAGIC', 'MELTING',
         'POISON', 'PROJECTILE', 'STARVATION', 'SUFFOCATION', 'SUICIDE', 'THORNS', 'VOID', 'WITHER',
     ],
+    # v1.6.1 - uang di atas kepala: mode billboard TextDisplay (1.19.4+)
+    'org/bukkit/entity/Display$Billboard': ['CENTER', 'FIXED', 'HORIZONTAL', 'VERTICAL'],
 }
 
 

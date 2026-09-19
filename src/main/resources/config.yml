@@ -614,19 +614,23 @@ setting:
 # menyentuh paket jaringan secara langsung.
 nametag:
   money:
+    # v1.6.1 (PHASE 2): uang tampil DI ATAS KEPALA pemain (entity TextDisplay yang menumpang
+    # pemain), BUKAN lagi di nama. Nama pemain selalu bersih; team/prefix/rank tidak disentuh.
+    # Butuh server 1.19.4+ (API TextDisplay); bila tidak ada, fitur mati sendiri dengan log.
     enabled: true
     # Pilihan bawaan untuk pemain (bisa dimatikan sendiri lewat /setting).
     default-on: true
-    # Format teks. Placeholder: %balance% (mis. "$1,250"), %player%.
-    format: " &7| &a%balance%"
-    # true = tulis di baris baru di bawah nama (nametag jadi dua baris).
-    new-line: false
-    # true = bila pemain sudah berada di tim lain (mis. prefix rank plugin lain), nametag-nya
-    # tidak disentuh W2NSMP - lebih aman untuk server yang sudah punya plugin nametag/rank.
-    respect-existing-teams: true
+    # Format teks di atas kepala. Placeholder: %balance% (mis. "$1,250"), %player%.
+    format: "&a%balance%"
+    # Tinggi teks di atas titik dudukan (blok). 0.4 = tepat di atas nametag vanilla.
+    height: 0.4
     # Pembaruan berkala (detik). Saldo yang berubah lewat W2NSMP selalu diperbarui seketika;
-    # nilai ini menjaring perubahan dari luar. 0 = hanya saat saldo berubah.
+    # nilai ini menjaring perubahan dari plugin luar (Vault) dan memasang ulang display yang
+    # terlepas. 0 = hanya saat saldo berubah.
     update-seconds: 30
+    # --- kunci lama (tidak dipakai lagi sejak uang pindah ke atas kepala) ---
+    new-line: false
+    respect-existing-teams: true
 
 # ---------------------------------------------------------------------------
 # SKILL (/skill) - 11 skill, tiap skill punya beberapa buff bertahap (v1.3.0)
