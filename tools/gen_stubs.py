@@ -492,6 +492,8 @@ FORCED_TYPES = {
     'org/bukkit/event/player/PlayerFishEvent$State',
     # v1.4.1 - autofishing: hentikan sesi saat pindah dunia (event ada sejak Bukkit lama)
     'org/bukkit/event/player/PlayerChangedWorldEvent',
+    # v1.5.1 - night vision /setting: pasang ulang efek sesudah respawn (event Bukkit lama)
+    'org/bukkit/event/player/PlayerRespawnEvent',
 }
 
 FORCED_MEMBERS = {
@@ -552,6 +554,10 @@ FORCED_MEMBERS = {
     'org/bukkit/event/player/PlayerChangedWorldEvent': [
         ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
     ],
+    # v1.5.1 - night vision: event respawn (API Bukkit lama & stabil)
+    'org/bukkit/event/player/PlayerRespawnEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
+    ],
     # v1.4.1 - autofishing: cek stack sejenis masih muat (API ItemStack lama & stabil)
     'org/bukkit/inventory/ItemStack': [
         ('isSimilar', '(Lorg/bukkit/inventory/ItemStack;)Z', False),
@@ -595,7 +601,7 @@ FORCED_MATERIALS = [
     'TRIPWIRE_HOOK', 'STRING', 'LEAD', 'ANVIL', 'EXPERIENCE_BOTTLE', 'AMETHYST_SHARD',
     'YELLOW_DYE', 'GLOWSTONE_DUST', 'FIREWORK_STAR', 'CONDUIT', 'CHAIN',
     'FILLED_MAP', 'PURPLE_STAINED_GLASS_PANE', 'RED_STAINED_GLASS_PANE',
-    'BLUE_STAINED_GLASS_PANE', 'GRAY_DYE',
+    'BLUE_STAINED_GLASS_PANE', 'GRAY_DYE', 'GOLDEN_CARROT',
 ]
 
 # konstanta enum penyebab damage - hanya untuk dokumentasi stub; kode fitur membaca

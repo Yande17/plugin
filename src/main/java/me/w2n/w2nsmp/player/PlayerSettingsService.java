@@ -112,6 +112,11 @@ public final class PlayerSettingsService {
       return this.get(player, "nametag-money", this.plugin.config().nametagMoneyDefaultOn());
    }
 
+   /** Night Vision pribadi (v1.5.1). Bawaan mati; persist per UUID seperti setting lain. */
+   public boolean nightVision(Player player) {
+      return this.get(player, PlayerSettings.KEY_NIGHT_VISION, this.plugin.config().nightVisionDefaultOn());
+   }
+
    public boolean forget(UUID uniqueId) {
       return uniqueId != null && this.cache.remove(uniqueId) != null;
    }

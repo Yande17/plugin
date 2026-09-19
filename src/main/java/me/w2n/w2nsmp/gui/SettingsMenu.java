@@ -217,7 +217,11 @@ public final class SettingsMenu {
             keys.add("notify-auction");
             keys.add("notify-tpa");
          }
-         case "gameplay" -> keys.add("teleport-countdown");
+         case "gameplay" -> {
+            keys.add("teleport-countdown");
+            // v1.5.1: Night Vision pribadi.
+            keys.add("night-vision");
+         }
          case "visual" -> keys.add("nametag-money");
          case "misc" -> keys.add("sounds");
          default -> {
@@ -240,6 +244,7 @@ public final class SettingsMenu {
          case "sounds" -> plugin.settings().sounds(player);
          case "notifications" -> plugin.settings().notifications(player);
          case "teleport-countdown" -> plugin.settings().teleportCountdown(player);
+         case "night-vision" -> plugin.settings().nightVision(player);
          case "notify-bounty" -> plugin.settings().bountyNotifications(player);
          case "notify-auction" -> plugin.settings().auctionNotifications(player);
          case "notify-tpa" -> plugin.settings().tpaNotifications(player);
@@ -258,6 +263,7 @@ public final class SettingsMenu {
          case "sounds" -> Material.NOTE_BLOCK;
          case "notifications" -> Material.BELL;
          case "teleport-countdown" -> Material.ENDER_PEARL;
+         case "night-vision" -> Material.GOLDEN_CARROT;
          case "notify-bounty" -> Material.GOLD_INGOT;
          case "notify-auction" -> Material.EMERALD;
          case "notify-tpa" -> Material.COMPASS;
@@ -278,7 +284,9 @@ public final class SettingsMenu {
 
    private static ItemStack toggleItem(W2NSMP plugin, String key, boolean value, boolean locked, Material icon) {
       String state = locked ? plugin.messages().raw("setting.state-locked") : plugin.messages().raw(value ? "setting.state-on" : "setting.state-off");
-      String[] placeholders = new String[]{"state", state, "setting", label(plugin, key), "line", label(plugin, key), "key", key};
+      // v1.5.1: %action% = ajakan klik sesuai keadaan ("Click to disable"/"Click to enable").
+      String action = locked ? "" : plugin.messages().raw(value ? "setting.action-disable" : "setting.action-enable");
+      String[] placeholders = new String[]{"state", state, "action", action, "setting", label(plugin, key), "line", label(plugin, key), "key", key};
       GuiConfig gui = gui(plugin);
       Material material = materialFor(plugin, value, locked, icon);
       String name = gui.name("buttons." + key.replace(':', '-') + ".name");
@@ -357,6 +365,20 @@ public final class SettingsMenu {
             case "sounds" -> settings.set(player, "sounds", !settings.sounds(player));
             case "notifications" -> settings.set(player, "notifications", !settings.notifications(player));
             case "teleport-countdown" -> settings.set(player, "teleport-countdown", !settings.teleportCountdown(player));
+            case "night-vision" -> {
+               // v1.5.1: simpan pilihan lalu pasang/cabut efek SEKARANG (bukan menunggu task).
+               boolean value = !settings.nightVision(player);
+               boolean changed = settings.set(player, "night-vision", value);
+               if (changed && plugin.nightVision() != null) {
+                  if (value) {
+                     plugin.nightVision().apply(player);
+                  } else {
+                     plugin.nightVision().remove(player);
+                  }
+               }
+
+               yield changed;
+            }
             case "notify-bounty" -> settings.set(player, "notify-bounty", !settings.bountyNotifications(player));
             case "notify-auction" -> settings.set(player, "notify-auction", !settings.auctionNotifications(player));
             case "notify-tpa" -> settings.set(player, "notify-tpa", !settings.tpaNotifications(player));
@@ -375,6 +397,7 @@ public final class SettingsMenu {
             case "scoreboard" -> !plugin.config().scoreboardPersonalToggle();
             case "nametag-money" -> !plugin.config().nametagMoneyEnabled();
             case "sounds" -> !plugin.config().soundsEnabled();
+            case "night-vision" -> !plugin.config().nightVisionEnabled();
             default -> false;
          };
       } else {

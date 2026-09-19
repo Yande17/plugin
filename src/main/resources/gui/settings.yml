@@ -35,6 +35,17 @@ category-materials:
   visual: NAME_TAG
   misc: CHEST
 
+# v1.5.1: teks per-tombol (menimpa template setting.item-name/item-lore bawaan).
+# %state% = Enabled/Disabled/Locked, %action% = "Click to enable"/"Click to disable".
+buttons:
+  night-vision:
+    name: "&bNight Vision"
+    lore:
+      - "&7See clearly in the dark."
+      - "&7Only affects you."
+      - "&7Status: %state%"
+      - "&e%action%"
+
 # Material untuk keadaan menyala/mati/dikunci. Kosong = pakai bawaan kelas GUI.
 # Catatan: jangan memakai nama kunci "on"/"off"/"yes"/"no" - YAML membacanya sebagai boolean.
 materials:

@@ -582,6 +582,16 @@ public final class ConfigManager {
       return this.raw().getBoolean("teleport.countdown-default", true);
    }
 
+   /** v1.5.1: gate admin Night Vision /setting (false = toggle dikunci untuk semua pemain). */
+   public boolean nightVisionEnabled() {
+      return this.raw().getBoolean("night-vision.enabled", true);
+   }
+
+   /** v1.5.1: pilihan bawaan Night Vision untuk pemain yang belum pernah mengubahnya. */
+   public boolean nightVisionDefaultOn() {
+      return this.raw().getBoolean("night-vision.default", false);
+   }
+
    public boolean nametagMoneyEnabled() {
       return this.raw().getBoolean("nametag.money.enabled", true);
    }

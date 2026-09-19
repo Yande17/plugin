@@ -569,6 +569,15 @@ sounds:
   default: true
 
 # ---------------------------------------------------------------------------------------------
+# Night Vision pribadi lewat /setting (v1.5.1)
+# ---------------------------------------------------------------------------------------------
+# enabled false = toggle dikunci untuk semua pemain (efek aktif langsung dicabut saat reload).
+# default = pilihan bawaan untuk pemain yang belum pernah mengubahnya (disarankan false).
+night-vision:
+  enabled: true
+  default: false
+
+# ---------------------------------------------------------------------------------------------
 # Notifikasi pribadi (PHASE 11)
 # ---------------------------------------------------------------------------------------------
 # Semua nilai di bawah ini adalah pilihan BAWAAN. Pemain dapat mengubahnya sendiri lewat /setting

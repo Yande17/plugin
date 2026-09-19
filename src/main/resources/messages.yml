@@ -754,6 +754,9 @@ setting:
   state-on: "&a✔ Enabled"
   state-off: "&c✖ Disabled"
   state-locked: "&e🔒 Locked"
+  # v1.5.1: ajakan klik sesuai keadaan (dipakai %action% di lore tombol).
+  action-enable: "Click to enable"
+  action-disable: "Click to disable"
   item-name: "&f%setting% &8» %state%"
   item-lore:
     - "&7Klik untuk mengubah pilihan ini."
@@ -765,6 +768,7 @@ setting:
     sounds: "Bunyi GUI"
     notifications: "Notifikasi"
     teleport-countdown: "Hitung mundur teleport"
+    night-vision: "Night Vision"
     notify-bounty: "Notifikasi bounty"
     notify-auction: "Notifikasi auction"
     notify-tpa: "Notifikasi TPA"

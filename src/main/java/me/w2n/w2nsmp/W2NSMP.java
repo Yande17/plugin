@@ -28,6 +28,7 @@ import me.w2n.w2nsmp.hook.HookManager;
 import me.w2n.w2nsmp.manager.CommandManager;
 import me.w2n.w2nsmp.manager.ListenerManager;
 import me.w2n.w2nsmp.nametag.NametagService;
+import me.w2n.w2nsmp.player.NightVisionService;
 import me.w2n.w2nsmp.player.PlayerSettingsService;
 import me.w2n.w2nsmp.rtp.RtpService;
 import me.w2n.w2nsmp.scoreboard.ScoreboardService;
@@ -57,6 +58,7 @@ public final class W2NSMP extends JavaPlugin {
    private StatisticsService statisticsService;
    private ScoreboardService scoreboardService;
    private PlayerSettingsService settingsService;
+   private NightVisionService nightVisionService;
    private SkillService skillService;
    private GearService gearService;
    private FishingService fishingService;
@@ -121,6 +123,8 @@ public final class W2NSMP extends JavaPlugin {
       this.skillService = new SkillService(this);
       this.skillService.load();
       this.skillService.startTasks();
+      this.nightVisionService = new NightVisionService(this);
+      this.nightVisionService.reload();
       this.gearService = new GearService(this);
       this.gearService.reload();
       this.fishingService = new FishingService(this);
@@ -253,6 +257,11 @@ public final class W2NSMP extends JavaPlugin {
          this.scoreboardService = null;
       }
 
+      if (this.nightVisionService != null) {
+         this.nightVisionService.shutdown();
+         this.nightVisionService = null;
+      }
+
       if (this.skillService != null) {
          this.skillService.shutdown();
          this.skillService = null;
@@ -372,6 +381,10 @@ public final class W2NSMP extends JavaPlugin {
          this.autoFishService.reload();
       }
 
+      if (this.nightVisionService != null) {
+         this.nightVisionService.reload();
+      }
+
       if (this.nametagService != null) {
          this.nametagService.reload();
       }
@@ -466,6 +479,11 @@ public final class W2NSMP extends JavaPlugin {
    /** Layanan autofishing (v1.4.1). Bisa {@code null} di luar masa hidup plugin. */
    public AutoFishService autoFish() {
       return this.autoFishService;
+   }
+
+   /** Night Vision /setting (v1.5.1). Bisa {@code null} di luar masa hidup plugin. */
+   public NightVisionService nightVision() {
+      return this.nightVisionService;
    }
 
    public GuiConfigs guiConfigs() {

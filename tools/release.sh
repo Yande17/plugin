@@ -91,6 +91,11 @@ TOUCHED=(
   me/w2n/w2nsmp/command/AutoFishCommand
   me/w2n/w2nsmp/listener/FishGuiListener
   me/w2n/w2nsmp/listener/AutoFishGuiListener
+  # v1.5.1 - PHASE 1: Night Vision di /setting:
+  me/w2n/w2nsmp/player/NightVisionService
+  me/w2n/w2nsmp/player/PlayerSettingsService
+  me/w2n/w2nsmp/player/PlayerSettings
+  me/w2n/w2nsmp/listener/NightVisionListener
 )
 
 echo "== [1/6] stub + kompilasi =="

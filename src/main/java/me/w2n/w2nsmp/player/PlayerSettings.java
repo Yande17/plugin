@@ -12,6 +12,8 @@ public final class PlayerSettings {
    public static final String KEY_NOTIFY_AUCTION = "notify-auction";
    public static final String KEY_NOTIFY_TPA = "notify-tpa";
    public static final String KEY_TELEPORT_COUNTDOWN = "teleport-countdown";
+   /** v1.5.1: Night Vision pribadi lewat /setting. */
+   public static final String KEY_NIGHT_VISION = "night-vision";
    private final UUID uniqueId;
    private final Map<String, Boolean> values = new LinkedHashMap<>();
 
