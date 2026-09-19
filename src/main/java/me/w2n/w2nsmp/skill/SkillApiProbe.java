@@ -406,7 +406,7 @@ public final class SkillApiProbe {
    }
 
    private static String yesNo(boolean value) {
-      return value ? "&aok" : "&ctidak ada";
+      return value ? "&aok" : "&cmissing";
    }
 
    private static boolean hasClass(String name) {

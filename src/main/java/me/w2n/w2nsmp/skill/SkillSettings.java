@@ -799,7 +799,7 @@ public final class SkillSettings {
    /** Ringkasan satu baris untuk log diagnostik (/w2nsmp debug & startup). */
    public String summary() {
       return this.type.key()
-         + (this.enabled ? "" : " (mati)")
+         + (this.enabled ? "" : " (disabled)")
          + " xp="
          + trim(this.xpDamageDealt)
          + "/"
@@ -810,7 +810,7 @@ public final class SkillSettings {
          + this.buffs.size()
          + "x ("
          + trim(this.buffPerLevel())
-         + "%/lvl maks "
+         + "%/lvl max "
          + trim(this.buffMax())
          + "%)"
          + (this.blocks.isEmpty() ? "" : " blok=" + this.blocks.size());

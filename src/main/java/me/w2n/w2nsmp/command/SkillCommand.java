@@ -507,9 +507,9 @@ public final class SkillCommand implements TabExecutor {
             sender,
             "skill.check-status",
             "status",
-            service.enabled() ? "aktif" : "MATI (skills.enabled: false)",
+            service.enabled() ? "active" : "OFF (skills.enabled: false)",
             "buffs",
-            service.buffsEnabled() ? "aktif" : "MATI (skills.buffs.enabled: false)",
+            service.buffsEnabled() ? "active" : "OFF (skills.buffs.enabled: false)",
             "max",
             Integer.toString(service.maxLevel()),
             "skills",
@@ -526,7 +526,7 @@ public final class SkillCommand implements TabExecutor {
                "gamemode",
                mode,
                "effect",
-               service.gameModeAllowed(player) ? "aktif" : "DILEWATI",
+               service.gameModeAllowed(player) ? "active" : "SKIPPED",
                "list",
                String.join(", ", service.skippedGameModes())
             );
@@ -539,9 +539,9 @@ public final class SkillCommand implements TabExecutor {
                "world",
                world,
                "effect",
-               service.worldAllowed(player.getWorld()) ? "aktif" : "DILEWATI",
+               service.worldAllowed(player.getWorld()) ? "active" : "SKIPPED",
                "list",
-               service.allowedWorlds().isEmpty() ? "semua world" : String.join(", ", service.allowedWorlds())
+               service.allowedWorlds().isEmpty() ? "all worlds" : String.join(", ", service.allowedWorlds())
             );
 
          // Uji hidup: benar-benar memasukkan 1 XP dan melihat apakah tercatat.
@@ -557,7 +557,7 @@ public final class SkillCommand implements TabExecutor {
                "skill",
                service.label(tested),
                "status",
-               after > before ? "OK (XP tercatat)" : "GAGAL (XP tidak masuk)",
+               after > before ? "OK (XP recorded)" : "FAILED (XP not recorded)",
                "xp",
                SkillService.format(after),
                "level",
@@ -582,7 +582,7 @@ public final class SkillCommand implements TabExecutor {
             sender,
             "skill.check-listeners",
             "status",
-            service.diagnostics().listenersOk() ? "terdaftar semua di server" : "ADA YANG HILANG (lihat baris di bawah)"
+            service.diagnostics().listenersOk() ? "all registered on the server" : "SOME MISSING (see lines below)"
          );
 
       for (String line : service.diagnostics().listenerReport().split(" \\| ")) {

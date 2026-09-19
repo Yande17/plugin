@@ -41,7 +41,7 @@ public final class SkillDiagnostics {
    private final W2NSMP plugin;
    private final Map<String, String> errors = new LinkedHashMap<>();
    private final Set<String> warned = new LinkedHashSet<>();
-   private String listenerReport = "belum diperiksa";
+   private String listenerReport = "not checked yet";
    private Set<String> missingListeners = Set.of();
    private boolean checked;
    private boolean listenersOk;
@@ -66,16 +66,16 @@ public final class SkillDiagnostics {
          String shortEvent = eventName.substring(eventName.lastIndexOf('.') + 1);
          Set<String> found = registeredListeners(eventName);
          if (found == null) {
-            lines.add(shortEvent + ": tidak bisa diperiksa (API HandlerList berbeda)");
+            lines.add(shortEvent + ": cannot be checked (different HandlerList API)");
             this.reflectionOk = false;
             allOk = false;
             continue;
          }
 
          if (found.contains(listenerName)) {
-            lines.add(shortEvent + ": " + listenerName + " terdaftar (" + found.size() + " listener W2NSMP)");
+            lines.add(shortEvent + ": " + listenerName + " registered (" + found.size() + " W2NSMP listeners)");
          } else {
-            lines.add(shortEvent + ": " + listenerName + " TIDAK TERDAFTAR");
+            lines.add(shortEvent + ": " + listenerName + " NOT REGISTERED");
             missing.add(listenerName);
             allOk = false;
          }
@@ -188,10 +188,10 @@ public final class SkillDiagnostics {
    /** Ringkasan satu baris untuk log startup & /w2nsmp debug. */
    public synchronized String summary() {
       if (!this.checked) {
-         return "listener: belum diperiksa";
+         return "listeners: not checked yet";
       }
 
-      return (this.listenersOk ? "listener: terdaftar semua" : "listener: HILANG " + this.missingListeners)
+      return (this.listenersOk ? "listeners: all registered" : "listeners: MISSING " + this.missingListeners)
          + (this.reflectionOk ? "" : " (sebagian tidak bisa diperiksa)")
          + (this.errors.isEmpty() ? " | error: 0" : " | error terakhir: " + this.errors.size());
    }

@@ -1426,29 +1426,29 @@ fishing:
       kind: upgrade
       drop-chance-percent: 8.0   # peluang ikut didapat saat menangkap ikan custom
       lore:
-        - "&7Bahan utama upgrade rod."
-        - "&7Didapat dari memancing ikan langka."
+        - "&7Main material for rod upgrades."
+        - "&7Obtained by catching rare fish."
     fishing_core:
       name: "&3Fishing Core"
       material: HEART_OF_THE_SEA
       kind: upgrade
       drop-chance-percent: 2.0   # peluang ikut didapat saat menangkap ikan custom
       lore:
-        - "&7Inti energi untuk rod tingkat tinggi."
+        - "&7Energy core for high-tier rods."
     rare_scale:
       name: "&dRare Scale"
       material: PRISMARINE_SHARD
       kind: upgrade
       drop-chance-percent: 4.0   # peluang ikut didapat saat menangkap ikan custom
       lore:
-        - "&7Sisik ikan langka yang berkilau."
+        - "&7A shimmering scale from a rare fish."
     golden_thread:
       name: "&6Golden Thread"
       material: STRING
       kind: upgrade
       drop-chance-percent: 1.0   # peluang ikut didapat saat menangkap ikan custom
       lore:
-        - "&7Benang emas untuk rod terbaik."
+        - "&7Golden thread for the finest rods."
     lucky_hook:
       name: "&aLucky Hook"
       material: TRIPWIRE_HOOK
@@ -1456,8 +1456,8 @@ fishing:
       effect: luck
       value: 20.0
       lore:
-        - "&7Kail keberuntungan: peluang bonus"
-        - "&7bahan upgrade &f+20% &7(relatif)."
+        - "&7Lucky hook: &f+20% &7(relative) chance"
+        - "&7of bonus upgrade materials."
     golden_hook:
       name: "&6Golden Hook"
       material: TRIPWIRE_HOOK
@@ -1465,7 +1465,7 @@ fishing:
       effect: value
       value: 10.0
       lore:
-        - "&7Kail emas: &f+10% &7nilai jual ikan."
+        - "&7Golden hook: &f+10% &7fish sell value."
     reinforced_line:
       name: "&fReinforced Line"
       material: LEAD
@@ -1473,7 +1473,7 @@ fishing:
       effect: bite-speed
       value: 10.0
       lore:
-        - "&7Senar kuat: gigitan &f10% &7lebih cepat."
+        - "&7Strong line: bites are &f10% &7faster."
     magic_float:
       name: "&dMagic Float"
       material: GLOWSTONE_DUST
@@ -1481,7 +1481,7 @@ fishing:
       effect: rarity-boost
       value: 15.0
       lore:
-        - "&7Pelampung ajaib: &f+15% &7bobot ikan langka."
+        - "&7Magic float: &f+15% &7rare fish weight."
     deep_sea_weight:
       name: "&9Deep Sea Weight"
       material: PRISMARINE_SHARD
@@ -1489,7 +1489,7 @@ fishing:
       effect: double-catch
       value: 5.0
       lore:
-        - "&7Pemberat laut dalam: &f5% &7peluang tangkapan ganda."
+        - "&7Deep sea weight: &f5% &7double catch chance."
     treasure_charm:
       name: "&eTreasure Charm"
       material: NAUTILUS_SHELL
@@ -1497,8 +1497,8 @@ fishing:
       effect: treasure
       value: 5.0
       lore:
-        - "&7Jimat harta: &f+5% &7peluang harta karun"
-        - "&7tambahan tiap tangkapan."
+        - "&7Treasure charm: &f+5% &7extra treasure"
+        - "&7chance on every catch."
     xp_reel:
       name: "&2XP Reel"
       material: EXPERIENCE_BOTTLE
@@ -1506,7 +1506,7 @@ fishing:
       effect: xp
       value: 15.0
       lore:
-        - "&7Gulungan XP: &f+15% &7XP skill memancing."
+        - "&7XP reel: &f+15% &7fishing skill XP."
   # ---- Harta karun (efek treasure, v1.4.1) ----
   # base-chance-percent: peluang dasar TANPA efek rod (0 = hanya lewat efek treasure).
   # items.<id>: material vanilla + amount + weight (bobot undian relatif).
