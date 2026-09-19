@@ -621,6 +621,24 @@ public final class ConfigManager {
       return Math.max(0, this.raw().getInt("nametag.money.update-seconds", 30));
    }
 
+   /** v1.7.0 (PHASE 3): baris bounty di atas kepala (data dari sistem bounty existing). */
+   public boolean nametagBountyEnabled() {
+      return this.raw().getBoolean("nametag.bounty.enabled", true);
+   }
+
+   public boolean nametagBountyDefaultOn() {
+      return this.raw().getBoolean("nametag.bounty.default-on", true);
+   }
+
+   public String nametagBountyFormat() {
+      return this.raw().getString("nametag.bounty.format", "&c\u2620 %bounty%");
+   }
+
+   /** Jarak baris bounty DI ATAS baris uang (blok). */
+   public double nametagBountyOffset() {
+      return Math.max(0.05, Math.min(2.0, this.raw().getDouble("nametag.bounty.offset", 0.28)));
+   }
+
    public int statisticsHighestMoneySeconds() {
       return Math.max(0, this.raw().getInt("statistics.highest-money-seconds", 60));
    }

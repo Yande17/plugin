@@ -112,6 +112,11 @@ public final class PlayerSettingsService {
       return this.get(player, "nametag-money", this.plugin.config().nametagMoneyDefaultOn());
    }
 
+   /** v1.7.0 (PHASE 3): preferensi VIEWER - lihat baris bounty di atas kepala pemain. */
+   public boolean bountyDisplay(Player player) {
+      return this.get(player, PlayerSettings.KEY_BOUNTY_DISPLAY, this.plugin.config().nametagBountyDefaultOn());
+   }
+
    /** Night Vision pribadi (v1.5.1). Bawaan mati; persist per UUID seperti setting lain. */
    public boolean nightVision(Player player) {
       return this.get(player, PlayerSettings.KEY_NIGHT_VISION, this.plugin.config().nightVisionDefaultOn());

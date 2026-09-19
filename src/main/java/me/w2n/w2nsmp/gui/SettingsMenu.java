@@ -222,7 +222,11 @@ public final class SettingsMenu {
             // v1.5.1: Night Vision pribadi.
             keys.add("night-vision");
          }
-         case "visual" -> keys.add("nametag-money");
+         case "visual" -> {
+            keys.add("nametag-money");
+            // v1.7.0 (PHASE 3): toggle bounty terpisah & independen dari Money.
+            keys.add("bounty-display");
+         }
          case "misc" -> keys.add("sounds");
          default -> {
          }
@@ -241,6 +245,7 @@ public final class SettingsMenu {
       return switch (key) {
          case "scoreboard" -> plugin.scoreboard() != null && plugin.scoreboard().visibleFor(player);
          case "nametag-money" -> plugin.settings().nametagMoney(player);
+         case "bounty-display" -> plugin.settings().bountyDisplay(player);
          case "sounds" -> plugin.settings().sounds(player);
          case "notifications" -> plugin.settings().notifications(player);
          case "teleport-countdown" -> plugin.settings().teleportCountdown(player);
@@ -260,6 +265,7 @@ public final class SettingsMenu {
       return switch (key) {
          case "scoreboard" -> Material.CLOCK;
          case "nametag-money" -> Material.NAME_TAG;
+         case "bounty-display" -> Material.TARGET;
          case "sounds" -> Material.NOTE_BLOCK;
          case "notifications" -> Material.BELL;
          case "teleport-countdown" -> Material.ENDER_PEARL;
@@ -321,7 +327,7 @@ public final class SettingsMenu {
 
    public static List<String> keys(W2NSMP plugin) {
       List<String> keys = new ArrayList<>(
-         List.of("scoreboard", "nametag-money", "sounds", "notifications", "teleport-countdown", "notify-bounty", "notify-auction", "notify-tpa")
+         List.of("scoreboard", "nametag-money", "bounty-display", "sounds", "notifications", "teleport-countdown", "notify-bounty", "notify-auction", "notify-tpa")
       );
       if (plugin.scoreboard() != null) {
          for (ScoreboardLine line : plugin.scoreboard().lines()) {
@@ -355,6 +361,16 @@ public final class SettingsMenu {
                // lain TIDAK berubah, saldo juga tidak.
                boolean value = !settings.nametagMoney(player);
                boolean changed = settings.set(player, "nametag-money", value);
+               if (changed && plugin.nametag() != null) {
+                  plugin.nametag().updateViewer(player);
+               }
+
+               yield changed;
+            }
+            case "bounty-display" -> {
+               // v1.7.0 (PHASE 3): preferensi VIEWER untuk baris bounty - independen dari Money.
+               boolean value = !settings.bountyDisplay(player);
+               boolean changed = settings.set(player, "bounty-display", value);
                if (changed && plugin.nametag() != null) {
                   plugin.nametag().updateViewer(player);
                }

@@ -635,6 +635,17 @@ nametag:
     # --- kunci lama (tidak dipakai lagi sejak uang pindah ke atas kepala) ---
     new-line: false
     respect-existing-teams: true
+  # v1.7.0 (PHASE 3): baris BOUNTY di atas baris uang. Data dari sistem bounty existing
+  # (bounty.yml) - hanya tampil bila bounty pemain > 0. Setting "Bounty Display" di /setting
+  # adalah preferensi PENONTON yang terpisah dari Money (independen satu sama lain).
+  bounty:
+    enabled: true
+    # Pilihan bawaan untuk pemain yang belum pernah mengubahnya lewat /setting.
+    default-on: true
+    # Format teks. Placeholder: %bounty% (mis. "$5,000"), %player%.
+    format: "&c☠ %bounty%"
+    # Jarak baris bounty DI ATAS baris uang (blok).
+    offset: 0.28
 
 # ---------------------------------------------------------------------------
 # SKILL (/skill) - 11 skill, tiap skill punya beberapa buff bertahap (v1.3.0)

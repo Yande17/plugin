@@ -110,7 +110,7 @@ public final class MoneyDisplayListener implements Listener {
    /** apply() 1 tick kemudian: menunggu server menyelesaikan perpindahan/status pemain. */
    private void applyLater(Player player) {
       try {
-         if (this.plugin.nametag() == null || !this.plugin.nametag().enabled()) {
+         if (this.plugin.nametag() == null || !this.plugin.nametag().anyEnabled()) {
             return;
          }
 

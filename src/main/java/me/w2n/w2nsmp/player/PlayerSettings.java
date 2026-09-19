@@ -14,6 +14,8 @@ public final class PlayerSettings {
    public static final String KEY_TELEPORT_COUNTDOWN = "teleport-countdown";
    /** v1.5.1: Night Vision pribadi lewat /setting. */
    public static final String KEY_NIGHT_VISION = "night-vision";
+   /** v1.7.0 (PHASE 3): preferensi VIEWER - lihat baris bounty di atas kepala pemain lain. */
+   public static final String KEY_BOUNTY_DISPLAY = "bounty-display";
    private final UUID uniqueId;
    private final Map<String, Boolean> values = new LinkedHashMap<>();
 

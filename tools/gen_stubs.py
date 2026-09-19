@@ -706,6 +706,8 @@ FORCED_MATERIALS = [
     'YELLOW_DYE', 'GLOWSTONE_DUST', 'FIREWORK_STAR', 'CONDUIT', 'CHAIN',
     'FILLED_MAP', 'PURPLE_STAINED_GLASS_PANE', 'RED_STAINED_GLASS_PANE',
     'BLUE_STAINED_GLASS_PANE', 'GRAY_DYE', 'GOLDEN_CARROT',
+    # v1.7.0 - ikon toggle "Bounty Display" di /setting (blok TARGET, ada sejak 1.16)
+    'TARGET',
 ]
 
 # konstanta enum penyebab damage - hanya untuk dokumentasi stub; kode fitur membaca

@@ -100,6 +100,8 @@ TOUCHED=(
   me/w2n/w2nsmp/listener/GearEquipListener
   # v1.6.1 - PHASE 2 (uang di atas kepala): siklus hidup display passenger:
   me/w2n/w2nsmp/listener/MoneyDisplayListener
+  # v1.7.0 - PHASE 3 (toggle Money & Bounty di /setting): refresh display saat bounty berubah:
+  me/w2n/w2nsmp/bounty/BountyService
 )
 
 echo "== [1/6] stub + kompilasi =="

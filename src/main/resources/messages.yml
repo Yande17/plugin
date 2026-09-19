@@ -765,6 +765,7 @@ setting:
   label:
     scoreboard: "Stats Sidebar"
     nametag-money: "Money Display"
+    bounty-display: "Bounty Display"
     sounds: "GUI Sounds"
     notifications: "Notifications"
     teleport-countdown: "Teleport Countdown"
@@ -796,7 +797,7 @@ setting:
     visual:
       name: "&d&lVisual"
       lore:
-        - "&7Show or hide money displays above players."
+        - "&7Show or hide money and bounty displays above players."
         - "&f%count% &7settings."
         - "&eClick to open."
     misc:

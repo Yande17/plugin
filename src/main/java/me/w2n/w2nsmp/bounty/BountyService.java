@@ -296,6 +296,7 @@ public final class BountyService {
 
          long added = current + amount;
          this.amounts.put(target.getUniqueId(), added);
+         this.refreshDisplay(target.getUniqueId());
          this.rememberName(creator);
          if (target.isOnline() && target.getPlayer() != null) {
             this.rememberName(target.getPlayer());
@@ -384,6 +385,7 @@ public final class BountyService {
          }
 
          this.amounts.remove(victim.getUniqueId());
+         this.refreshDisplay(victim.getUniqueId());
          this.rememberClaim(victim.getUniqueId(), killer.getUniqueId());
          this.save();
          String payoutText = this.plugin.economy().format(payout);
@@ -440,6 +442,7 @@ public final class BountyService {
       }
 
       this.save();
+      this.refreshDisplay(target);
       return previous;
    }
 
@@ -452,7 +455,25 @@ public final class BountyService {
       this.amounts.clear();
       this.claims.clear();
       this.save();
+
+      for (Player online : Bukkit.getOnlinePlayers()) {
+         this.refreshDisplay(online.getUniqueId());
+      }
+
       return removed;
+   }
+
+   /** v1.7.0 (PHASE 3): bounty berubah -> segarkan baris bounty di atas kepala seketika. */
+   private void refreshDisplay(UUID target) {
+      try {
+         if (this.plugin.nametag() != null && target != null) {
+            Player online = Bukkit.getPlayer(target);
+            if (online != null && online.isOnline()) {
+               this.plugin.nametag().refresh(online);
+            }
+         }
+      } catch (Throwable ignored) {
+      }
    }
 
    public int pruneClaims() {
