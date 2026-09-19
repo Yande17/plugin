@@ -8,6 +8,7 @@ import me.w2n.w2nsmp.listener.BountyListener;
 import me.w2n.w2nsmp.listener.CombatListener;
 import me.w2n.w2nsmp.listener.ConfirmGuiListener;
 import me.w2n.w2nsmp.listener.FishingListener;
+import me.w2n.w2nsmp.listener.GearEquipListener;
 import me.w2n.w2nsmp.listener.GearListener;
 import me.w2n.w2nsmp.listener.HomeGuiListener;
 import me.w2n.w2nsmp.listener.LeaderboardGuiListener;
@@ -53,6 +54,7 @@ public final class ListenerManager {
       this.register(new BountyListener(this.plugin));
       this.register(new BountyGuiListener(this.plugin));
       this.register(new GearListener(this.plugin));
+      this.register(new GearEquipListener(this.plugin));
       this.register(new RodGuiListener(this.plugin));
       this.register(new FishGuiListener(this.plugin));
       this.register(new AutoFishGuiListener(this.plugin));

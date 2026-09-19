@@ -494,6 +494,11 @@ FORCED_TYPES = {
     'org/bukkit/event/player/PlayerChangedWorldEvent',
     # v1.5.1 - night vision /setting: pasang ulang efek sesudah respawn (event Bukkit lama)
     'org/bukkit/event/player/PlayerRespawnEvent',
+    # v1.5.4 - penegakan syarat gear (PHASE 4): auto-equip klik kanan & dispenser armor
+    'org/bukkit/event/player/PlayerInteractEvent',
+    'org/bukkit/event/block/BlockDispenseArmorEvent',
+    # v1.5.4 - tukar main-hand <-> offhand dengan tombol F (event Bukkit 1.9+)
+    'org/bukkit/event/player/PlayerSwapHandItemsEvent',
 }
 
 FORCED_MEMBERS = {
@@ -511,6 +516,15 @@ FORCED_MEMBERS = {
     'org/bukkit/event/inventory/InventoryClickEvent': [
         # menu /rod: kurangi item attachment yang diklik di inventory pemain
         ('setCurrentItem', '(Lorg/bukkit/inventory/ItemStack;)V', False),
+        # v1.5.4 - penegakan syarat gear: cek item hotbar pada swap angka 1-9
+        ('getHotbarButton', '()I', False),
+        ('getCursor', '()Lorg/bukkit/inventory/ItemStack;', False),
+    ],
+    # v1.5.4 - swap offhand dengan F: tolak bila offhand hasil swap melanggar syarat
+    'org/bukkit/event/player/PlayerSwapHandItemsEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
+        ('getOffHandItem', '()Lorg/bukkit/inventory/ItemStack;', False),
+        ('setCancelled', '(Z)V', False),
     ],
     # v1.4.0 - gear history & custom fishing (semua API stabil sejak Bukkit lama):
     'org/bukkit/World': [
@@ -525,6 +539,9 @@ FORCED_MEMBERS = {
     'org/bukkit/inventory/PlayerInventory': [
         # bonus set armor (gear): hitung potongan armor yang cocok
         ('getArmorContents', '()[Lorg/bukkit/inventory/ItemStack;', False),
+        # v1.5.4 - penegakan syarat gear: baca/tulis offhand (API 1.9+, stabil)
+        ('getItemInOffHand', '()Lorg/bukkit/inventory/ItemStack;', False),
+        ('setItemInOffHand', '(Lorg/bukkit/inventory/ItemStack;)V', False),
         # getItemInMainHand/getArmorContents mengembalikan SALINAN di CraftBukkit -
         # perubahan PDC gear wajib ditulis balik lewat setter ini
         ('setArmorContents', '([Lorg/bukkit/inventory/ItemStack;)V', False),
@@ -537,6 +554,8 @@ FORCED_MEMBERS = {
         ('getDamage', '()D', False),
         ('setDamage', '(D)V', False),
         ('getCause', '()Lorg/bukkit/event/entity/EntityDamageEvent$DamageCause;', False),
+        # v1.5.4 - penolakan serangan dengan senjata bersyarat (Cancellable sejak Bukkit lama)
+        ('setCancelled', '(Z)V', False),
     ],
     'org/bukkit/entity/LivingEntity': [
         ('getHealth', '()D', False),
@@ -558,6 +577,19 @@ FORCED_MEMBERS = {
     'org/bukkit/event/player/PlayerRespawnEvent': [
         ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
     ],
+    # v1.5.4 - penegakan syarat gear: auto-equip armor via klik kanan (API lama & stabil)
+    'org/bukkit/event/player/PlayerInteractEvent': [
+        ('getPlayer', '()Lorg/bukkit/entity/Player;', False),
+        ('getItem', '()Lorg/bukkit/inventory/ItemStack;', False),
+        ('setCancelled', '(Z)V', False),
+    ],
+    # v1.5.4 - dispenser memasangkan armor ke pemain (event Bukkit 1.13+)
+    'org/bukkit/event/block/BlockDispenseArmorEvent': [
+        ('getTargetEntity', '()Lorg/bukkit/entity/LivingEntity;', False),
+        ('getItem', '()Lorg/bukkit/inventory/ItemStack;', False),
+        ('setCancelled', '(Z)V', False),
+    ],
+
     # v1.4.1 - autofishing: cek stack sejenis masih muat (API ItemStack lama & stabil)
     'org/bukkit/inventory/ItemStack': [
         ('isSimilar', '(Lorg/bukkit/inventory/ItemStack;)Z', False),

@@ -45,6 +45,10 @@ public final class GearService {
    private double unmetDamagePercent = 100.0D;
    private double healCap = 20.0D;
    private boolean notifyMilestone = true;
+   /** v1.5.4: true = syarat skill MENOLAK pemakaian/pemasangan (bukan hanya mengunci perk). */
+   private boolean enforceRequirements = true;
+   /** v1.5.4: anti-spam pesan penolakan per pemain (ms epoch pesan terakhir). */
+   private final Map<UUID, Long> denyMessageAt = new HashMap<>();
 
    public GearService(W2NSMP plugin) {
       this.plugin = plugin;
@@ -60,8 +64,11 @@ public final class GearService {
       this.unmetDamagePercent = clamp(config.getDouble("gear.unmet-damage-percent", 100.0D), 0.0D, 100.0D);
       this.healCap = Math.max(1.0D, config.getDouble("gear.heal-cap", 20.0D));
       this.notifyMilestone = config.getBoolean("gear.notify-milestone", true);
+      // v1.5.4 (PHASE 4): syarat skill kini benar-benar menggerbang pemakaian.
+      this.enforceRequirements = config.getBoolean("gear.enforce-requirements", true);
       this.classes.clear();
       this.perkCooldowns.clear();
+      this.denyMessageAt.clear();
 
       ConfigurationSection root = config.getConfigurationSection("gear.classes");
       if (root == null) {
@@ -298,6 +305,61 @@ public final class GearService {
    }
 
    /** Pemakaian dasar selalu boleh; hanya perk lanjutan yang terkunci bila syarat tidak terpenuhi. */
+   /**
+    * v1.5.4 (PHASE 4): apakah PEMAIN INI boleh memakai item ini. Selalu membandingkan stat
+    * pemain yang sedang memegang/memasang dengan syarat item (PDC menang, lalu config class)
+    * - TIDAK PERNAH stat pemilik pertama. Pemilik pertama murni riwayat.
+    *
+    * @return null bila boleh; bila ditolak, mengembalikan alasan siap-tampil
+    *         ("Fighting Lv. 15 (you have 3)").
+    */
+   public String denyReason(Player player, ItemStack stack) {
+      if (!this.enabled || !this.enforceRequirements || player == null || Items.isEmpty(stack)) {
+         return null;
+      }
+
+      GearClass gearClass = this.classFor(stack.getType());
+      if (gearClass == null) {
+         return null;
+      }
+
+      SkillType skill = this.requiredSkill(stack, gearClass);
+      int level = this.requiredLevel(stack, gearClass);
+      if (skill == null || level <= 0) {
+         return null;
+      }
+
+      int have = this.plugin.skills() == null ? 0 : this.plugin.skills().level(player, skill);
+      if (have >= level) {
+         return null;
+      }
+
+      String label = this.plugin.skills() == null ? skill.key() : this.plugin.skills().label(skill);
+      return this.plugin.messages().raw("gear.deny-requirement",
+         "skill", label, "level", Integer.toString(level), "have", Integer.toString(have));
+   }
+
+   /** true bila penolakan pemakaian aktif (gear.enforce-requirements). */
+   public boolean enforceRequirements() {
+      return this.enforceRequirements;
+   }
+
+   /** Kirim pesan penolakan (dengan cooldown anti-spam per pemain). */
+   public void sendDeny(Player player, String reason) {
+      if (player == null || reason == null) {
+         return;
+      }
+
+      long now = System.currentTimeMillis();
+      Long last = this.denyMessageAt.get(player.getUniqueId());
+      if (last != null && now - last < 1500L) {
+         return;
+      }
+
+      this.denyMessageAt.put(player.getUniqueId(), now);
+      this.plugin.messages().send(player, "gear.denied", "reason", reason);
+   }
+
    public boolean meetsRequirement(Player player, ItemStack stack, GearClass gearClass) {
       if (player == null) {
          return false;

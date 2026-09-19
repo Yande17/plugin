@@ -68,13 +68,25 @@ public final class GearListener implements Listener {
          return;
       }
 
+      // v1.5.4 (PHASE 4): enforcement menyala -> serangan dengan senjata yang syaratnya
+      // tidak dipenuhi PEMAIN INI dibatalkan penuh (bukan cuma perk terkunci). Counter &
+      // riwayat tidak bertambah karena serangan tidak terjadi.
+      if (gear.enforceRequirements()) {
+         String reason = gear.denyReason(attacker, weapon);
+         if (reason != null) {
+            event.setCancelled(true);
+            gear.sendDeny(attacker, reason);
+            return;
+         }
+      }
+
       gear.stampFirstOwner(attacker, weapon);
       gear.increment(weapon, gearClass, false);
       // getItemInMainHand mengembalikan SALINAN di CraftBukkit: tulis balik supaya PDC tersimpan.
       attacker.getInventory().setItemInMainHand(weapon);
 
       if (!gear.meetsRequirement(attacker, weapon, gearClass)) {
-         // Syarat tidak terpenuhi: perk terkunci; damage dasar bisa dipangkas via config.
+         // Enforcement mati (mode lama): perk terkunci; damage dasar bisa dipangkas via config.
          double percent = gear.unmetDamagePercent();
          if (percent < 100.0D) {
             event.setDamage(event.getDamage() * percent / 100.0D);

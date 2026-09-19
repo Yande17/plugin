@@ -1186,6 +1186,12 @@ gear:
   lore-update-every: 5
   # true = hanya PEMILIK PERTAMA yang mendapat perk item (pemain lain tetap bisa memakai dasar).
   first-owner-only-perks: false
+  # v1.5.4 (PHASE 4): true = syarat skill MENOLAK pemakaian - armor bersyarat tidak bisa
+  # dipasang (semua jalur: klik, shift-click, drag, number-key, offhand, dispenser, relog,
+  # respawn) dan senjata bersyarat tidak bisa dipakai menyerang. Syarat SELALU dibandingkan
+  # dengan stat pemain yang memakai, bukan pemilik pertama. false = mode lama (hanya perk
+  # terkunci + unmet-damage-percent).
+  enforce-requirements: true
   # Persen damage saat syarat skill TIDAK terpenuhi (100 = pemakaian dasar penuh, bawaan).
   unmet-damage-percent: 100.0
   # Plafon darah yang bisa dipulihkan lifesteal (20.0 = 10 heart).

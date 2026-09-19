@@ -1357,16 +1357,20 @@ skill:
 # Riwayat & perk gear (v1.4.0)
 # ======================================================================
 gear:
-  # Blok lore riwayat yang ditulis di ekor lore item (dinamis).
+  # Blok lore riwayat yang ditulis di ekor lore item (dinamis; PDC tetap sumber kebenaran).
   lore-header: "&8&m                    "
-  lore-owner: "&7Pemilik pertama: &f%owner%"
-  lore-kills: "&7Kill pemain: &f%kills%"
-  lore-uses: "&7Pemakaian: &f%uses%"
+  lore-owner: "&7First owner: &f%owner%"
+  lore-kills: "&7Player kills: &f%kills%"
+  lore-uses: "&7Uses: &f%uses%"
   lore-perk: "&a+ %perk% &8(%threshold%)"
   lore-next: "&8- %perk% &8(%count%/%threshold%)"
-  lore-require: "&cSyarat: %skill% Lv. %level%"
+  lore-require: "&cRequires: %skill% Lv. %level%"
+  # v1.5.4 (PHASE 4): pesan penolakan saat syarat item tidak dipenuhi PEMAIN INI.
+  # %reason% diisi dari deny-requirement di bawah.
+  denied: "%prefix%&cYou don't meet the requirements for this item: &f%reason%"
+  deny-requirement: "%skill% Lv. %level% &7(you have Lv. %have%)"
   # Pengumuman chat saat milestone baru terlewati.
-  milestone: "%prefix%&6Milestone gear! &fPerk &e%perk% &fterbuka pada &e%threshold% kill&f."
+  milestone: "%prefix%&6Gear milestone! &fPerk &e%perk% &funlocked at &e%threshold% kills&f."
   # Nama perk yang bisa dibaca (%value% & %ticks% dari config).
   perk:
     bleeding: "Bleeding (%value% dmg x%ticks%)"

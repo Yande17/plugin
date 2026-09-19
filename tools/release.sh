@@ -96,6 +96,8 @@ TOUCHED=(
   me/w2n/w2nsmp/player/PlayerSettingsService
   me/w2n/w2nsmp/player/PlayerSettings
   me/w2n/w2nsmp/listener/NightVisionListener
+  # v1.5.4 - PHASE 4: penegakan syarat gear di semua jalur equip:
+  me/w2n/w2nsmp/listener/GearEquipListener
 )
 
 echo "== [1/6] stub + kompilasi =="
