@@ -796,7 +796,7 @@ setting:
     visual:
       name: "&d&lVisual"
       lore:
-        - "&7Money display above your head and other visuals."
+        - "&7Show or hide money displays above players."
         - "&f%count% &7settings."
         - "&eClick to open."
     misc:

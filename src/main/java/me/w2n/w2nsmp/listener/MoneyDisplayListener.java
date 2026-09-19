@@ -33,7 +33,18 @@ public final class MoneyDisplayListener implements Listener {
 
    @EventHandler(priority = EventPriority.MONITOR)
    public void onJoin(PlayerJoinEvent event) {
+      // 1) pasang display milik pemain baru; 2) terapkan preferensi VIEWER-nya sendiri ke
+      // semua display yang sudah ada (setting OFF harus langsung berlaku sejak join).
       this.applyLater(event.getPlayer());
+      Bukkit.getScheduler().runTask(this.plugin, () -> {
+         try {
+            Player player = event.getPlayer();
+            if (player.isOnline() && this.plugin.nametag() != null) {
+               this.plugin.nametag().updateViewer(player);
+            }
+         } catch (Throwable ignored) {
+         }
+      });
    }
 
    @EventHandler(priority = EventPriority.MONITOR)

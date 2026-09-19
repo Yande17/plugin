@@ -614,16 +614,20 @@ setting:
 # menyentuh paket jaringan secara langsung.
 nametag:
   money:
-    # v1.6.1 (PHASE 2): uang tampil DI ATAS KEPALA pemain (entity TextDisplay yang menumpang
-    # pemain), BUKAN lagi di nama. Nama pemain selalu bersih; team/prefix/rank tidak disentuh.
+    # v1.6.2 (PHASE 2 FIX): uang tampil DI ATAS KEPALA pemain (entity TextDisplay yang
+    # menumpang pemain), BUKAN lagi di nama. Nama pemain selalu bersih; team/prefix/rank
+    # tidak disentuh. Setting "Money Display" di /setting adalah preferensi PENONTON:
+    # OFF = pemain itu tidak melihat display uang siapa pun di layarnya sendiri;
+    # display miliknya untuk pemain lain TIDAK terpengaruh, saldo juga tidak.
     # Butuh server 1.19.4+ (API TextDisplay); bila tidak ada, fitur mati sendiri dengan log.
     enabled: true
-    # Pilihan bawaan untuk pemain (bisa dimatikan sendiri lewat /setting).
+    # Pilihan bawaan untuk pemain yang belum pernah mengubahnya lewat /setting.
     default-on: true
     # Format teks di atas kepala. Placeholder: %balance% (mis. "$1,250"), %player%.
     format: "&a%balance%"
-    # Tinggi teks di atas titik dudukan (blok). 0.4 = tepat di atas nametag vanilla.
-    height: 0.4
+    # Tinggi teks di atas titik dudukan (blok). 0.72 = jelas terpisah di atas nametag
+    # vanilla (naikkan bila masih terasa dempet, mis. 0.9; turunkan bila terlalu jauh).
+    height: 0.72
     # Pembaruan berkala (detik). Saldo yang berubah lewat W2NSMP selalu diperbarui seketika;
     # nilai ini menjaring perubahan dari plugin luar (Vault) dan memasang ulang display yang
     # terlepas. 0 = hanya saat saldo berubah.

@@ -350,14 +350,13 @@ public final class SettingsMenu {
          return switch (key) {
             case "scoreboard" -> plugin.scoreboard() != null && plugin.scoreboard().setVisible(player, !plugin.scoreboard().visibleFor(player));
             case "nametag-money" -> {
+               // v1.6.2 (PHASE 2 FIX): preferensi VIEWER - mengatur apakah PEMAIN INI melihat
+               // display uang pemain lain di layarnya sendiri. Display miliknya untuk orang
+               // lain TIDAK berubah, saldo juga tidak.
                boolean value = !settings.nametagMoney(player);
                boolean changed = settings.set(player, "nametag-money", value);
                if (changed && plugin.nametag() != null) {
-                  if (value) {
-                     plugin.nametag().apply(player);
-                  } else {
-                     plugin.nametag().remove(player);
-                  }
+                  plugin.nametag().updateViewer(player);
                }
 
                yield changed;

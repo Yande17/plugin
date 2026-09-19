@@ -593,6 +593,10 @@ FORCED_MEMBERS = {
         # v1.6.1 - uang di atas kepala: display disembunyikan saat pemain menunduk
         # (meniru perilaku nametag vanilla; API Bukkit sangat lama)
         ('isSneaking', '()Z', False),
+        # v1.6.2 - visibilitas per-VIEWER: setting Money milik penonton menyembunyikan/
+        # menampilkan display pemain lain HANYA di layarnya (API Bukkit 1.18+)
+        ('hideEntity', '(Lorg/bukkit/plugin/Plugin;Lorg/bukkit/entity/Entity;)V', False),
+        ('showEntity', '(Lorg/bukkit/plugin/Plugin;Lorg/bukkit/entity/Entity;)V', False),
     ],
     # v1.6.1 - uang di atas kepala (PHASE 2): passenger TextDisplay di pemain.
     # Semua member di bawah ada sejak Bukkit 1.19.4 (Display API) / jauh lebih lama (Entity).

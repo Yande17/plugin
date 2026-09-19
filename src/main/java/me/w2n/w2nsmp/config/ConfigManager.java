@@ -608,9 +608,9 @@ public final class ConfigManager {
       return this.raw().getBoolean("nametag.money.new-line", false);
    }
 
-   /** v1.6.1: tinggi teks uang di atas kepala (blok, relatif ke titik dudukan passenger). */
+   /** v1.6.2: tinggi teks uang di atas kepala (blok, relatif ke titik dudukan passenger). */
    public double nametagMoneyHeight() {
-      return Math.max(0.0, Math.min(3.0, this.raw().getDouble("nametag.money.height", 0.4)));
+      return Math.max(0.0, Math.min(3.0, this.raw().getDouble("nametag.money.height", 0.72)));
    }
 
    public boolean nametagMoneyRespectTeams() {

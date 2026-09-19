@@ -23,27 +23,35 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 /**
- * Uang di atas kepala pemain (v1.6.1, PHASE 2).
+ * Uang di atas kepala pemain (v1.6.2, PHASE 2 FIX - visibilitas per-VIEWER).
  *
- * <p>Setiap pemain (yang menyalakannya lewat /setting) membawa satu entity
- * {@link TextDisplay} sebagai <em>passenger</em>: teks saldo melayang di atas nametag dan
- * ikut bergerak bersama pemain tanpa task per tick. Nama pemain sendiri TIDAK disentuh -
- * tidak ada team, suffix, prefix, atau scoreboard yang diubah (hasil PHASE 1 dipertahankan).
+ * <p>Dua peran yang dipisahkan tegas:
+ * <ul>
+ *   <li><b>Owner</b> - setiap pemain online membawa satu entity {@link TextDisplay} berisi
+ *       saldonya sendiri (passenger; ikut bergerak mulus tanpa task per tick). Display owner
+ *       TIDAK dikontrol oleh setting owner - selalu ada selama fitur aktif dan pemain layak
+ *       tampil (hidup, tidak sneak, bukan spectator).</li>
+ *   <li><b>Viewer</b> - setting "Money Display" di /setting adalah preferensi LAYAR penonton:
+ *       OFF berarti viewer itu tidak melihat display uang SIAPA PUN (termasuk miliknya);
+ *       pemain lain sama sekali tidak terpengaruh. Diimplementasikan lewat
+ *       {@link Player#hideEntity}/{@link Player#showEntity} yang memang per-pemain.</li>
+ * </ul>
+ *
+ * <p>Nama pemain tidak pernah disentuh - tidak ada team, suffix, prefix, atau scoreboard
+ * yang diubah (hasil PHASE 1 dipertahankan; sisa team lama tetap dibersihkan tiap start).
  *
  * <p>Keamanan data & anti-sampah:
  * <ul>
- *   <li>display dibuat {@code setPersistent(false)} - tidak pernah tersimpan ke chunk,
- *       jadi restart/crash tidak meninggalkan entity yatim;</li>
- *   <li>satu pemain = maksimal satu display ({@link #displays}); apply bersifat idempoten
- *       (dipanggil dua kali hanya memperbarui teks);</li>
- *   <li>teks hanya dikirim ulang bila berubah ({@link #lastText}) - tidak membanjiri jaringan;</li>
- *   <li>update saldo instan lewat {@link me.w2n.w2nsmp.economy.EconomyManager} yang memanggil
- *       {@link #refresh(Player)}; task berkala ({@code update-seconds}) hanya menjaring
- *       perubahan dari plugin luar (Vault) dan memasang ulang display yang terlepas.</li>
+ *   <li>display {@code setPersistent(false)} - tidak pernah tersimpan ke chunk, restart/crash
+ *       tidak meninggalkan entity yatim;</li>
+ *   <li>satu owner = maksimal satu display ({@link #displays}); apply idempoten;</li>
+ *   <li>teks hanya dikirim ulang bila berubah ({@link #lastText});</li>
+ *   <li>update saldo instan lewat EconomyManager -> {@link #refresh(Player)}; task berkala
+ *       ({@code update-seconds}) menjaring perubahan plugin luar + memasang ulang display
+ *       yang terlepas.</li>
  * </ul>
  *
- * <p>Bila server tidak punya API TextDisplay (pra-1.19.4), fitur mematikan diri dengan
- * satu baris log - plugin tetap jalan normal.
+ * <p>Server tanpa API TextDisplay (pra-1.19.4): fitur mati sendiri dengan satu baris log.
  */
 public final class NametagService {
    /** Nama team lama versi <= 1.5.x (suffix uang di nama) - kini hanya dibersihkan. */
@@ -128,9 +136,9 @@ public final class NametagService {
    }
 
    /**
-    * Pasang (atau perbarui) display uang pemain. Idempoten dan aman dipanggil kapan saja:
-    * bila pemain mematikan setting, sedang menunduk, spectator, atau mati, display justru
-    * dicabut.
+    * Pasang (atau perbarui) display uang milik OWNER ini. Idempoten. Setting pribadi owner
+    * TIDAK dicek di sini - setting hanya memengaruhi apa yang owner LIHAT, bukan display
+    * miliknya (lihat {@link #updateViewer(Player)}).
     */
    public boolean apply(Player player) {
       if (player == null || !player.isOnline()) {
@@ -172,6 +180,25 @@ public final class NametagService {
       }
    }
 
+   /**
+    * Terapkan setting Money milik VIEWER ke layarnya sendiri: OFF = sembunyikan semua
+    * display uang (termasuk miliknya), ON = tampilkan semua. Pemain lain tidak terpengaruh.
+    * Dipanggil saat toggle /setting dan saat viewer join.
+    */
+   public void updateViewer(Player viewer) {
+      if (viewer == null || !viewer.isOnline() || !this.apiSupported) {
+         return;
+      }
+
+      boolean show = this.viewerEnabled(viewer);
+
+      for (TextDisplay display : this.displays.values()) {
+         if (display != null && display.isValid()) {
+            this.setVisibleFor(viewer, display, show);
+         }
+      }
+   }
+
    /** Scoreboard pemain berganti: pastikan scoreboard barunya bebas team suffix lama. */
    public void onScoreboardChanged(Player viewer) {
       if (viewer == null) {
@@ -183,7 +210,7 @@ public final class NametagService {
       this.cleanLegacyTeam(sidebar);
    }
 
-   /** Cabut display uang pemain (quit, mati, toggle OFF, sneak, spectator). */
+   /** Cabut display uang milik pemain ini (quit, mati, sneak, spectator, fitur mati). */
    public void remove(Player player) {
       if (player == null) {
          return;
@@ -227,24 +254,20 @@ public final class NametagService {
    }
 
    // ------------------------------------------------------------------ //
-   // Display di atas kepala
+   // Display di atas kepala (sisi OWNER)
    // ------------------------------------------------------------------ //
 
-   /** Apakah display pemain ini boleh terlihat sekarang (setting ON, hidup, tidak sneak/spectator). */
+   /** Apakah display OWNER ini layak ada sekarang (hidup, tidak sneak, bukan spectator). */
    private boolean shouldShow(Player player) {
       if (player.isDead() || player.isSneaking()) {
          return false;
       }
 
       try {
-         if (player.getGameMode() == GameMode.SPECTATOR) {
-            return false;
-         }
+         return player.getGameMode() != GameMode.SPECTATOR;
       } catch (Throwable ignored) {
+         return true;
       }
-
-      PlayerSettingsService settings = this.plugin.settings();
-      return settings == null || settings.nametagMoney(player);
    }
 
    private boolean spawnDisplay(Player player) {
@@ -262,6 +285,15 @@ public final class NametagService {
          this.lastText.remove(id);
          this.displays.put(id, display);
          this.updateText(player, display);
+
+         // Entity BARU: terapkan preferensi setiap viewer online (yang OFF tidak boleh
+         // melihatnya). hideEntity bersifat per-entity, jadi wajib diulang tiap respawn.
+         for (Player viewer : Bukkit.getOnlinePlayers()) {
+            if (!this.viewerEnabled(viewer)) {
+               this.setVisibleFor(viewer, display, false);
+            }
+         }
+
          if (!player.addPassenger(display)) {
             // gagal menumpang (kondisi aneh, mis. pemain sedang mati) - jangan tinggalkan entity
             this.remove(player);
@@ -315,9 +347,33 @@ public final class NametagService {
       return this.plugin.messages().apply(this.plugin.config().nametagMoneyFormat(), "balance", balance, "player", player.getName());
    }
 
+   // ------------------------------------------------------------------ //
+   // Sisi VIEWER
+   // ------------------------------------------------------------------ //
+
+   /** Setting Money milik viewer: apakah DIA ingin melihat display uang di layarnya. */
+   private boolean viewerEnabled(Player viewer) {
+      PlayerSettingsService settings = this.plugin.settings();
+      return settings == null || settings.nametagMoney(viewer);
+   }
+
+   /** hide/showEntity hanya memengaruhi layar viewer ini - inti visibilitas per-viewer. */
+   private void setVisibleFor(Player viewer, TextDisplay display, boolean visible) {
+      try {
+         if (visible) {
+            viewer.showEntity(this.plugin, display);
+         } else {
+            viewer.hideEntity(this.plugin, display);
+         }
+      } catch (Throwable throwable) {
+         this.plugin.debug("Money display: hide/show failed for viewer " + viewer.getName() + " (" + throwable + ").");
+      }
+   }
+
    private static boolean probeApi() {
       try {
          Class.forName("org.bukkit.entity.TextDisplay");
+         Player.class.getMethod("hideEntity", org.bukkit.plugin.Plugin.class, org.bukkit.entity.Entity.class);
          return true;
       } catch (Throwable throwable) {
          return false;
