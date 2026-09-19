@@ -110,11 +110,45 @@ public final class FishingListener implements Listener {
          // level rod) ikut dihitung supaya lore & PDC konsisten.
          double valueBonus = holdingRod ? fishing.effectTotal(rod, "value") : 0.0D;
          ItemStack custom = fishing.createFish(rolled, valueBonus);
-         try {
-            caughtItem.setItemStack(custom);
-         } catch (Throwable throwable) {
-            this.plugin.debug("Fishing: gagal mengganti tangkapan custom (" + throwable + ").");
-            return;
+
+         // v1.8.0 (PHASE 4): ikan custom masuk Fish Inventory, BUKAN inventory normal.
+         // Urutan anti-dupe: simpan ke storage dulu; kalau sukses, entity tangkapan
+         // dihilangkan (tidak pernah dipungut). Kalau storage penuh/mati -> fallback lama
+         // (item terbang ke pemain) supaya ikan tidak pernah hilang.
+         me.w2n.w2nsmp.fishing.FishInventory storage = this.plugin.fishInventory();
+         boolean stored = false;
+         if (storage != null && storage.enabled()) {
+            boolean wasFull = storage.isFull(player.getUniqueId());
+            stored = !wasFull && storage.add(player.getUniqueId(), custom);
+            if (wasFull) {
+               this.plugin.messages().send(player, "fishing.storage-full");
+            }
+         }
+
+         if (stored) {
+            try {
+               caughtItem.remove();
+            } catch (Throwable throwable) {
+               // Entity tidak bisa dihapus (aneh) - tarik kembali dari storage agar tidak dupe.
+               storage.take(player.getUniqueId(), storage.count(player.getUniqueId()) - 1);
+               stored = false;
+            }
+         }
+
+         if (stored) {
+            if (this.plugin.config().raw().getBoolean("fishing.fish-inventory.catch-message", true)) {
+               this.plugin.messages().send(player, "fishing.stored",
+                  "fish", rolled.fishName(),
+                  "count", Integer.toString(storage.count(player.getUniqueId())),
+                  "capacity", Integer.toString(storage.capacity(player.getUniqueId())));
+            }
+         } else {
+            try {
+               caughtItem.setItemStack(custom);
+            } catch (Throwable throwable) {
+               this.plugin.debug("Fishing: gagal mengganti tangkapan custom (" + throwable + ").");
+               return;
+            }
          }
 
          if (holdingRod) {

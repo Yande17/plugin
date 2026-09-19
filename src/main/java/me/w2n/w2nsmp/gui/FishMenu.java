@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import me.w2n.w2nsmp.W2NSMP;
 import me.w2n.w2nsmp.config.GuiConfig;
 import me.w2n.w2nsmp.fishing.CustomFish;
+import me.w2n.w2nsmp.fishing.FishInventory;
 import me.w2n.w2nsmp.fishing.FishingService;
 import me.w2n.w2nsmp.skill.SkillService;
 import me.w2n.w2nsmp.utility.GuiKit;
@@ -94,6 +95,16 @@ public final class FishMenu {
       return slot(plugin, "gallery", 11);
    }
 
+   /** v1.8.0 (PHASE 4): kartu Fish Storage di hub. */
+   public static int storageSlot(W2NSMP plugin) {
+      return slot(plugin, "storage", 13);
+   }
+
+   /** v1.8.0: tombol upgrade kapasitas di halaman storage. */
+   public static int upgradeSlot(W2NSMP plugin) {
+      return slot(plugin, "upgrade", 47);
+   }
+
    public static int rodSlot(W2NSMP plugin) {
       return slot(plugin, "rod", 15);
    }
@@ -144,7 +155,8 @@ public final class FishMenu {
       holder.page(page);
       boolean hub = FishMenuHolder.MODE_HUB.equals(holder.mode());
       int size = hub ? Math.max(27, gui(plugin).size("hub-size", 27)) : 54;
-      String titleKey = hub ? "fishing.hub-title" : "fishing.gallery-title";
+      String titleKey = hub ? "fishing.hub-title"
+         : FishMenuHolder.MODE_STORAGE.equals(holder.mode()) ? "fishing.storage-title" : "fishing.gallery-title";
       Inventory inventory = Bukkit.createInventory(holder, size,
          gui(plugin).title(titleKey, "player", player.getName()));
       holder.setInventory(inventory);
@@ -161,6 +173,8 @@ public final class FishMenu {
 
       if (FishMenuHolder.MODE_GALLERY.equals(holder.mode())) {
          renderGallery(plugin, inventory, player, holder);
+      } else if (FishMenuHolder.MODE_STORAGE.equals(holder.mode())) {
+         renderStorage(plugin, inventory, player, holder);
       } else {
          renderHub(plugin, inventory, player);
       }
@@ -168,11 +182,17 @@ public final class FishMenu {
 
    private static void renderHub(W2NSMP plugin, Inventory inventory, Player player) {
       FishingService fishing = plugin.fishing();
+      FishInventory storage = plugin.fishInventory();
       int gallery = gallerySlot(plugin);
+      int storageSlot = storageSlot(plugin);
       int rod = rodSlot(plugin);
       int info = hubInfoSlot(plugin);
       int close = hubCloseSlot(plugin);
+      boolean storageOn = storage != null && storage.enabled();
       Set<Integer> content = new HashSet<>(List.of(gallery, rod, info, close));
+      if (storageOn) {
+         content.add(storageSlot);
+      }
 
       clearExcept(inventory, content);
       GuiKit.shell(plugin, gui(plugin), inventory, Material.LIGHT_BLUE_STAINED_GLASS_PANE,
@@ -184,13 +204,21 @@ public final class FishMenu {
       String[] placeholders = {
          "player", player.getName(),
          "found", Integer.toString(found),
-         "total", Integer.toString(total)
+         "total", Integer.toString(total),
+         "count", Integer.toString(storage == null ? 0 : storage.count(player.getUniqueId())),
+         "capacity", Integer.toString(storage == null ? 0 : storage.capacity(player.getUniqueId()))
       };
 
       inventory.setItem(gallery, Items.create(
          gui(plugin).material("gallery-material", Material.TROPICAL_FISH),
          plugin.messages().raw("fishing.hub-gallery-name", placeholders),
          plugin.messages().rawList("fishing.hub-gallery-lore", placeholders)));
+      if (storageOn) {
+         inventory.setItem(storageSlot, Items.create(
+            gui(plugin).material("storage-material", Material.BARREL),
+            plugin.messages().raw("fishing.hub-storage-name", placeholders),
+            plugin.messages().rawList("fishing.hub-storage-lore", placeholders)));
+      }
       inventory.setItem(rod, Items.create(
          gui(plugin).material("rod-material", Material.FISHING_ROD),
          plugin.messages().raw("fishing.hub-rod-name", placeholders),
@@ -272,6 +300,135 @@ public final class FishMenu {
 
       inventory.setItem(close, GuiKit.nav(plugin, gui(plugin), GuiKit.NAV_CLOSE, Material.BARRIER,
          "fishing.close-name", "fishing.close-lore"));
+   }
+
+   /**
+    * v1.8.0 (PHASE 4): halaman Fish Storage - isi Fish Inventory pemain, berhalaman.
+    * Klik ikan = ambil ke inventory normal. Tombol upgrade menaikkan kapasitas (dengan
+    * konfirmasi dua-klik). Item di GUI hanyalah SALINAN tampilan - pengambilan sebenarnya
+    * terjadi lewat FishInventory.take() di listener (anti-dupe).
+    */
+   private static void renderStorage(W2NSMP plugin, Inventory inventory, Player player, FishMenuHolder holder) {
+      FishInventory storage = plugin.fishInventory();
+      List<ItemStack> all = storage == null ? List.of() : storage.list(player.getUniqueId());
+      int page = clampPage(holder.page(), all.size());
+      holder.page(page);
+
+      int back = backSlot(plugin);
+      int prev = prevSlot(plugin);
+      int info = infoSlot(plugin);
+      int next = nextSlot(plugin);
+      int close = closeSlot(plugin);
+      int upgrade = upgradeSlot(plugin);
+      boolean hasPrev = page > 0;
+      boolean hasNext = page + 1 < pages(all.size());
+
+      Set<Integer> content = new HashSet<>();
+      for (int index = 0; index < CONTENT_SLOTS.length; index++) {
+         if (indexAt(page, index, all.size()) >= 0) {
+            content.add(CONTENT_SLOTS[index]);
+         }
+      }
+
+      content.add(back);
+      content.add(info);
+      content.add(close);
+      content.add(upgrade);
+      if (hasPrev) {
+         content.add(prev);
+      }
+
+      if (hasNext) {
+         content.add(next);
+      }
+
+      clearExcept(inventory, content);
+      GuiKit.shell(plugin, gui(plugin), inventory, Material.LIGHT_BLUE_STAINED_GLASS_PANE,
+         "fishing.filler-material", Material.BLUE_STAINED_GLASS_PANE, content::contains);
+
+      for (int index = 0; index < CONTENT_SLOTS.length; index++) {
+         int fishIndex = indexAt(page, index, all.size());
+         if (fishIndex >= 0) {
+            ItemStack card = all.get(fishIndex).clone();
+            appendTakeHint(plugin, card);
+            inventory.setItem(CONTENT_SLOTS[index], card);
+         }
+      }
+
+      UUID id = player.getUniqueId();
+      int count = storage == null ? 0 : storage.count(id);
+      int capacity = storage == null ? 0 : storage.capacity(id);
+      int level = storage == null ? 1 : storage.level(id);
+      int maxLevel = storage == null ? 1 : storage.maxLevel();
+      int nextCapacity = storage == null ? -1 : storage.nextCapacity(id);
+      long cost = storage == null ? -1L : storage.upgradeCost(id);
+      String costText = cost < 0L ? "-"
+         : plugin.economy() != null && plugin.economy().isEnabled() ? plugin.economy().format(cost) : Long.toString(cost);
+
+      String[] placeholders = {
+         "page", Integer.toString(page + 1),
+         "pages", Integer.toString(pages(all.size())),
+         "count", Integer.toString(count),
+         "capacity", Integer.toString(capacity),
+         "level", Integer.toString(level),
+         "max-level", Integer.toString(maxLevel),
+         "next-capacity", nextCapacity < 0 ? "-" : Integer.toString(nextCapacity),
+         "cost", costText
+      };
+
+      inventory.setItem(back, GuiKit.nav(plugin, gui(plugin), GuiKit.NAV_BACK, Material.ARROW,
+         "fishing.gallery-back-name", "fishing.gallery-back-lore"));
+      if (hasPrev) {
+         inventory.setItem(prev, GuiKit.nav(plugin, gui(plugin), GuiKit.NAV_PREV, Material.ARROW,
+            "fishing.gallery-prev-name", "fishing.gallery-prev-lore", placeholders));
+      }
+
+      inventory.setItem(info, Items.create(
+         gui(plugin).material("storage-info-material", Material.BOOK),
+         plugin.messages().raw("fishing.storage-info-name", placeholders),
+         plugin.messages().rawList("fishing.storage-info-lore", placeholders)));
+      if (hasNext) {
+         inventory.setItem(next, GuiKit.nav(plugin, gui(plugin), GuiKit.NAV_NEXT, Material.ARROW,
+            "fishing.gallery-next-name", "fishing.gallery-next-lore", placeholders));
+      }
+
+      boolean confirming = holder.confirmUntil() > System.currentTimeMillis();
+      if (nextCapacity < 0) {
+         inventory.setItem(upgrade, Items.create(
+            gui(plugin).material("upgrade-max-material", Material.GRAY_DYE),
+            plugin.messages().raw("fishing.storage-upgrade-max-name", placeholders),
+            plugin.messages().rawList("fishing.storage-upgrade-max-lore", placeholders)));
+      } else if (confirming) {
+         inventory.setItem(upgrade, Items.create(
+            gui(plugin).material("upgrade-confirm-material", Material.LIME_STAINED_GLASS_PANE),
+            plugin.messages().raw("fishing.storage-upgrade-confirm-name", placeholders),
+            plugin.messages().rawList("fishing.storage-upgrade-confirm-lore", placeholders)));
+      } else {
+         inventory.setItem(upgrade, Items.create(
+            gui(plugin).material("upgrade-material", Material.EMERALD),
+            plugin.messages().raw("fishing.storage-upgrade-name", placeholders),
+            plugin.messages().rawList("fishing.storage-upgrade-lore", placeholders)));
+      }
+
+      inventory.setItem(close, GuiKit.nav(plugin, gui(plugin), GuiKit.NAV_CLOSE, Material.BARRIER,
+         "fishing.close-name", "fishing.close-lore"));
+   }
+
+   /** Tambahkan baris "Click to take" pada kartu ikan di halaman storage. */
+   private static void appendTakeHint(W2NSMP plugin, ItemStack card) {
+      try {
+         org.bukkit.inventory.meta.ItemMeta meta = card.getItemMeta();
+         if (meta == null) {
+            return;
+         }
+
+         List<net.kyori.adventure.text.Component> lore =
+            meta.lore() == null ? new ArrayList<>() : new ArrayList<>(meta.lore());
+         lore.add(me.w2n.w2nsmp.utility.Text.itemLore(plugin.messages().raw("fishing.storage-take-hint")));
+         meta.lore(lore);
+         card.setItemMeta(meta);
+      } catch (Throwable ignored) {
+      }
    }
 
    /** Semua ikan terurut rarity (Common -> Mythic) lalu id, supaya urutan galeri stabil. */
@@ -406,6 +563,10 @@ public final class FishMenu {
             return "gallery";
          }
 
+         if (rawSlot == storageSlot(plugin)) {
+            return "storage";
+         }
+
          if (rawSlot == rodSlot(plugin)) {
             return "rod";
          }
@@ -431,6 +592,19 @@ public final class FishMenu {
 
       if (rawSlot == closeSlot(plugin)) {
          return "close";
+      }
+
+      if (FishMenuHolder.MODE_STORAGE.equals(holder.mode())) {
+         if (rawSlot == upgradeSlot(plugin)) {
+            return "upgrade";
+         }
+
+         // Klik kartu ikan -> "take:<posisi-slot>" (indeks absolut dihitung di listener
+         // dari halaman holder, supaya race halaman tidak salah ambil).
+         int slotIndex = slotIndexOf(rawSlot);
+         if (slotIndex >= 0) {
+            return "take:" + slotIndex;
+         }
       }
 
       return null;

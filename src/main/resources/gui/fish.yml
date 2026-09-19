@@ -16,20 +16,28 @@ filler:
 slots:
   # --- halaman hub (ukuran hub-size) ---
   gallery: 11
+  storage: 13          # v1.8.0: kartu Fish Storage
   rod: 15
   hub-info: 22
   hub-close: 26
-  # --- halaman galeri (selalu 54) ---
+  # --- halaman galeri & storage (selalu 54) ---
   back: 45
   prev: 48
   info: 49
   next: 50
   close: 53
+  upgrade: 47          # v1.8.0: tombol upgrade kapasitas (halaman storage)
 
 gallery-material: TROPICAL_FISH
 rod-material: FISHING_ROD
 info-material: BOOK
 undiscovered-material: GRAY_DYE
+# v1.8.0 - halaman Fish Storage:
+storage-material: BARREL
+storage-info-material: BOOK
+upgrade-material: EMERALD
+upgrade-confirm-material: LIME_STAINED_GLASS_PANE
+upgrade-max-material: GRAY_DYE
 
 sounds:
   open: "minecraft:block.chest.open"

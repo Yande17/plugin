@@ -708,6 +708,8 @@ FORCED_MATERIALS = [
     'BLUE_STAINED_GLASS_PANE', 'GRAY_DYE', 'GOLDEN_CARROT',
     # v1.7.0 - ikon toggle "Bounty Display" di /setting (blok TARGET, ada sejak 1.16)
     'TARGET',
+    # v1.8.0 - kartu Fish Storage di /fish (BARREL, ada sejak 1.14)
+    'BARREL',
 ]
 
 # konstanta enum penyebab damage - hanya untuk dokumentasi stub; kode fitur membaca

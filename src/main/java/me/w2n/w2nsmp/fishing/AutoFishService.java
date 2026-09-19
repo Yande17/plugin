@@ -405,12 +405,21 @@ public final class AutoFishService {
 
       // Auto-sell menjual TANGKAPAN INI SAJA, langsung, tanpa menyentuh item lain.
       boolean sellNow = session.autoSell() && this.allowAutoSell && this.plugin.sell() != null;
-      if (!sellNow && this.isInventoryFull(player, catchStack)) {
+
+      // v1.8.0 (PHASE 4): ikan CUSTOM yang tidak dijual masuk Fish Inventory - sama seperti
+      // memancing manual (autofishing tidak boleh jadi bypass). Storage penuh -> perilaku
+      // inventory-full lama (sell/stop). Tangkapan vanilla tetap ke inventory normal.
+      FishInventory storage = this.plugin.fishInventory();
+      boolean toStorage = !sellNow && rolled != null && storage != null && storage.enabled()
+         && !storage.isFull(player.getUniqueId());
+
+      if (!sellNow && !toStorage && this.isInventoryFull(player, catchStack)) {
          if ("sell".equals(this.inventoryFullBehavior) && this.allowAutoSell && this.plugin.sell() != null) {
             sellNow = true;
          } else {
             // Konfigurasi "stop": berhenti + beri tahu. Item TIDAK dibuang.
-            this.plugin.messages().send(player, "fishing.autofish.inventory-full");
+            this.plugin.messages().send(player, rolled != null && storage != null && storage.enabled()
+               ? "fishing.storage-full" : "fishing.autofish.inventory-full");
             this.plugin.messages().send(player, "fishing.autofish.stopped");
             return false;
          }
@@ -429,6 +438,11 @@ public final class AutoFishService {
                return false;
             }
 
+            player.getInventory().addItem(catchStack);
+         }
+      } else if (toStorage) {
+         if (!storage.add(player.getUniqueId(), catchStack)) {
+            // Race sangat langka (penuh di antara cek dan add): fallback inventory normal.
             player.getInventory().addItem(catchStack);
          }
       } else {

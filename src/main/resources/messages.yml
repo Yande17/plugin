@@ -1415,6 +1415,41 @@ fishing:
   hub-info-lore:
     - "&7Go fishing to discover custom fish."
     - "&7Discoveries are recorded automatically."
+  # Fish Storage (v1.8.0, PHASE 4).
+  storage-title: "&8Fish Storage"
+  hub-storage-name: "&bFish Storage"
+  hub-storage-lore:
+    - "&7Your caught fish are stored here"
+    - "&7instead of filling your inventory."
+    - "&7Stored: &f%count%&7/&f%capacity%"
+    - "&eClick to open."
+  storage-info-name: "&bFish Storage"
+  storage-info-lore:
+    - "&7Capacity: &f%count%&7/&f%capacity%"
+    - "&7Storage level: &f%level%&7/&f%max-level%"
+    - "&7Page &f%page%&7/&f%pages%"
+    - "&7Click a fish to move it to"
+    - "&7your inventory."
+  storage-take-hint: "&eClick to take this fish."
+  storage-upgrade-name: "&a↑ Upgrade Storage"
+  storage-upgrade-lore:
+    - "&7Next capacity: &f%next-capacity% &7slots"
+    - "&7Cost: &f%cost%"
+    - "&eClick to upgrade."
+  storage-upgrade-confirm-name: "&a&l↑ CONFIRM UPGRADE"
+  storage-upgrade-confirm-lore:
+    - "&7Next capacity: &f%next-capacity% &7slots"
+    - "&7Cost: &f%cost%"
+    - "&aClick again to confirm."
+  storage-upgrade-max-name: "&7↑ Storage Maxed"
+  storage-upgrade-max-lore:
+    - "&7Capacity: &f%capacity% &7slots"
+    - "&7Your fish storage is at max level."
+  stored: "%prefix%&bStored! &f%fish% &7went to your Fish Storage (&f%count%&7/&f%capacity%&7)."
+  storage-full: "%prefix%&cYour Fish Storage is full! &7New fish now drop normally - open &f/fish &7and take some out, or upgrade the capacity."
+  storage-inventory-full: "%prefix%&cYour inventory is full. &7Free a slot before taking fish out."
+  storage-upgraded: "%prefix%&aStorage upgraded! &7New capacity: &f%capacity% &7fish."
+  storage-upgrade-no-money: "%prefix%&cYou do not have enough money for this upgrade."
   # Galeri.
   gallery-fish-name: "%rarity% &f%fish%"
   gallery-fish-lore:

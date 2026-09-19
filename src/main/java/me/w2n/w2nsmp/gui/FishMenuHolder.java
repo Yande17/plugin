@@ -15,6 +15,8 @@ import org.bukkit.inventory.InventoryHolder;
 public final class FishMenuHolder implements InventoryHolder {
    public static final String MODE_HUB = "hub";
    public static final String MODE_GALLERY = "gallery";
+   /** v1.8.0 (PHASE 4): halaman Fish Storage - isi Fish Inventory pemain. */
+   public static final String MODE_STORAGE = "storage";
 
    private final UUID owner;
    private Inventory inventory;
@@ -22,6 +24,8 @@ public final class FishMenuHolder implements InventoryHolder {
    private String pending;
    private String mode = MODE_HUB;
    private int page;
+   /** Batas waktu konfirmasi upgrade kapasitas (0 = tidak ada konfirmasi tertunda). */
+   private long confirmUntil;
 
    public FishMenuHolder(UUID owner) {
       this.owner = owner;
@@ -61,7 +65,19 @@ public final class FishMenuHolder implements InventoryHolder {
    }
 
    public void mode(String mode) {
-      this.mode = MODE_GALLERY.equals(mode) ? MODE_GALLERY : MODE_HUB;
+      if (MODE_GALLERY.equals(mode) || MODE_STORAGE.equals(mode)) {
+         this.mode = mode;
+      } else {
+         this.mode = MODE_HUB;
+      }
+   }
+
+   public long confirmUntil() {
+      return this.confirmUntil;
+   }
+
+   public void confirmUntil(long confirmUntil) {
+      this.confirmUntil = Math.max(0L, confirmUntil);
    }
 
    public int page() {

@@ -1339,6 +1339,19 @@ fishing:
   # legendary|mythic). Karena semua tangkapan kini custom, common tanpa pengumuman
   # supaya chat tidak banjir; penemuan PERTAMA ikan apa pun tetap selalu diumumkan.
   announce-min-rarity: uncommon
+  # ---- Fish Inventory (v1.8.0, PHASE 4) ----
+  # Ikan custom hasil memancing masuk penyimpanan khusus per pemain (berkas
+  # fish-inventory.yml), BUKAN inventory normal. Dilihat/diambil lewat /fish -> Fish Storage.
+  # Ikan disimpan per ekor (size/value unik di PDC - tidak ditumpuk), kapasitas per ekor.
+  fish-inventory:
+    enabled: true
+    # Kapasitas per level (entri pertama = level 1). Tambah/ubah bebas.
+    capacities: [25, 50, 75, 100]
+    # Biaya upgrade KE level berikut (entri pertama = biaya level 1 -> 2).
+    # Jumlah entri = jumlah level - 1. Memakai economy existing.
+    upgrade-costs: [10000, 25000, 50000]
+    # false = tanpa pesan chat setiap ikan tersimpan (pengumuman rarity tetap jalan).
+    catch-message: true
   # Level skill Fishing minimum per rarity (0 = tanpa gerbang). Bisa disetel bebas.
   # Bawaan v1.4.1 mengikuti jenjang 10/20/30/40/50 (Common selalu terbuka).
   rarity-level:

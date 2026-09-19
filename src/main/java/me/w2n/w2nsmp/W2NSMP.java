@@ -12,6 +12,7 @@ import me.w2n.w2nsmp.config.Messages;
 import me.w2n.w2nsmp.economy.DynamicEconomy;
 import me.w2n.w2nsmp.economy.EconomyManager;
 import me.w2n.w2nsmp.fishing.AutoFishService;
+import me.w2n.w2nsmp.fishing.FishInventory;
 import me.w2n.w2nsmp.fishing.FishingService;
 import me.w2n.w2nsmp.gear.GearService;
 import me.w2n.w2nsmp.gui.AuctionMenu;
@@ -62,6 +63,7 @@ public final class W2NSMP extends JavaPlugin {
    private SkillService skillService;
    private GearService gearService;
    private FishingService fishingService;
+   private FishInventory fishInventory;
    private AutoFishService autoFishService;
    private NametagService nametagService;
    private TpaService tpaService;
@@ -129,6 +131,8 @@ public final class W2NSMP extends JavaPlugin {
       this.gearService.reload();
       this.fishingService = new FishingService(this);
       this.fishingService.reload();
+      this.fishInventory = new FishInventory(this);
+      this.fishInventory.load();
       this.autoFishService = new AutoFishService(this);
       this.autoFishService.reload();
       this.nametagService = new NametagService(this);
@@ -275,6 +279,11 @@ public final class W2NSMP extends JavaPlugin {
       }
 
       this.fishingService = null;
+
+      if (this.fishInventory != null) {
+         this.fishInventory.shutdown();
+         this.fishInventory = null;
+      }
 
       if (this.nametagService != null) {
          this.nametagService.shutdown();
@@ -479,6 +488,11 @@ public final class W2NSMP extends JavaPlugin {
    /** Layanan autofishing (v1.4.1). Bisa {@code null} di luar masa hidup plugin. */
    public AutoFishService autoFish() {
       return this.autoFishService;
+   }
+
+   /** Fish Inventory per pemain (v1.8.0, PHASE 4). Bisa {@code null} di luar masa hidup plugin. */
+   public FishInventory fishInventory() {
+      return this.fishInventory;
    }
 
    /** Night Vision /setting (v1.5.1). Bisa {@code null} di luar masa hidup plugin. */

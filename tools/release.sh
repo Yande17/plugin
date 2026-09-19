@@ -102,6 +102,8 @@ TOUCHED=(
   me/w2n/w2nsmp/listener/MoneyDisplayListener
   # v1.7.0 - PHASE 3 (toggle Money & Bounty di /setting): refresh display saat bounty berubah:
   me/w2n/w2nsmp/bounty/BountyService
+  # v1.8.0 - PHASE 4 (Fish Inventory): penyimpanan ikan khusus + upgrade kapasitas:
+  me/w2n/w2nsmp/fishing/FishInventory
 )
 
 echo "== [1/6] stub + kompilasi =="
