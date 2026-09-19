@@ -101,8 +101,11 @@ public final class FishingListener implements Listener {
          }
       }
 
+      // v1.9.0 (PHASE 5): kekuatan tarikan rod (kg) ikut menyaring ikan yang bisa diundi -
+      // ikan yang pasti terlalu berat tidak pernah muncul untuk rod ini.
+      double rodStrength = fishing.weightEnabled() ? fishing.rodStrength(rod) : 0.0D;
       if (caughtIsFish) {
-         rolled = fishing.roll(biome, storming, time, fishingLevel, rodLevel, bonusChance, rarityBoost);
+         rolled = fishing.roll(biome, storming, time, fishingLevel, rodLevel, bonusChance, rarityBoost, rodStrength);
       }
       if (rolled != null) {
          // Ganti isi entity item tangkapan dengan ikan custom - tetap "ditarik" secara vanilla,
@@ -110,6 +113,27 @@ public final class FishingListener implements Listener {
          // level rod) ikut dihitung supaya lore & PDC konsisten.
          double valueBonus = holdingRod ? fishing.effectTotal(rod, "value") : 0.0D;
          ItemStack custom = fishing.createFish(rolled, valueBonus);
+
+         // v1.9.0 (PHASE 5): berat ikan yang diundi bisa melebihi kekuatan rod (ikan
+         // "perbatasan") -> ikan LOLOS dengan pesan yang jelas, bukan gagal misterius.
+         double fishWeight = fishing.fishWeightKg(custom);
+         if (fishing.weightEnabled() && rodStrength > 0.0D && fishWeight > rodStrength) {
+            try {
+               caughtItem.remove();
+            } catch (Throwable ignored) {
+            }
+
+            this.plugin.messages().send(player, "fishing.escaped-too-heavy",
+               "fish", rolled.fishName(),
+               "weight", String.format(java.util.Locale.ROOT, "%.1f", fishWeight),
+               "strength", String.format(java.util.Locale.ROOT, "%.0f", rodStrength));
+            if (holdingRod) {
+               fishing.refreshRodLore(rod);
+               player.getInventory().setItemInMainHand(rod);
+            }
+
+            return;
+         }
 
          // v1.8.0 (PHASE 4): ikan custom masuk Fish Inventory, BUKAN inventory normal.
          // Urutan anti-dupe: simpan ke storage dulu; kalau sukses, entity tangkapan

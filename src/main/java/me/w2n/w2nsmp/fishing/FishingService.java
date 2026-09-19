@@ -45,9 +45,17 @@ public final class FishingService {
    /** Daftar harta karun untuk efek treasure (v1.4.1), dari config fishing.treasure.items. */
    private final java.util.List<TreasureEntry> treasureItems = new java.util.ArrayList<>();
 
+   /** v1.9.0 (PHASE 5): kekuatan tarikan rod per level (kg); index = level - 1. */
+   private final java.util.List<Double> rodStrengthPerLevel = new java.util.ArrayList<>();
+   /** v1.9.0: rentang berat bawaan per rarity (kg): rarity -> [min, max]. */
+   private final Map<FishRarity, double[]> rarityWeights = new LinkedHashMap<>();
+
    private boolean enabled = true;
    private double customChance = 25.0D;
    private int rodMaxLevel = 10;
+   /** v1.9.0: sistem berat/strength bisa dimatikan total dari config. */
+   private boolean weightEnabled = true;
+   private double vanillaRodStrength = 5.0D;
    private int attachmentSlots = 3;
    private double rodXpPerCatch = 1.0D;
    private double rodXpPerCustom = 3.0D;
@@ -91,6 +99,23 @@ public final class FishingService {
       for (FishRarity rarity : FishRarity.values()) {
          this.rarityGates.put(rarity, Math.max(0,
             config.getInt("fishing.rarity-level." + rarity.key(), 0)));
+      }
+
+      // v1.9.0 (PHASE 5): Rod Strength & Fish Weight.
+      this.weightEnabled = config.getBoolean("fishing.weight.enabled", true);
+      this.vanillaRodStrength = Math.max(0.1D, config.getDouble("fishing.weight.vanilla-rod-strength", 5.0D));
+      this.rodStrengthPerLevel.clear();
+      for (Object value : config.getList("fishing.weight.rod-strength", java.util.List.of())) {
+         if (value instanceof Number number) {
+            this.rodStrengthPerLevel.add(Math.max(0.1D, number.doubleValue()));
+         }
+      }
+
+      this.rarityWeights.clear();
+      for (FishRarity rarity : FishRarity.values()) {
+         double min = Math.max(0.1D, config.getDouble("fishing.weight.rarity." + rarity.key() + ".min", 0.5D));
+         double max = Math.max(min, config.getDouble("fishing.weight.rarity." + rarity.key() + ".max", min));
+         this.rarityWeights.put(rarity, new double[]{min, max});
       }
 
       this.loadFish(config);
@@ -159,7 +184,9 @@ public final class FishingService {
             section.getString("time", "any"),
             section.getInt("min-fishing-level", 0),
             section.getInt("min-rod-level", 0),
-            section.getString("hint", "")));
+            section.getString("hint", ""),
+            section.getDouble("weight-kg.min", 0.0D),
+            section.getDouble("weight-kg.max", 0.0D)));
       }
    }
 
@@ -315,6 +342,19 @@ public final class FishingService {
     */
    public CustomFish roll(String biomeName, boolean storming, long worldTime,
                           int fishingLevel, int rodLevel, double bonusChancePercent, double rarityBoost) {
+      return this.roll(biomeName, storming, worldTime, fishingLevel, rodLevel, bonusChancePercent, rarityBoost, 0.0D);
+   }
+
+   /**
+    * v1.9.0 (PHASE 5): overload dengan kekuatan rod (kg). Ikan yang berat MINIMUM-nya sudah
+    * melebihi kekuatan rod tidak pernah diundi (deterministik - bukan gagal acak); ikan yang
+    * rentang beratnya menyilang kekuatan rod tetap bisa diundi dan BISA lolos saat beratnya
+    * di atas kemampuan rod (pemain diberi pesan jelas). {@code rodStrengthKg <= 0} = tanpa
+    * penyaringan (dipakai pemanggil lama).
+    */
+   public CustomFish roll(String biomeName, boolean storming, long worldTime,
+                          int fishingLevel, int rodLevel, double bonusChancePercent, double rarityBoost,
+                          double rodStrengthKg) {
       if (!this.enabled || this.fish.isEmpty()) {
          return null;
       }
@@ -333,11 +373,19 @@ public final class FishingService {
       List<Double> weights = new ArrayList<>();
       double total = 0.0D;
 
+      boolean filterByStrength = this.weightEnabled && rodStrengthKg > 0.0D;
+
       for (CustomFish candidate : this.fish.values()) {
          if (candidate.weight() <= 0.0D
             || fishingLevel < Math.max(candidate.minFishingLevel(), this.rarityGate(candidate.rarity()))
             || rodLevel < candidate.minRodLevel()
             || !candidate.matchesEnvironment(biomeName, storming, worldTime)) {
+            continue;
+         }
+
+         // v1.9.0: ikan yang PASTI terlalu berat untuk rod ini tidak masuk pool - pemain
+         // tidak dibuat gagal terus tanpa alasan; ikan "perbatasan" tetap bisa muncul.
+         if (filterByStrength && this.minWeightKg(candidate) > rodStrengthKg) {
             continue;
          }
 
@@ -393,11 +441,18 @@ public final class FishingService {
 
       meta.displayName(Text.itemName(definition.rarity().color() + definition.fishName()));
 
+      // v1.9.0 (PHASE 5): berat nyata (kg) - ikut menentukan apakah rod kuat menariknya.
+      double weightKg = this.rollWeightKg(definition);
+
       List<Component> lore = new ArrayList<>();
       lore.add(Text.itemLore(this.plugin.messages().raw("fishing.fish-lore-rarity",
          "rarity", this.rarityLabel(definition.rarity()))));
       lore.add(Text.itemLore(this.plugin.messages().raw("fishing.fish-lore-size",
          "size", String.format(Locale.ROOT, "%.1f", size))));
+      if (this.weightEnabled) {
+         lore.add(Text.itemLore(this.plugin.messages().raw("fishing.fish-lore-weight",
+            "weight", String.format(Locale.ROOT, "%.1f", weightKg))));
+      }
       if (value > 0L) {
          lore.add(Text.itemLore(this.plugin.messages().raw("fishing.fish-lore-value",
             "value", Long.toString(value))));
@@ -411,6 +466,7 @@ public final class FishingService {
       ItemTags.setString(meta, this.keys.fishRarity, definition.rarity().key());
       ItemTags.setDouble(meta, this.keys.fishSize, size);
       ItemTags.setLong(meta, this.keys.fishValue, value);
+      ItemTags.setDouble(meta, this.keys.fishWeight, weightKg);
       stack.setItemMeta(meta);
       return stack;
    }
@@ -430,6 +486,81 @@ public final class FishingService {
    public long fishValue(ItemStack stack) {
       ItemMeta meta = meta(stack);
       return meta == null ? 0L : ItemTags.getLong(meta, this.keys.fishValue, 0L);
+   }
+
+   // ------------------------------------------------------------------ //
+   // Rod Strength & Fish Weight (v1.9.0, PHASE 5)
+   // ------------------------------------------------------------------ //
+
+   /** Sistem berat/strength aktif? (fishing.weight.enabled) */
+   public boolean weightEnabled() {
+      return this.weightEnabled;
+   }
+
+   /**
+    * Kekuatan tarikan rod (kg). Rod custom: dari tabel {@code fishing.weight.rod-strength}
+    * per level (entri terakhir dipakai untuk level di atas panjang tabel). Rod vanilla /
+    * tanpa tabel: {@code vanilla-rod-strength}.
+    */
+   public double rodStrength(ItemStack rod) {
+      if (!this.isRod(rod) || this.rodStrengthPerLevel.isEmpty()) {
+         return this.vanillaRodStrength;
+      }
+
+      int level = Math.max(1, this.rodLevel(rod));
+      int index = Math.min(level, this.rodStrengthPerLevel.size()) - 1;
+      return this.rodStrengthPerLevel.get(index);
+   }
+
+   /** Kekuatan rod vanilla (tanpa rod custom di tangan). */
+   public double vanillaRodStrength() {
+      return this.vanillaRodStrength;
+   }
+
+   /**
+    * Undi berat nyata (kg, 1 desimal) untuk ikan ini: rentang per-ikan dari config
+    * ({@code weight-kg.min/max}) menang; bila tidak diisi, rentang bawaan rarity dipakai.
+    */
+   public double rollWeightKg(CustomFish definition) {
+      double min;
+      double max;
+      if (definition.maxWeightKg() > 0.0D) {
+         min = Math.max(0.1D, definition.minWeightKg());
+         max = Math.max(min, definition.maxWeightKg());
+      } else {
+         double[] range = this.rarityWeights.get(definition.rarity());
+         min = range == null ? 0.5D : range[0];
+         max = range == null ? min : range[1];
+      }
+
+      double rolled = min + this.random.nextDouble() * (max - min);
+      return Math.round(rolled * 10.0D) / 10.0D;
+   }
+
+   /** Perkiraan berat MINIMUM ikan (kg) - untuk info galeri & cek gerbang sebelum undian. */
+   public double minWeightKg(CustomFish definition) {
+      if (definition.maxWeightKg() > 0.0D) {
+         return Math.max(0.1D, definition.minWeightKg());
+      }
+
+      double[] range = this.rarityWeights.get(definition.rarity());
+      return range == null ? 0.5D : range[0];
+   }
+
+   /** Perkiraan berat MAKSIMUM ikan (kg). */
+   public double maxWeightKg(CustomFish definition) {
+      if (definition.maxWeightKg() > 0.0D) {
+         return Math.max(this.minWeightKg(definition), definition.maxWeightKg());
+      }
+
+      double[] range = this.rarityWeights.get(definition.rarity());
+      return range == null ? 0.5D : range[1];
+   }
+
+   /** Berat ikan tersimpan di item (kg); 0 = tidak ada data berat (ikan lama/pra-1.9.0). */
+   public double fishWeightKg(ItemStack stack) {
+      ItemMeta meta = meta(stack);
+      return meta == null ? 0.0D : ItemTags.getDouble(meta, this.keys.fishWeight, 0.0D);
    }
 
    // ------------------------------------------------------------------ //
@@ -664,6 +795,12 @@ public final class FishingService {
          List<Component> lore = new ArrayList<>();
          lore.add(Text.itemLore(this.plugin.messages().raw("fishing.rod-lore-level",
             "level", Integer.toString(level), "max", Integer.toString(this.rodMaxLevel))));
+
+         // v1.9.0 (PHASE 5): kekuatan tarikan rod (kg) selalu tampil di lore.
+         if (this.weightEnabled) {
+            lore.add(Text.itemLore(this.plugin.messages().raw("fishing.rod-lore-strength",
+               "strength", String.format(Locale.ROOT, "%.0f", this.rodStrength(rod)))));
+         }
 
          double needed = this.xpNeeded(level + 1);
          if (level < this.rodMaxLevel) {

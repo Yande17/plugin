@@ -389,8 +389,11 @@ public final class AutoFishService {
       // Undi ikan: efek rod tetap berlaku, sama seperti memancing manual.
       double bonusChance = holdingRod ? fishing.effectTotal(rod, "custom-chance") : 0.0D;
       double rarityBoost = holdingRod ? 1.0D + fishing.effectTotal(rod, "rarity-boost") / 100.0D : 1.0D;
+      // v1.9.0 (PHASE 5): autofishing TIDAK bypass Rod Strength - filter pool + peluang
+      // lolos sama dengan memancing manual.
+      double rodStrength = fishing.weightEnabled() ? fishing.rodStrength(rod) : 0.0D;
       CustomFish rolled = fishing.roll(this.biomeName(player), this.storming(player), this.worldTime(player),
-         fishingLevel, rodLevel, bonusChance, rarityBoost);
+         fishingLevel, rodLevel, bonusChance, rarityBoost, rodStrength);
 
       ItemStack catchStack;
       double skillXp;
@@ -398,6 +401,16 @@ public final class AutoFishService {
          double valueBonus = holdingRod ? fishing.effectTotal(rod, "value") : 0.0D;
          catchStack = fishing.createFish(rolled, valueBonus);
          skillXp = rolled.xp();
+
+         double fishWeight = fishing.fishWeightKg(catchStack);
+         if (fishing.weightEnabled() && rodStrength > 0.0D && fishWeight > rodStrength) {
+            // Ikan lolos: tanpa tangkapan, tanpa XP - sama seperti manual. Sesi lanjut.
+            this.plugin.messages().send(player, "fishing.escaped-too-heavy",
+               "fish", rolled.fishName(),
+               "weight", String.format(java.util.Locale.ROOT, "%.1f", fishWeight),
+               "strength", String.format(java.util.Locale.ROOT, "%.0f", rodStrength));
+            return true;
+         }
       } else {
          catchStack = new ItemStack(this.vanillaCatch);
          skillXp = this.vanillaCatchValueXp;

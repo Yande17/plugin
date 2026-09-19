@@ -463,6 +463,8 @@ public final class FishMenu {
          "value", Long.toString(fish.baseValue()),
          "min-size", format(fish.minSize()),
          "max-size", format(fish.maxSize()),
+         "min-weight", format(plugin.fishing().minWeightKg(fish)),
+         "max-weight", format(plugin.fishing().maxWeightKg(fish)),
          "xp", format(fish.xp())));
       appendRequirements(plugin, fish, lore);
       return Items.create(fish.material(),

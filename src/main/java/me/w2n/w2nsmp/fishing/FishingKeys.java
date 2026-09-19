@@ -27,6 +27,8 @@ public final class FishingKeys {
    public final NamespacedKey rodXp;
    /** Attachment terpasang di rod (string csv id, mis. "lucky_hook,xp_reel"). */
    public final NamespacedKey rodAttachments;
+   /** v1.9.0 (PHASE 5): berat nyata ikan dalam kg (double, desimal). */
+   public final NamespacedKey fishWeight;
 
    public FishingKeys(W2NSMP plugin) {
       this.fishId = new NamespacedKey(plugin, "fish-id");
@@ -37,5 +39,6 @@ public final class FishingKeys {
       this.rodLevel = new NamespacedKey(plugin, "rod-level");
       this.rodXp = new NamespacedKey(plugin, "rod-xp");
       this.rodAttachments = new NamespacedKey(plugin, "rod-attachments");
+      this.fishWeight = new NamespacedKey(plugin, "fish-weight");
    }
 }

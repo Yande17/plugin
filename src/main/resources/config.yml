@@ -1361,6 +1361,38 @@ fishing:
     epic: 30
     legendary: 40
     mythic: 50
+  # ---- Rod Strength & Fish Weight (v1.9.0, PHASE 5) ----
+  # Setiap ikan custom punya berat nyata (kg, desimal). Rod punya kekuatan tarikan (kg).
+  # Ikan yang berat MINIMUM-nya melebihi kekuatan rod tidak pernah diundi (bukan gagal acak).
+  # Ikan "perbatasan" (rentang beratnya menyilang kekuatan rod) tetap bisa muncul dan LOLOS
+  # dengan pesan jelas bila hasil undian beratnya di atas kemampuan rod.
+  weight:
+    enabled: true
+    # Kekuatan rod vanilla / tanpa rod custom (kg).
+    vanilla-rod-strength: 5.0
+    # Kekuatan tarikan per level rod (index 1 = level 1). Level di atas panjang daftar
+    # memakai entri terakhir.
+    rod-strength: [5.0, 8.0, 12.0, 16.0, 20.0, 26.0, 32.0, 40.0, 50.0, 60.0]
+    # Rentang berat bawaan per rarity (kg) - dipakai bila ikan tidak punya weight-kg sendiri.
+    rarity:
+      common:
+        min: 0.4
+        max: 3.0
+      uncommon:
+        min: 1.8
+        max: 6.0
+      rare:
+        min: 5.0
+        max: 12.0
+      epic:
+        min: 10.0
+        max: 22.0
+      legendary:
+        min: 20.0
+        max: 40.0
+      mythic:
+        min: 35.0
+        max: 60.0
   # ---- Rod ----
   rod:
     max-level: 10
@@ -1580,6 +1612,9 @@ fishing:
       weight: 34.0
       min-size: 8.0
       max-size: 35.0
+      weight-kg:
+        min: 0.5
+        max: 2.5
       value: 10
       xp: 4.0
       hint: "Bites almost anywhere, any time."
@@ -1590,6 +1625,9 @@ fishing:
       weight: 30.0
       min-size: 10.0
       max-size: 40.0
+      weight-kg:
+        min: 0.4
+        max: 2.0
       value: 12
       xp: 4.0
       biomes: [RIVER]
@@ -1601,6 +1639,9 @@ fishing:
       weight: 30.0
       min-size: 8.0
       max-size: 30.0
+      weight-kg:
+        min: 0.8
+        max: 3.0
       value: 14
       xp: 4.0
       biomes: [OCEAN, BEACH]
@@ -1612,6 +1653,9 @@ fishing:
       weight: 26.0
       min-size: 12.0
       max-size: 38.0
+      weight-kg:
+        min: 0.6
+        max: 2.8
       value: 13
       xp: 4.0
       biomes: [SWAMP, RIVER]
@@ -1625,6 +1669,9 @@ fishing:
       weight: 24.0
       min-size: 15.0
       max-size: 45.0
+      weight-kg:
+        min: 0.7
+        max: 3.2
       value: 15
       xp: 5.0
       time: day
@@ -1636,6 +1683,9 @@ fishing:
       weight: 24.0
       min-size: 6.0
       max-size: 20.0
+      weight-kg:
+        min: 0.3
+        max: 1.5
       value: 15
       xp: 5.0
       time: night
@@ -1647,6 +1697,9 @@ fishing:
       weight: 22.0
       min-size: 8.0
       max-size: 25.0
+      weight-kg:
+        min: 0.4
+        max: 1.8
       value: 16
       xp: 5.0
       biomes: [FROZEN, SNOWY, ICE, COLD]
@@ -1659,6 +1712,9 @@ fishing:
       weight: 18.0
       min-size: 20.0
       max-size: 60.0
+      weight-kg:
+        min: 2.5
+        max: 6.0
       value: 35
       xp: 8.0
       weather: rain
@@ -1672,6 +1728,9 @@ fishing:
       weight: 16.0
       min-size: 18.0
       max-size: 55.0
+      weight-kg:
+        min: 2.0
+        max: 5.5
       value: 40
       xp: 9.0
       biomes: [RIVER]
@@ -1684,6 +1743,9 @@ fishing:
       weight: 16.0
       min-size: 12.0
       max-size: 40.0
+      weight-kg:
+        min: 1.5
+        max: 4.5
       value: 42
       xp: 9.0
       biomes: [OCEAN]
@@ -1698,6 +1760,9 @@ fishing:
       weight: 15.0
       min-size: 10.0
       max-size: 35.0
+      weight-kg:
+        min: 2.2
+        max: 5.8
       value: 45
       xp: 10.0
       biomes: [JUNGLE]
@@ -1709,6 +1774,9 @@ fishing:
       weight: 14.0
       min-size: 8.0
       max-size: 28.0
+      weight-kg:
+        min: 1.8
+        max: 5.0
       value: 48
       xp: 10.0
       biomes: [DESERT, BADLANDS]
@@ -1721,6 +1789,9 @@ fishing:
       weight: 9.0
       min-size: 15.0
       max-size: 45.0
+      weight-kg:
+        min: 5.0
+        max: 10.5
       value: 90
       xp: 15.0
       min-fishing-level: 12
@@ -1732,6 +1803,9 @@ fishing:
       weight: 8.0
       min-size: 20.0
       max-size: 60.0
+      weight-kg:
+        min: 5.5
+        max: 11.0
       value: 100
       xp: 16.0
       biomes: [WARM]
@@ -1743,6 +1817,9 @@ fishing:
       weight: 8.0
       min-size: 25.0
       max-size: 70.0
+      weight-kg:
+        min: 6.0
+        max: 12.5
       value: 110
       xp: 17.0
       weather: rain
@@ -1755,6 +1832,9 @@ fishing:
       weight: 8.0
       min-size: 30.0
       max-size: 90.0
+      weight-kg:
+        min: 5.0
+        max: 11.5
       value: 105
       xp: 16.0
       biomes: [SWAMP, RIVER]
@@ -1767,6 +1847,9 @@ fishing:
       weight: 7.0
       min-size: 30.0
       max-size: 85.0
+      weight-kg:
+        min: 6.5
+        max: 13.0
       value: 120
       xp: 18.0
       biomes: [FROZEN, ICE, SNOWY]
@@ -1782,6 +1865,9 @@ fishing:
       weight: 4.0
       min-size: 40.0
       max-size: 120.0
+      weight-kg:
+        min: 9.0
+        max: 16.5
       value: 220
       xp: 28.0
       time: night
@@ -1796,6 +1882,9 @@ fishing:
       weight: 4.0
       min-size: 35.0
       max-size: 100.0
+      weight-kg:
+        min: 10.0
+        max: 17.5
       value: 240
       xp: 30.0
       time: day
@@ -1809,6 +1898,9 @@ fishing:
       weight: 3.5
       min-size: 30.0
       max-size: 110.0
+      weight-kg:
+        min: 11.0
+        max: 18.0
       value: 260
       xp: 32.0
       biomes: [DEEP]
@@ -1823,6 +1915,9 @@ fishing:
       weight: 3.5
       min-size: 60.0
       max-size: 160.0
+      weight-kg:
+        min: 12.0
+        max: 21.0
       value: 280
       xp: 34.0
       biomes: [OCEAN]
@@ -1837,6 +1932,9 @@ fishing:
       weight: 1.5
       min-size: 60.0
       max-size: 150.0
+      weight-kg:
+        min: 16.0
+        max: 28.0
       value: 600
       xp: 60.0
       min-fishing-level: 30
@@ -1852,6 +1950,9 @@ fishing:
       weight: 1.2
       min-size: 80.0
       max-size: 200.0
+      weight-kg:
+        min: 20.0
+        max: 34.0
       value: 700
       xp: 70.0
       biomes: [OCEAN]
@@ -1868,6 +1969,9 @@ fishing:
       weight: 0.4
       min-size: 150.0
       max-size: 400.0
+      weight-kg:
+        min: 30.0
+        max: 48.0
       value: 2000
       xp: 150.0
       time: night
@@ -1885,6 +1989,9 @@ fishing:
       weight: 0.4
       min-size: 100.0
       max-size: 300.0
+      weight-kg:
+        min: 35.0
+        max: 55.0
       value: 2400
       xp: 160.0
       time: night

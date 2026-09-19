@@ -33,6 +33,9 @@ public final class CustomFish {
    private final int minRodLevel;
    /** Petunjuk galeri untuk ikan yang belum ditemukan (v1.5.3). Kosong = hint otomatis. */
    private final String hint;
+   /** v1.9.0 (PHASE 5): rentang berat nyata (kg). 0 = pakai bawaan rarity dari config. */
+   private final double minWeightKg;
+   private final double maxWeightKg;
 
    public CustomFish(String id, String name, FishRarity rarity, Material material, List<String> lore,
                      double weight, double minSize, double maxSize, long baseValue, double xp,
@@ -45,6 +48,14 @@ public final class CustomFish {
                      double weight, double minSize, double maxSize, long baseValue, double xp,
                      List<String> biomes, String weather, String time, int minFishingLevel, int minRodLevel,
                      String hint) {
+      this(id, name, rarity, material, lore, weight, minSize, maxSize, baseValue, xp,
+         biomes, weather, time, minFishingLevel, minRodLevel, hint, 0.0D, 0.0D);
+   }
+
+   public CustomFish(String id, String name, FishRarity rarity, Material material, List<String> lore,
+                     double weight, double minSize, double maxSize, long baseValue, double xp,
+                     List<String> biomes, String weather, String time, int minFishingLevel, int minRodLevel,
+                     String hint, double minWeightKg, double maxWeightKg) {
       this.id = id;
       this.name = name == null || name.isEmpty() ? id : name;
       this.rarity = rarity == null ? FishRarity.COMMON : rarity;
@@ -69,6 +80,18 @@ public final class CustomFish {
       this.minFishingLevel = Math.max(0, minFishingLevel);
       this.minRodLevel = Math.max(0, minRodLevel);
       this.hint = hint == null ? "" : hint.trim();
+      this.minWeightKg = Math.max(0.0D, minWeightKg);
+      this.maxWeightKg = Math.max(this.minWeightKg, maxWeightKg);
+   }
+
+   /** v1.9.0: batas bawah berat nyata (kg); 0 = ikut bawaan rarity. */
+   public double minWeightKg() {
+      return this.minWeightKg;
+   }
+
+   /** v1.9.0: batas atas berat nyata (kg); 0 = ikut bawaan rarity. */
+   public double maxWeightKg() {
+      return this.maxWeightKg;
    }
 
    /** Petunjuk galeri (bisa kosong; lihat FishMenu.hintFor untuk hint otomatis). */

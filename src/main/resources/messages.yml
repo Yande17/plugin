@@ -1445,6 +1445,8 @@ fishing:
   storage-upgrade-max-lore:
     - "&7Capacity: &f%capacity% &7slots"
     - "&7Your fish storage is at max level."
+  # v1.9.0 (PHASE 5): ikan lolos karena melebihi kekuatan tarikan rod.
+  escaped-too-heavy: "%prefix%&cIt got away! &f%fish% &7(&f%weight% kg&7) is too strong for your current rod (&f%strength% kg&7). Upgrade your rod to land heavier fish."
   stored: "%prefix%&bStored! &f%fish% &7went to your Fish Storage (&f%count%&7/&f%capacity%&7)."
   storage-full: "%prefix%&cYour Fish Storage is full! &7New fish now drop normally - open &f/fish &7and take some out, or upgrade the capacity."
   storage-inventory-full: "%prefix%&cYour inventory is full. &7Free a slot before taking fish out."
@@ -1456,6 +1458,7 @@ fishing:
     - "&7Rarity: %rarity%"
     - "&7Sell value: &f%value%"
     - "&7Size: &f%min-size% &7- &f%max-size% cm"
+    - "&7Weight: &f%min-weight% &7- &f%max-weight% kg"
     - "&7Skill XP: &f%xp%"
   gallery-unknown-name: "&8??? &7(undiscovered)"
   gallery-unknown-lore:
@@ -1554,9 +1557,11 @@ fishing:
   # Lore ikan custom.
   fish-lore-rarity: "&7Rarity: %rarity%"
   fish-lore-size: "&7Size: &f%size% cm"
+  fish-lore-weight: "&7Weight: &f%weight% kg"
   fish-lore-value: "&7Sell value: &f%value%"
   # Lore rod.
   rod-lore-level: "&7Rod level: &b%level%&7/&b%max%"
+  rod-lore-strength: "&7Strength: &f%strength% kg"
   rod-lore-xp: "&7Rod XP: &f%xp%&7/&f%needed%"
   rod-lore-attachments: "&7Attachments: &f%count%&7/&f%slots%"
   rod-lore-attachment: "&8 • &f%name%"
