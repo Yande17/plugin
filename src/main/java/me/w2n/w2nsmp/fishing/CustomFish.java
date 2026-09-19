@@ -31,10 +31,20 @@ public final class CustomFish {
    private final String time;
    private final int minFishingLevel;
    private final int minRodLevel;
+   /** Petunjuk galeri untuk ikan yang belum ditemukan (v1.5.3). Kosong = hint otomatis. */
+   private final String hint;
 
    public CustomFish(String id, String name, FishRarity rarity, Material material, List<String> lore,
                      double weight, double minSize, double maxSize, long baseValue, double xp,
                      List<String> biomes, String weather, String time, int minFishingLevel, int minRodLevel) {
+      this(id, name, rarity, material, lore, weight, minSize, maxSize, baseValue, xp,
+         biomes, weather, time, minFishingLevel, minRodLevel, null);
+   }
+
+   public CustomFish(String id, String name, FishRarity rarity, Material material, List<String> lore,
+                     double weight, double minSize, double maxSize, long baseValue, double xp,
+                     List<String> biomes, String weather, String time, int minFishingLevel, int minRodLevel,
+                     String hint) {
       this.id = id;
       this.name = name == null || name.isEmpty() ? id : name;
       this.rarity = rarity == null ? FishRarity.COMMON : rarity;
@@ -58,6 +68,12 @@ public final class CustomFish {
       this.time = normalize(time, "day", "night");
       this.minFishingLevel = Math.max(0, minFishingLevel);
       this.minRodLevel = Math.max(0, minRodLevel);
+      this.hint = hint == null ? "" : hint.trim();
+   }
+
+   /** Petunjuk galeri (bisa kosong; lihat FishMenu.hintFor untuk hint otomatis). */
+   public String hint() {
+      return this.hint;
    }
 
    private static String normalize(String raw, String... allowed) {

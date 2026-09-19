@@ -88,7 +88,22 @@ public final class FishingListener implements Listener {
       double bonusChance = holdingRod ? fishing.effectTotal(rod, "custom-chance") : 0.0D;
       double rarityBoost = holdingRod ? 1.0D + fishing.effectTotal(rod, "rarity-boost") / 100.0D : 1.0D;
 
-      CustomFish rolled = fishing.roll(biome, storming, time, fishingLevel, rodLevel, bonusChance, rarityBoost);
+      // v1.5.3: dalam mode replace-vanilla hanya tangkapan IKAN vanilla yang diganti -
+      // treasure & junk dari loot table vanilla (buku enchant, pelana, dll.) dibiarkan.
+      CustomFish rolled = null;
+      boolean caughtIsFish = true;
+      if (fishing.replaceVanilla()) {
+         try {
+            ItemStack caughtStack = caughtItem.getItemStack();
+            caughtIsFish = caughtStack != null && fishing.isVanillaFishMaterial(caughtStack.getType());
+         } catch (Throwable throwable) {
+            caughtIsFish = true;
+         }
+      }
+
+      if (caughtIsFish) {
+         rolled = fishing.roll(biome, storming, time, fishingLevel, rodLevel, bonusChance, rarityBoost);
+      }
       if (rolled != null) {
          // Ganti isi entity item tangkapan dengan ikan custom - tetap "ditarik" secara vanilla,
          // jadi tidak ada dupe dan momentum kail tidak berubah. Efek "value" (Golden Hook /
@@ -112,9 +127,13 @@ public final class FishingListener implements Listener {
             skills.addXp(player, SkillType.FISHING, rolled.xp() * (1.0D + xpBonus / 100.0D));
          }
 
-         this.plugin.messages().send(player, "fishing.caught",
-            "fish", rolled.fishName(),
-            "rarity", fishing.rarityLabel(rolled.rarity()));
+         // v1.5.3: semua tangkapan kini custom - hanya rarity >= announce-min-rarity yang
+         // diumumkan supaya chat tidak banjir (penemuan pertama tetap selalu diumumkan).
+         if (fishing.shouldAnnounce(rolled.rarity())) {
+            this.plugin.messages().send(player, "fishing.caught",
+               "fish", rolled.fishName(),
+               "rarity", fishing.rarityLabel(rolled.rarity()));
+         }
 
          // v1.4.1: catat penemuan untuk Fish Gallery (/fish). Penemuan baru diumumkan.
          if (fishing.discovery().discover(player.getUniqueId(), rolled.id())) {

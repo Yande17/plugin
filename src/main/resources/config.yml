@@ -1304,8 +1304,16 @@ autofishing:
 
 fishing:
   enabled: true
-  # Peluang dasar (persen) satu tangkapan diganti ikan custom (sisanya hasil vanilla).
+  # v1.5.3 (PHASE 3): true = SETIAP tangkapan ikan diganti ikan custom yang memenuhi syarat
+  # (ikan vanilla tidak pernah jadi hasil normal). false = perilaku lama (persen di bawah).
+  replace-vanilla: true
+  # Peluang dasar (persen) satu tangkapan diganti ikan custom - HANYA dipakai bila
+  # replace-vanilla: false.
   custom-chance-percent: 25.0
+  # Rarity minimum yang diumumkan di chat saat tertangkap (common|uncommon|rare|epic|
+  # legendary|mythic). Karena semua tangkapan kini custom, common tanpa pengumuman
+  # supaya chat tidak banjir; penemuan PERTAMA ikan apa pun tetap selalu diumumkan.
+  announce-min-rarity: uncommon
   # Level skill Fishing minimum per rarity (0 = tanpa gerbang). Bisa disetel bebas.
   # Bawaan v1.4.1 mengikuti jenjang 10/20/30/40/50 (Common selalu terbuka).
   rarity-level:
@@ -1519,12 +1527,26 @@ fishing:
         material: EXPERIENCE_BOTTLE
         amount: 8
         weight: 12.0
-  # ---- Ikan custom ----
+  # ---- Ikan custom (v1.5.3: database lengkap PHASE 3) ----
   # weight = bobot relatif dalam undian; biomes kosong = semua biome (token dicocokkan ke
-  # NAMA biome, mis. OCEAN cocok dengan DEEP_OCEAN); weather: any|rain|clear; time: any|day|night.
+  # NAMA biome, mis. OCEAN cocok dengan DEEP_OCEAN, WARM cocok WARM_OCEAN); weather:
+  # any|rain|clear; time: any|day|night; hint = petunjuk galeri saat ikan belum ditemukan
+  # (tidak membocorkan data lengkap). Gerbang level per rarity ada di fishing.rarity-level.
+  # CATATAN: 7 id lama dipertahankan agar galeri pemain tidak hilang; nama tampilan baru.
   fish:
+    # ================= COMMON (selalu terbuka) =================
+    pond_carp:
+      name: "Pond Carp"
+      rarity: common
+      material: COD
+      weight: 34.0
+      min-size: 8.0
+      max-size: 35.0
+      value: 10
+      xp: 4.0
+      hint: "Bites almost anywhere, any time."
     sungai_perak:
-      name: "Sungai Perak"
+      name: "Silver Riverling"
       rarity: common
       material: COD
       weight: 30.0
@@ -1533,8 +1555,9 @@ fishing:
       value: 12
       xp: 4.0
       biomes: [RIVER]
+      hint: "Try fishing in rivers."
     bandeng_karang:
-      name: "Bandeng Karang"
+      name: "Reef Milkfish"
       rarity: common
       material: TROPICAL_FISH
       weight: 30.0
@@ -1543,8 +1566,56 @@ fishing:
       value: 14
       xp: 4.0
       biomes: [OCEAN, BEACH]
+      hint: "Seen along coasts and open water."
+    mud_flounder:
+      name: "Mud Flounder"
+      rarity: common
+      material: COD
+      weight: 26.0
+      min-size: 12.0
+      max-size: 38.0
+      value: 13
+      xp: 4.0
+      biomes: [SWAMP, RIVER]
+      lore:
+        - "&7Prefers murky, muddy waters."
+      hint: "Lurks in murky, muddy waters."
+    sunny_bass:
+      name: "Sunny Bass"
+      rarity: common
+      material: SALMON
+      weight: 24.0
+      min-size: 15.0
+      max-size: 45.0
+      value: 15
+      xp: 5.0
+      time: day
+      hint: "Only active while the sun is up."
+    dusk_sardine:
+      name: "Dusk Sardine"
+      rarity: common
+      material: COD
+      weight: 24.0
+      min-size: 6.0
+      max-size: 20.0
+      value: 15
+      xp: 5.0
+      time: night
+      hint: "Comes out after sunset."
+    frost_smelt:
+      name: "Frost Smelt"
+      rarity: common
+      material: SALMON
+      weight: 22.0
+      min-size: 8.0
+      max-size: 25.0
+      value: 16
+      xp: 5.0
+      biomes: [FROZEN, SNOWY, ICE, COLD]
+      hint: "Thrives in freezing waters."
+    # ================= UNCOMMON =================
     salmon_badai:
-      name: "Salmon Badai"
+      name: "Storm Salmon"
       rarity: uncommon
       material: SALMON
       weight: 18.0
@@ -1554,9 +1625,59 @@ fishing:
       xp: 8.0
       weather: rain
       lore:
-        - "&7Hanya menggigit saat hujan."
+        - "&7Only bites while it rains."
+      hint: "Only bites while it rains."
+    amber_trout:
+      name: "Amber Trout"
+      rarity: uncommon
+      material: SALMON
+      weight: 16.0
+      min-size: 18.0
+      max-size: 55.0
+      value: 40
+      xp: 9.0
+      biomes: [RIVER]
+      time: day
+      hint: "A river fish that loves the morning sun."
+    lantern_herring:
+      name: "Lantern Herring"
+      rarity: uncommon
+      material: COD
+      weight: 16.0
+      min-size: 12.0
+      max-size: 40.0
+      value: 42
+      xp: 9.0
+      biomes: [OCEAN]
+      time: night
+      lore:
+        - "&7Glows faintly in dark water."
+      hint: "A faint glow in the ocean at night."
+    jungle_piranha:
+      name: "Jungle Piranha"
+      rarity: uncommon
+      material: TROPICAL_FISH
+      weight: 15.0
+      min-size: 10.0
+      max-size: 35.0
+      value: 45
+      xp: 10.0
+      biomes: [JUNGLE]
+      hint: "Snaps at hooks deep in the jungle."
+    desert_dartfish:
+      name: "Desert Dartfish"
+      rarity: uncommon
+      material: TROPICAL_FISH
+      weight: 14.0
+      min-size: 8.0
+      max-size: 28.0
+      value: 48
+      xp: 10.0
+      biomes: [DESERT, BADLANDS]
+      hint: "Hides in rare desert waters."
+    # ================= RARE =================
     buntal_duri_emas:
-      name: "Buntal Duri Emas"
+      name: "Gilded Puffer"
       rarity: rare
       material: PUFFERFISH
       weight: 9.0
@@ -1565,8 +1686,59 @@ fishing:
       value: 90
       xp: 15.0
       min-fishing-level: 12
+      hint: "Its golden spines demand a practiced hand."
+    coral_marauder:
+      name: "Coral Marauder"
+      rarity: rare
+      material: TROPICAL_FISH
+      weight: 8.0
+      min-size: 20.0
+      max-size: 60.0
+      value: 100
+      xp: 16.0
+      biomes: [WARM]
+      hint: "Patrols warm coral seas."
+    thunderfin:
+      name: "Thunderfin"
+      rarity: rare
+      material: SALMON
+      weight: 8.0
+      min-size: 25.0
+      max-size: 70.0
+      value: 110
+      xp: 17.0
+      weather: rain
+      time: day
+      hint: "Rides the daytime storms."
+    midnight_eel:
+      name: "Midnight Eel"
+      rarity: rare
+      material: COD
+      weight: 8.0
+      min-size: 30.0
+      max-size: 90.0
+      value: 105
+      xp: 16.0
+      biomes: [SWAMP, RIVER]
+      time: night
+      hint: "Slithers through dark rivers at midnight."
+    glacier_pike:
+      name: "Glacier Pike"
+      rarity: rare
+      material: SALMON
+      weight: 7.0
+      min-size: 30.0
+      max-size: 85.0
+      value: 120
+      xp: 18.0
+      biomes: [FROZEN, ICE, SNOWY]
+      min-rod-level: 3
+      lore:
+        - "&7Needs a sturdy rod to land."
+      hint: "An icy predator that tests your rod."
+    # ================= EPIC =================
     pari_bulan:
-      name: "Pari Bulan"
+      name: "Moonray"
       rarity: epic
       material: TROPICAL_FISH
       weight: 4.0
@@ -1577,7 +1749,49 @@ fishing:
       time: night
       min-fishing-level: 20
       lore:
-        - "&7Muncul hanya di bawah sinar bulan."
+        - "&7Appears only under moonlight."
+      hint: "Appears only under moonlight."
+    ember_koi:
+      name: "Ember Koi"
+      rarity: epic
+      material: SALMON
+      weight: 4.0
+      min-size: 35.0
+      max-size: 100.0
+      value: 240
+      xp: 30.0
+      time: day
+      weather: clear
+      min-rod-level: 4
+      hint: "Basks in clear midday light."
+    abyssal_angler:
+      name: "Abyssal Anglerfish"
+      rarity: epic
+      material: PUFFERFISH
+      weight: 3.5
+      min-size: 30.0
+      max-size: 110.0
+      value: 260
+      xp: 32.0
+      biomes: [DEEP]
+      time: night
+      lore:
+        - "&7Dredged up from the deep ocean."
+      hint: "Something glows far below the deep ocean at night."
+    royal_swordfish:
+      name: "Royal Swordfish"
+      rarity: epic
+      material: COD
+      weight: 3.5
+      min-size: 60.0
+      max-size: 160.0
+      value: 280
+      xp: 34.0
+      biomes: [OCEAN]
+      weather: clear
+      min-rod-level: 5
+      hint: "Duels anglers on calm open seas."
+    # ================= LEGENDARY =================
     golden_koi:
       name: "Golden Koi"
       rarity: legendary
@@ -1590,10 +1804,27 @@ fishing:
       min-fishing-level: 30
       min-rod-level: 5
       lore:
-        - "&7Legenda kolam kekaisaran."
-        - "&7Butuh rod level 5+."
+        - "&7Legend of the imperial ponds."
+        - "&7Requires rod level 5+."
+      hint: "A legend whispered among master anglers."
+    tempest_marlin:
+      name: "Tempest Marlin"
+      rarity: legendary
+      material: COD
+      weight: 1.2
+      min-size: 80.0
+      max-size: 200.0
+      value: 700
+      xp: 70.0
+      biomes: [OCEAN]
+      weather: rain
+      min-rod-level: 6
+      lore:
+        - "&7Fights hardest in the fiercest storms."
+      hint: "Hunts the open sea when storms rage."
+    # ================= MYTHIC =================
     leviathan_muda:
-      name: "Leviathan Muda"
+      name: "Young Leviathan"
       rarity: mythic
       material: PUFFERFISH
       weight: 0.4
@@ -1606,5 +1837,21 @@ fishing:
       min-fishing-level: 40
       min-rod-level: 8
       lore:
-        - "&7Hanya badai tengah malam yang"
-        - "&7membangunkannya dari kedalaman."
+        - "&7Only a midnight storm wakes it"
+        - "&7from the depths."
+      hint: "Only a midnight storm wakes it from the depths."
+    celestial_arowana:
+      name: "Celestial Arowana"
+      rarity: mythic
+      material: TROPICAL_FISH
+      weight: 0.4
+      min-size: 100.0
+      max-size: 300.0
+      value: 2400
+      xp: 160.0
+      time: night
+      weather: clear
+      min-rod-level: 9
+      lore:
+        - "&7Said to swim between the stars."
+      hint: "Seen only on starlit, cloudless nights."

@@ -52,6 +52,10 @@ public final class FishingService {
    private double rodXpPerCatch = 1.0D;
    private double rodXpPerCustom = 3.0D;
    private double treasureBaseChance;
+   /** v1.5.3: true = tangkapan ikan vanilla SELALU diganti ikan custom yang memenuhi syarat. */
+   private boolean replaceVanilla = true;
+   /** v1.5.3: rarity minimum yang diumumkan di chat (penemuan pertama selalu diumumkan). */
+   private FishRarity announceMinRarity = FishRarity.UNCOMMON;
 
    public FishingService(W2NSMP plugin) {
       this.plugin = plugin;
@@ -77,6 +81,11 @@ public final class FishingService {
       this.attachmentSlots = Math.max(0, Math.min(5, config.getInt("fishing.rod.attachment-slots", 3)));
       this.rodXpPerCatch = Math.max(0.0D, config.getDouble("fishing.rod.xp-per-catch", 1.0D));
       this.rodXpPerCustom = Math.max(0.0D, config.getDouble("fishing.rod.xp-per-custom-catch", 3.0D));
+      // v1.5.3 (PHASE 3): true = SEMUA tangkapan ikan diganti ikan custom (vanilla fish
+      // tidak pernah jadi hasil normal); custom-chance-percent hanya dipakai bila false.
+      this.replaceVanilla = config.getBoolean("fishing.replace-vanilla", true);
+      FishRarity announce = FishRarity.fromKey(config.getString("fishing.announce-min-rarity", "uncommon"));
+      this.announceMinRarity = announce == null ? FishRarity.UNCOMMON : announce;
 
       this.rarityGates.clear();
       for (FishRarity rarity : FishRarity.values()) {
@@ -149,7 +158,8 @@ public final class FishingService {
             section.getString("weather", "any"),
             section.getString("time", "any"),
             section.getInt("min-fishing-level", 0),
-            section.getInt("min-rod-level", 0)));
+            section.getInt("min-rod-level", 0),
+            section.getString("hint", "")));
       }
    }
 
@@ -232,6 +242,25 @@ public final class FishingService {
    // Akses registry
    // ------------------------------------------------------------------ //
 
+   /** v1.5.3: apakah rarity ini pantas diumumkan di chat saat tertangkap. */
+   public boolean shouldAnnounce(FishRarity rarity) {
+      return rarity != null && rarity.ordinal() >= this.announceMinRarity.ordinal();
+   }
+
+   /** v1.5.3: mode "semua ikan tangkapan diganti custom" (fishing.replace-vanilla). */
+   public boolean replaceVanilla() {
+      return this.replaceVanilla;
+   }
+
+   /**
+    * v1.5.3: apakah material ini ikan vanilla. Dipakai listener untuk memutuskan tangkapan
+    * mana yang diganti - treasure/junk vanilla (buku enchant, dll.) TIDAK disentuh.
+    */
+   public boolean isVanillaFishMaterial(Material material) {
+      return material == Material.COD || material == Material.SALMON
+         || material == Material.TROPICAL_FISH || material == Material.PUFFERFISH;
+   }
+
    public boolean enabled() {
       return this.enabled;
    }
@@ -290,9 +319,14 @@ public final class FishingService {
          return null;
       }
 
-      double chance = clamp(this.customChance + bonusChancePercent, 0.0D, 100.0D);
-      if (this.random.nextDouble() * 100.0D >= chance) {
-         return null;
+      // v1.5.3: mode replace-vanilla melewati undian peluang - setiap tangkapan ikan
+      // digantikan ikan custom dari pool yang memenuhi syarat (vanilla fish bukan lagi
+      // hasil normal). Bila false, perilaku lama (custom-chance-percent) dipertahankan.
+      if (!this.replaceVanilla) {
+         double chance = clamp(this.customChance + bonusChancePercent, 0.0D, 100.0D);
+         if (this.random.nextDouble() * 100.0D >= chance) {
+            return null;
+         }
       }
 
       List<CustomFish> pool = new ArrayList<>();

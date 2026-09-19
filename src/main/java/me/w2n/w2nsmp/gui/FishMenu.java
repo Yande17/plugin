@@ -291,10 +291,14 @@ public final class FishMenu {
       String rarity = fishing == null ? fish.rarity().key() : fishing.rarityLabel(fish.rarity());
 
       if (!discovered) {
+         // v1.5.3: kartu terkunci menampilkan HINT (dari config fish.<id>.hint, atau hint
+         // otomatis dari syaratnya) tanpa membocorkan nama/nilai/data lengkap ikan.
          return Items.create(
             gui(plugin).material("undiscovered-material", Material.GRAY_DYE),
             plugin.messages().raw("fishing.gallery-unknown-name", "rarity", rarity),
-            plugin.messages().rawList("fishing.gallery-unknown-lore", "rarity", rarity));
+            plugin.messages().rawList("fishing.gallery-unknown-lore",
+               "rarity", rarity,
+               "hint", hintFor(plugin, fish)));
       }
 
       List<String> lore = new ArrayList<>(plugin.messages().rawList("fishing.gallery-fish-lore",
@@ -307,6 +311,43 @@ public final class FishMenu {
       return Items.create(fish.material(),
          plugin.messages().raw("fishing.gallery-fish-name", "fish", fish.fishName(), "rarity", rarity),
          lore);
+   }
+
+   /**
+    * Hint kartu terkunci (v1.5.3): pakai {@code hint} dari config bila diisi; kalau kosong,
+    * susun otomatis dari syarat lingkungan ikan tanpa membocorkan nama/nilai.
+    */
+   public static String hintFor(W2NSMP plugin, CustomFish fish) {
+      if (fish == null) {
+         return plugin.messages().raw("fishing.hint-default");
+      }
+
+      if (!fish.hint().isEmpty()) {
+         return fish.hint();
+      }
+
+      // Susun otomatis: "Try fishing <biome> <waktu> <cuaca>." - hanya bagian yang disyaratkan.
+      StringBuilder parts = new StringBuilder();
+      if (!fish.biomes().isEmpty()) {
+         parts.append(' ').append(plugin.messages().raw("fishing.hint-biome",
+            "biomes", String.join(", ", fish.biomes()).toLowerCase(java.util.Locale.ROOT)));
+      }
+
+      if (!"any".equals(fish.time())) {
+         parts.append(' ').append(plugin.messages().raw("fishing.hint-time",
+            "time", plugin.messages().raw("fishing.time." + fish.time())));
+      }
+
+      if (!"any".equals(fish.weather())) {
+         parts.append(' ').append(plugin.messages().raw("fishing.hint-weather",
+            "weather", plugin.messages().raw("fishing.weather." + fish.weather())));
+      }
+
+      if (parts.length() == 0) {
+         return plugin.messages().raw("fishing.hint-default");
+      }
+
+      return plugin.messages().raw("fishing.hint-prefix") + parts;
    }
 
    /** Baris syarat (biome/cuaca/waktu/level) - hanya yang benar-benar disyaratkan. */

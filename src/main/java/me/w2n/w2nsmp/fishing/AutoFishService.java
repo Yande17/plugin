@@ -438,8 +438,11 @@ public final class AutoFishService {
       session.caught++;
       if (rolled != null) {
          session.customCaught++;
-         this.plugin.messages().send(player, "fishing.autofish.caught-custom",
-            "fish", rolled.fishName(), "rarity", fishing.rarityLabel(rolled.rarity()));
+         // v1.5.3: gate pengumuman sama dengan memancing manual (anti banjir chat).
+         if (fishing.shouldAnnounce(rolled.rarity())) {
+            this.plugin.messages().send(player, "fishing.autofish.caught-custom",
+               "fish", rolled.fishName(), "rarity", fishing.rarityLabel(rolled.rarity()));
+         }
          if (fishing.discovery().discover(player.getUniqueId(), rolled.id())) {
             this.plugin.messages().send(player, "fishing.discovered",
                "fish", rolled.fishName(), "rarity", fishing.rarityLabel(rolled.rarity()));
