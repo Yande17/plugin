@@ -222,7 +222,7 @@ public final class SkillInfo {
          "cap-level",
          capLevel < 0 ? "-" : Integer.toString(Math.min(capLevel, service.maxLevel())),
          "status",
-         settings.enabled() && buff.unlocked(level) ? "aktif" : "terkunci"
+         settings.enabled() && buff.unlocked(level) ? "active" : "locked"
       };
    }
 

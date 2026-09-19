@@ -29,10 +29,10 @@ slots:
   mining: 14
   woodcutting: 15
   farming: 16
-  fishing: 20
+  fishing: 19
   endurance: 21
-  vitality: 22
-  recovery: 23
+  vitality: 23
+  recovery: 25
   top: 48
   info: 49
   close: 53

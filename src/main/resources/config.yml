@@ -1034,7 +1034,7 @@ skills:
     fishing:
       enabled: true
       icon: FISHING_ROD
-      slot: 20
+      slot: 19
       xp:
         multiplier: 1.0
         per-catch: 18.0          # XP tiap tarikan yang menghasilkan ikan/harta
@@ -1108,7 +1108,7 @@ skills:
     vitality:
       enabled: true
       icon: GOLDEN_APPLE
-      slot: 22
+      slot: 23
       xp:
         multiplier: 1.0
         damage-survived: 1.0        # XP per poin damage saat bertahan di darah rendah
@@ -1140,7 +1140,7 @@ skills:
     recovery:
       enabled: true
       icon: GLISTERING_MELON_SLICE
-      slot: 23
+      slot: 25
       xp:
         multiplier: 1.0
         per-heart-regen: 8.0     # XP per heart yang pulih secara alami

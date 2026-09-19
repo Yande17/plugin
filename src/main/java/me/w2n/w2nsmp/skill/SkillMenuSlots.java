@@ -9,7 +9,7 @@ package me.w2n.w2nsmp.skill;
  *
  * <pre>
  *   baris 2 : 10 11 12 13 14 15 16   (fighting .. farming)
- *   baris 3 : 20 21 22 23            (fishing .. recovery)
+ *   baris 3 : 19 21 23 25            (fishing .. recovery, simetris berjarak)
  *   baris 6 : 48 top | 49 info | 53 close
  * </pre>
  */
@@ -35,10 +35,10 @@ public final class SkillMenuSlots {
          case MINING -> 14;
          case WOODCUTTING -> 15;
          case FARMING -> 16;
-         case FISHING -> 20;
+         case FISHING -> 19;
          case ENDURANCE -> 21;
-         case VITALITY -> 22;
-         case RECOVERY -> 23;
+         case VITALITY -> 23;
+         case RECOVERY -> 25;
       };
    }
 
