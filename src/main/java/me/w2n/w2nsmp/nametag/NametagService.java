@@ -1,218 +1,155 @@
 package me.w2n.w2nsmp.nametag;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import me.w2n.w2nsmp.W2NSMP;
-import me.w2n.w2nsmp.player.PlayerSettingsService;
 import me.w2n.w2nsmp.scoreboard.ScoreboardService;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
 /**
- * Baris uang di bawah nama pemain.
+ * Layanan tampilan uang pemain (v1.6.0, PHASE 1).
  *
- * <p>Catatan penting: W2NSMP memasang <em>scoreboard pribadi</em> untuk setiap pemain yang
- * sidebar statistiknya aktif ({@link ScoreboardService}). Pemain seperti itu tidak lagi melihat
- * scoreboard utama server, jadi team nametag yang hanya didaftarkan di scoreboard utama tidak
- * akan pernah tampil. Karena itu layanan ini menulis ke <b>semua</b> scoreboard yang sedang
- * dipakai pemain: scoreboard utama (untuk pemain tanpa sidebar) dan scoreboard sidebar tiap
- * pemain online.
+ * <p><b>PHASE 1: uang DIHAPUS dari nama pemain.</b> Mekanisme lama (team suffix
+ * {@code w2nmoney} yang menempelkan " | $10,000" di baris nama) sudah tidak dipakai lagi -
+ * nama pemain kembali bersih ("PlayerName" saja). Karena team scoreboard utama tersimpan di
+ * {@code scoreboard.dat} server, layanan ini tetap MEMBERSIHKAN team lama saat startup,
+ * reload, dan shutdown supaya tidak ada sisa suffix dari versi sebelumnya.
  *
- * <p>Agar tidak membanjiri jaringan dengan pembaruan team yang isinya sama, teks terakhir yang
- * dikirim untuk setiap (target, entri) disimpan di {@link #suffixCache}; suffix hanya ditulis
- * ulang bila teksnya benar-benar berubah.
+ * <p>Kerangka publik kelas (apply/remove/refresh/dll.) sengaja dipertahankan: pemanggil lama
+ * (EconomyManager, ScoreboardService, SettingsMenu, ScoreboardListener) tetap kompatibel, dan
+ * PHASE 2 akan mengisi kembali kerangka ini dengan tampilan uang DI ATAS KEPALA pemain.
+ * Rank/prefix dari plugin lain tidak pernah disentuh - kami hanya menghapus team milik kami
+ * sendiri ({@link #TEAM_NAME}).
  */
 public final class NametagService {
+   /** Nama team lama yang dipakai versi <= 1.5.x untuk suffix uang - kini hanya dibersihkan. */
    public static final String TEAM_NAME = "w2nmoney";
-   private static final String MAIN_TARGET = "main";
 
    private final W2NSMP plugin;
-   private final Set<UUID> managed = new HashSet<>();
-   private final Map<String, Map<String, String>> suffixCache = new HashMap<>();
-   private BukkitTask task;
 
    public NametagService(W2NSMP plugin) {
       this.plugin = plugin;
    }
 
+   /** Startup: bersihkan team suffix lama dari semua scoreboard (utama + sidebar). */
    public void load() {
-      if (!this.enabled()) {
-         this.removeAll();
-      } else {
-         for (Player player : Bukkit.getOnlinePlayers()) {
-            this.apply(player);
-         }
-      }
+      this.removeAll();
    }
 
    public void reload() {
-      this.stopTasks();
       this.removeAll();
-      this.load();
-      this.startTasks();
    }
 
+   /** PHASE 1: tidak ada task berkala - tidak ada lagi yang perlu disegarkan. */
    public void startTasks() {
-      this.stopTasks();
-      if (this.enabled()) {
-         int seconds = this.plugin.config().nametagMoneyUpdateSeconds();
-         if (seconds > 0) {
-            long ticks = seconds * 20L;
-            this.task = Bukkit.getScheduler().runTaskTimer(this.plugin, () -> {
-               for (Player player : Bukkit.getOnlinePlayers()) {
-                  this.refresh(player);
-               }
-            }, ticks, ticks);
-         }
-      }
    }
 
    public void stopTasks() {
-      if (this.task != null) {
-         this.task.cancel();
-         this.task = null;
-      }
    }
 
    public void shutdown() {
-      this.stopTasks();
       this.removeAll();
    }
 
+   /** Gate config lama (dipakai /setting untuk status Locked). */
    public boolean enabled() {
       return this.plugin.config().nametagMoneyEnabled();
    }
 
    public boolean taskRunning() {
-      return this.task != null && !this.task.isCancelled();
+      return false;
    }
 
    public int activeCount() {
-      return this.managed.size();
+      return 0;
    }
 
-   /** Jumlah scoreboard yang sedang menerima team nametag (utama + sidebar tiap pemain). */
+   /** Jumlah scoreboard yang dipindai saat pembersihan team lama. */
    public int targetCount() {
       return this.targets().size();
    }
 
+   /** PHASE 1: tidak ada yang dipasang ke nama - selalu false (nama pemain bersih). */
    public boolean apply(Player player) {
-      if (player == null || !this.enabled()) {
-         return false;
-      }
-
-      Scoreboard main = this.mainScoreboard();
-      if (main == null) {
-         return false;
-      }
-
-      PlayerSettingsService settings = this.plugin.settings();
-      if (settings != null && !settings.nametagMoney(player)) {
-         this.remove(player);
-         return false;
-      }
-
-      Team ours = this.team(main);
-      Team existing = main.getEntryTeam(player.getName());
-      if (existing != null && !existing.equals(ours)) {
-         if (this.plugin.config().nametagMoneyRespectTeams()) {
-            this.managed.remove(player.getUniqueId());
-            if (this.plugin.config().debug()) {
-               this.plugin.getLogger().info("Nametag: " + player.getName() + " sudah di tim " + existing.getName() + " -> baris uang dilewati.");
-            }
-
-            return false;
-         }
-
-         existing.removeEntry(player.getName());
-      }
-
-      this.managed.add(player.getUniqueId());
-      this.publish(player);
-      return true;
+      return false;
    }
 
+   /** PHASE 1: tidak ada tampilan di nama yang perlu disegarkan. */
    public void refresh(Player player) {
-      if (player != null && this.enabled()) {
-         if (!this.managed.contains(player.getUniqueId())) {
-            if (player.isOnline()) {
-               this.apply(player);
-            }
-         } else {
-            this.publish(player);
-         }
-      }
    }
 
-   /**
-    * Dipanggil {@link ScoreboardService} saat scoreboard seorang pemain berganti (sidebar
-    * dinyalakan/dimatikan, join, quit, reload). Scoreboard yang baru harus langsung berisi
-    * baris uang semua pemain yang dikelola, dan cache scoreboard lama dibuang.
-    */
+   /** Scoreboard pemain berganti (sidebar on/off): pastikan scoreboard baru bebas team lama. */
    public void onScoreboardChanged(Player viewer) {
-      if (viewer == null || !this.enabled()) {
+      if (viewer == null) {
          return;
       }
 
-      String target = viewer.getUniqueId().toString();
-      this.suffixCache.remove(target);
       ScoreboardService service = this.plugin.scoreboard();
       Scoreboard sidebar = service == null ? null : service.activeScoreboard(viewer);
-      if (sidebar == null) {
+      this.cleanTeam(sidebar);
+   }
+
+   /** Hapus entri pemain ini dari team lama di semua scoreboard. */
+   public void remove(Player player) {
+      if (player == null) {
          return;
       }
 
-      for (UUID uniqueId : Set.copyOf(this.managed)) {
-         Player subject = Bukkit.getPlayer(uniqueId);
-         if (subject != null && subject.isOnline()) {
-            this.publishTo(target, sidebar, subject);
-         }
-      }
-   }
+      String name = player.getName();
 
-   public void remove(Player player) {
-      if (player != null) {
-         this.managed.remove(player.getUniqueId());
-         this.suffixCache.remove(player.getUniqueId().toString());
-         String name = player.getName();
-
-         for (Entry<String, Scoreboard> target : this.targets().entrySet()) {
-            Scoreboard scoreboard = target.getValue();
-            if (scoreboard == null) {
-               continue;
-            }
-
-            Team team = scoreboard.getTeam(TEAM_NAME);
-            if (team != null && team.hasEntry(name)) {
-               team.removeEntry(name);
-            }
-
-            Map<String, String> cache = this.suffixCache.get(target.getKey());
-            if (cache != null) {
-               cache.remove(name);
-            }
-         }
-      }
-   }
-
-   public void removeAll() {
-      Set<Scoreboard> boards = new LinkedHashSet<>(this.targets().values());
-
-      for (Scoreboard scoreboard : boards) {
+      for (Scoreboard scoreboard : this.targets().values()) {
          if (scoreboard == null) {
             continue;
          }
 
+         try {
+            Team team = scoreboard.getTeam(TEAM_NAME);
+            if (team != null && team.hasEntry(name)) {
+               team.removeEntry(name);
+            }
+         } catch (Throwable ignored) {
+         }
+      }
+   }
+
+   /** Bersihkan team suffix lama dari SEMUA scoreboard (termasuk sisa di scoreboard.dat). */
+   public void removeAll() {
+      Set<Scoreboard> boards = new LinkedHashSet<>(this.targets().values());
+
+      for (Scoreboard scoreboard : boards) {
+         this.cleanTeam(scoreboard);
+      }
+   }
+
+   /** Kompatibilitas API lama: teks uang pemain (tidak lagi ditampilkan di nama). */
+   public Component text(Player player) {
+      String balance = this.plugin.economy() != null && this.plugin.economy().isEnabled()
+         ? this.plugin.economy().format(this.plugin.economy().balance(player))
+         : "-";
+      return this.plugin.messages().colored(balance);
+   }
+
+   /** PHASE 1: tidak ada pemain yang dikelola di nama. */
+   public boolean managed(UUID uniqueId) {
+      return false;
+   }
+
+   // ------------------------------------------------------------------ //
+
+   /** Cabut semua entri lalu unregister team lama pada satu scoreboard. */
+   private void cleanTeam(Scoreboard scoreboard) {
+      if (scoreboard == null) {
+         return;
+      }
+
+      try {
          Team team = scoreboard.getTeam(TEAM_NAME);
          if (team != null) {
             for (String entry : Set.copyOf(team.getEntries())) {
@@ -221,59 +158,17 @@ public final class NametagService {
 
             team.unregister();
          }
-      }
-
-      this.managed.clear();
-      this.suffixCache.clear();
-   }
-
-   public Component text(Player player) {
-      return this.plugin.messages().colored(this.textString(player));
-   }
-
-   public boolean managed(UUID uniqueId) {
-      return uniqueId != null && this.managed.contains(uniqueId);
-   }
-
-   /** Tulis baris uang pemain ke semua scoreboard yang sedang dipakai. */
-   private void publish(Player player) {
-      for (Entry<String, Scoreboard> target : this.targets().entrySet()) {
-         this.publishTo(target.getKey(), target.getValue(), player);
+      } catch (Throwable throwable) {
+         this.plugin.debug("Nametag: gagal membersihkan team lama (" + throwable + ").");
       }
    }
 
-   private void publishTo(String target, Scoreboard scoreboard, Player player) {
-      if (scoreboard == null || player == null) {
-         return;
-      }
-
-      Team team = this.team(scoreboard);
-      if (team == null) {
-         return;
-      }
-
-      String name = player.getName();
-      String text = this.textString(player);
-      if (!team.hasEntry(name)) {
-         team.addEntry(name);
-      }
-
-      Map<String, String> cache = this.suffixCache.computeIfAbsent(target, ignored -> new HashMap<>());
-      if (!text.equals(cache.get(name))) {
-         team.suffix(this.plugin.messages().colored(text));
-         cache.put(name, text);
-      }
-   }
-
-   /**
-    * Semua scoreboard yang perlu memuat team nametag: scoreboard utama (dipakai pemain tanpa
-    * sidebar) plus scoreboard sidebar milik setiap pemain online.
-    */
+   /** Scoreboard utama + scoreboard sidebar setiap pemain online. */
    private Map<String, Scoreboard> targets() {
       Map<String, Scoreboard> result = new LinkedHashMap<>();
-      Scoreboard main = this.mainScoreboard();
+      Scoreboard main = Bukkit.getScoreboardManager() == null ? null : Bukkit.getScoreboardManager().getMainScoreboard();
       if (main != null) {
-         result.put(MAIN_TARGET, main);
+         result.put("main", main);
       }
 
       ScoreboardService service = this.plugin.scoreboard();
@@ -287,31 +182,5 @@ public final class NametagService {
       }
 
       return result;
-   }
-
-   private String textString(Player player) {
-      String balance = this.plugin.economy() != null && this.plugin.economy().isEnabled()
-         ? this.plugin.economy().format(this.plugin.economy().balance(player))
-         : "-";
-      String prefix = this.plugin.config().nametagMoneyNewLine() ? "\n" : "";
-      return prefix + this.plugin.messages().apply(this.plugin.config().nametagMoneyFormat(), "balance", balance, "player", player.getName());
-   }
-
-   private Scoreboard mainScoreboard() {
-      return Bukkit.getScoreboardManager() == null ? null : Bukkit.getScoreboardManager().getMainScoreboard();
-   }
-
-   private Team team(Scoreboard scoreboard) {
-      if (scoreboard == null) {
-         return null;
-      }
-
-      Team team = scoreboard.getTeam(TEAM_NAME);
-      if (team == null) {
-         team = scoreboard.registerNewTeam(TEAM_NAME);
-      }
-
-      team.setCanSeeFriendlyInvisibles(false);
-      return team;
    }
 }
